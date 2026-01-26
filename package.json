@@ -1,0 +1,74 @@
+{
+  "name": "stubidp",
+  "version": "1.0.0",
+  "description": "A mock OpenID Connect server for developers. Zero config, instant OIDC.",
+  "main": "dist/index.js",
+  "bin": {
+    "stubidp": "bin/run.js"
+  },
+  "scripts": {
+    "start": "node bin/run.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
+    "db:seed": "ts-node scripts/seed.ts",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "build": "tsc"
+  },
+  "keywords": [
+    "oidc",
+    "openid-connect",
+    "oauth2",
+    "testing",
+    "identity-provider",
+    "idp",
+    "stub",
+    "mock",
+    "development",
+    "ci-cd",
+    "authentication"
+  ],
+  "author": "CerberAuth",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/cerberauth/stubidp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cerberauth/stubidp.git"
+  },
+  "dependencies": {
+    "@types/yargs": "17.0.35",
+    "better-sqlite3": "12.6.2",
+    "dotenv": "17.2.3",
+    "drizzle-orm": "0.45.1",
+    "express": "5.2.1",
+    "oidc-provider": "9.6.0",
+    "pg": "8.17.1",
+    "pino": "9.0.0",
+    "yargs": "18.0.0",
+    "zod": "3.24.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@eslint/json": "0.14.0",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/express": "5.0.6",
+    "@types/node": "25.0.10",
+    "@types/oidc-provider": "9.5.0",
+    "@types/pg": "8.16.0",
+    "@vitest/coverage-v8": "3.0.0",
+    "drizzle-kit": "0.31.8",
+    "eslint": "9.39.2",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.5",
+    "globals": "17.1.0",
+    "prettier": "3.8.1",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.53.1",
+    "vitest": "3.0.0"
+  }
+}
