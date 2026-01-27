@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 describe('PostgreSQL Schema', () => {
   it('should export all required tables', async () => {
-    const schema = await import('../src/db/schema.postgres.js')
+    const schema = await import('../src/db/schema/postgresql.js')
 
     expect(schema.clients).toBeDefined()
     expect(schema.sessions).toBeDefined()
@@ -17,7 +17,7 @@ describe('PostgreSQL Schema', () => {
 
 describe('SQLite Schema', () => {
   it('should export all required tables', async () => {
-    const schema = await import('../src/db/schema.sqlite.js')
+    const schema = await import('../src/db/schema/sqlite.js')
 
     expect(schema.clients).toBeDefined()
     expect(schema.sessions).toBeDefined()
@@ -32,8 +32,8 @@ describe('SQLite Schema', () => {
 
 describe('Schema Consistency', () => {
   it('should have identical exported table names between postgres and sqlite', async () => {
-    const pgSchema = await import('../src/db/schema.postgres.js')
-    const sqliteSchema = await import('../src/db/schema.sqlite.js')
+    const pgSchema = await import('../src/db/schema/postgresql.js')
+    const sqliteSchema = await import('../src/db/schema/sqlite.js')
 
     // Both should export the same table names
     const pgTables = Object.keys(pgSchema).sort()

@@ -1,0 +1,12 @@
+FROM node:lts-slim
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm ci --production
+
+COPY ./bin ./build ./
+
+EXPOSE 3000
+
+CMD [ "npm", "start" ]
