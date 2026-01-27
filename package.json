@@ -1,5 +1,5 @@
 {
-  "name": "stubidp",
+  "name": "@cerberauth/stubidp",
   "version": "1.0.0",
   "description": "A mock OpenID Connect server for developers. Zero config, instant OIDC.",
   "main": "dist/index.js",
