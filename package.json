@@ -1,6 +1,6 @@
 {
   "name": "@cerberauth/stubidp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A mock OpenID Connect server for developers. Zero config, instant OIDC.",
   "keywords": [
     "oidc",
