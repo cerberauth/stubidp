@@ -13,7 +13,7 @@ Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustratin
 ## Quick Start
 
 ```bash
-npx stubidp --clientId web-app --clientSecret web-app-secret --redirectUri http://localhost:8080/callback
+npx @cerberauth/stubidp --clientId web-app --clientSecret web-app-secret --redirectUri http://localhost:8080/callback
 ```
 
 Your OIDC provider is now live at `http://localhost:3000/oauth2`

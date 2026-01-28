@@ -4,6 +4,7 @@
   "description": "A mock OpenID Connect server for developers. Zero config, instant OIDC.",
   "main": "dist/index.js",
   "bin": {
+    "@cerberauth/stubidp": "bin/run.js",
     "stubidp": "bin/run.js"
   },
   "scripts": {
