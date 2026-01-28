@@ -1,0 +1,41 @@
+name: Changesets
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changesets:
+    name: Create Release PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v6
+        with:
+          cache: npm
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies 👨🏻‍💻
+        run: npm ci
+
+      - name: Create Version PR 📝
+        uses: changesets/action@v1
+        with:
+          version: npm run changeset:version
+          title: "chore: version packages"
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

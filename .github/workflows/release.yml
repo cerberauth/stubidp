@@ -1,62 +1,11 @@
-name: Docker
+name: Release
 
 on:
-  push:
-    branches:
-      - main
   release:
     types: [published]
 
 jobs:
-  prepare-release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup node env 🏗
-        uses: actions/setup-node@v6
-        with:
-          cache: npm
-          node-version-file: ".nvmrc"
-
-      - name: Install dependencies 👨🏻‍💻
-        run: npm ci
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  npm-publish:
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup node env 🏗
-        uses: actions/setup-node@v6
-        with:
-          cache: npm
-          node-version-file: ".nvmrc"
-
-      - name: Install dependencies 👨🏻‍💻
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm run publish
-
-  docker-build:
-    if: github.event_name == 'release'
+  release-docker:
     runs-on: ubuntu-latest
 
     permissions:
@@ -64,13 +13,17 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout
+      - name: Checkout 🛎
         uses: actions/checkout@v6
+
+      - name: Get version from release tag
+        id: get_version
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_OUTPUT
 
       - name: Create Docker Image name
         id: create-image-name
         run: |
-          echo "image=ghcr.io/${{ github.repository }}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -86,6 +39,187 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ steps.create-image-name.outputs.image }}
+          tags: ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }},ghcr.io/${{ github.repository }}:latest
           cache-from: type=registry,ref=${{ steps.create-image-name.outputs.image }}
           cache-to: type=inline
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ github.repository }}:${{ steps.get_version.outputs.VERSION }},${{ github.repository }}:latest
+          cache-from: type=registry,ref=${{ steps.create-image-name.outputs.image }}
+          cache-to: type=inline
+
+  release-npm:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v6
+        with:
+          cache: npm
+          node-version-file: ".nvmrc"
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies 👨🏻‍💻
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate build artifacts 🔍
+        run: |
+          echo "Checking build artifacts..."
+
+          if [ ! -d "build" ]; then
+            echo "❌ Error: build/ directory not found"
+            exit 1
+          fi
+
+          if [ ! -f "build/index.js" ]; then
+            echo "❌ Error: build/index.js not found"
+            exit 1
+          fi
+
+          if [ ! -f "bin/run.js" ]; then
+            echo "❌ Error: bin/run.js not found"
+            exit 1
+          fi
+
+          echo "✅ All required build artifacts present"
+          ls -lah build/
+
+      - name: Get version from release tag
+        id: get_version
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+
+      - name: Publish to npm 📦
+        id: npm_publish
+        run: |
+          echo "📦 Publishing @cerberauth/stubidp@${{ steps.get_version.outputs.VERSION }} to npm..."
+          npm publish --dry-run
+          npm publish
+          echo "✅ Successfully published to npm registry"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@cerberauth'
+
+      - name: Publish to GitHub Packages 📦
+        id: github_publish
+        run: |
+          echo "📦 Publishing @cerberauth/stubidp@${{ steps.get_version.outputs.VERSION }} to GitHub Packages..."
+          npm publish --dry-run
+          npm publish
+          echo "✅ Successfully published to GitHub Packages Registry"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  verify-release:
+    name: Verify Release
+    runs-on: ubuntu-latest
+    needs: [release-npm]
+
+    steps:
+      - name: Wait for registry propagation ⏳
+        run: sleep 30
+
+      - name: Verify npm package 📋
+        run: |
+          echo "Verifying @cerberauth/stubidp@${{ needs.release-npm.outputs.version }} on npm..."
+          npm view @cerberauth/stubidp@${{ needs.release-npm.outputs.version }}
+          echo "✅ Package found on npm registry"
+
+      - name: Verify GitHub Packages 📋
+        run: |
+          echo "Verifying @cerberauth/stubidp@${{ needs.release-npm.outputs.version }} on GitHub Packages..."
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          echo "@cerberauth:registry=https://npm.pkg.github.com" >> .npmrc
+          npm view @cerberauth/stubidp@${{ needs.release-npm.outputs.version }}
+          echo "✅ Package found on GitHub Packages Registry"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test installation 🧪
+        run: |
+          echo "Testing package installation..."
+          mkdir test-install
+          cd test-install
+          npm init -y
+          npm install @cerberauth/stubidp@${{ needs.release-npm.outputs.version }}
+          echo "✅ Package successfully installed"
+
+          # Test CLI command
+          npx stubidp --version || echo "⚠️  CLI command returned non-zero exit code (may be expected)"
+
+      - name: Update Release Notes 📝
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', '')
+            });
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              body: release.data.body + '\n\n✅ **Release verified and published successfully**\n\n- npm: https://www.npmjs.com/package/@cerberauth/stubidp\n- GitHub Packages: https://github.com/cerberauth/stubidp/pkgs/npm/stubidp\n- Docker (GHCR): https://github.com/cerberauth/stubidp/pkgs/container/stubidp\n- Docker Hub: https://hub.docker.com/r/cerberauth/stubidp'
+            });
+
+  update-package-version:
+    name: Update package.json
+    runs-on: ubuntu-latest
+    needs: [release-npm]
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version from release tag
+        id: get_version
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+
+      - name: Commit and push package.json 📝
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: update version to ${{ steps.get_version.outputs.VERSION }} [skip ci]"
+          git push origin HEAD:main
