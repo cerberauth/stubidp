@@ -28,6 +28,7 @@
     "lint": "eslint ./src --ext .ts",
     "format": "prettier --write .",
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:status": "changeset status"

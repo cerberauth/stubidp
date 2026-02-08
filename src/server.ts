@@ -1,8 +1,12 @@
 import express, { Express } from 'express'
-import oidc from './provider.js'
+import { createProvider, ProviderOptions } from './provider.js'
+import type { Provider } from 'oidc-provider'
 
-const app: Express = express()
+export async function createApp(options: ProviderOptions): Promise<Express> {
+  const app: Express = express()
+  const oidc: Provider = await createProvider(options)
 
-app.use('/oauth2', oidc.callback())
+  app.use('/oauth2', oidc.callback())
 
-export default app
+  return app
+}

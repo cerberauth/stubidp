@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 
-import '../build/args.js'
-import app from '../build/server.js'
+import { argv } from '../build/args.js'
+import { createApp } from '../build/server.js'
 import logger from '../build/logger.js'
 
 const port = parseInt(process.env.PORT || '3000', 10)
+
+const app = await createApp({
+  clientId: argv.clientId,
+  clientSecret: argv.clientSecret,
+  redirectUri: argv.redirectUri,
+})
 
 app.listen(port, () => {
   logger.info(
