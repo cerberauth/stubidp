@@ -109,9 +109,6 @@ jobs:
         id: get_version
         run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_OUTPUT
 
-      - name: Update package.json version
-        run: npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
-
       - name: Publish to npm 📦
         id: npm_publish
         run: |
