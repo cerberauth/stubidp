@@ -145,6 +145,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release-npm]
 
+    permissions:
+      contents: write
+      packages: read
+
     steps:
       - name: Wait for registry propagation ⏳
         run: sleep 30
@@ -179,7 +183,7 @@ jobs:
 
       - name: Update Release Notes 📝
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const release = await github.rest.repos.getReleaseByTag({
