@@ -11,6 +11,7 @@ npm run changeset
 ```
 
 This will prompt you to:
+
 1. Select the type of change (major/minor/patch)
 2. Describe the change
 
