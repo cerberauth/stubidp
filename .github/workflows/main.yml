@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  ci:
+  lint-and-build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -31,5 +31,50 @@ jobs:
       - name: Run linter 👀
         run: npm run lint
 
-      - name: Run tests 🧪
+      - name: Build 🔨
         run: npm run build
+
+  migrations:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        dialect: [sqlite, postgresql]
+      fail-fast: false
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stubidp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v6
+        with:
+          cache: npm
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies 👨🏻‍💻
+        run: npm ci
+
+      - name: Generate migrations 🗃️
+        run: npm run db:generate
+        env:
+          DATABASE_DIALECT: ${{ matrix.dialect }}
+          DATABASE_URL: ${{ matrix.dialect == 'postgresql' && 'postgresql://postgres:postgres@localhost:5432/stubidp' || '' }}

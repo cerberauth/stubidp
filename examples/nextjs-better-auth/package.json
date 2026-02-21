@@ -1,0 +1,27 @@
+{
+  "name": "nextjs-better-auth-stubidp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint",
+    "db:generate": "better-auth generate",
+    "db:migrate": "better-auth migrate"
+  },
+  "dependencies": {
+    "better-auth": "^1.2.7",
+    "better-sqlite3": "^11.9.1",
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "typescript": "^5.8.2"
+  }
+}
