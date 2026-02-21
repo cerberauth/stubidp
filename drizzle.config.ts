@@ -9,7 +9,7 @@ if (!dialect) {
 }
 
 const commonConfig: Pick<Config, 'schema' | 'dialect' | 'out'> = {
-  schema: `./lib/db/schema/${dialect}.ts`,
+  schema: `./src/db/schema/${dialect}.ts`,
   dialect,
   out: `./migrations/${dialect}`,
 }
@@ -21,4 +21,4 @@ export default dialect === 'postgresql'
         url: DATABASE_URL!,
       },
     }
-  : {}
+  : commonConfig

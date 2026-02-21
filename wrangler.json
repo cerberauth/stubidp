@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stubidp",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-02-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "tsconfig": "tsconfig.worker.json",
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stubidp-db",
+      "database_id": "",
+      "migrations_dir": "migrations/sqlite"
+    }
+  ]
+}
