@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stubidp",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-02-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "tsconfig": "tsconfig.worker.json",
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "vars": {
+    "OIDC_ISSUER": "https://stubidp.<your-subdomain>.workers.dev",
+    "DATABASE_DIALECT": "sqlite",
+    "OIDC_CLIENT_ID": "dev-client",
+    "OIDC_CLIENT_SECRET": "dev-secret",
+    "OIDC_REDIRECT_URI": "http://localhost:3000/callback"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stubidp-db",
+      "database_id": "",
+      "migrations_dir": "migrations/sqlite"
+    }
+  ]
+}
