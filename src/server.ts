@@ -4,6 +4,7 @@ import type { Provider } from 'oidc-provider'
 
 import { createInteractionRouter } from './interactions.js'
 import { createProvider, ProviderOptions } from './provider.js'
+import { homePage } from './views/index.js'
 
 export interface RateLimitOptions {
   windowMs?: number
@@ -31,6 +32,9 @@ export async function createApp(options: AppOptions): Promise<Express> {
     )
   }
 
+  app.get('/', (_req, res) => {
+    res.type('html').send(homePage(oidc.issuer))
+  })
   app.use('/interaction', createInteractionRouter(oidc))
   app.use('/', oidc.callback())
 
