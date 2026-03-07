@@ -4,6 +4,8 @@ import express from 'express'
 import { drizzle } from 'drizzle-orm/d1'
 
 import { createProvider } from './provider.js'
+import { createInteractionRouter } from './interactions.js'
+import { homePage } from './views/index.js'
 
 export interface Env {
   DB: D1Database
@@ -32,7 +34,15 @@ async function ensureApp(currentEnv: Env): Promise<ReturnType<typeof express>> {
   })
 
   const app = express()
+
+  app.get('/', (_req, res) => {
+    res.type('html').send(homePage(oidc.issuer))
+  })
+
+  app.use('/interaction', createInteractionRouter(oidc))
+
   app.use(oidc.callback())
+
   cachedEntry = { key, app }
   return app
 }

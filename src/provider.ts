@@ -22,8 +22,15 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       },
     ],
     features: {
-      devInteractions: { enabled: true },
+      devInteractions: { enabled: false },
     },
+    interactions: {
+      url: async (_ctx, interaction) => `/interaction/${interaction.uid}`,
+    },
+    findAccount: async (_ctx, sub) => ({
+      accountId: sub,
+      claims: async () => ({ sub }),
+    }),
   }
 
   if (options.db) {
