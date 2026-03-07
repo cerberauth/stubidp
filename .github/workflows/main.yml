@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
@@ -78,3 +80,19 @@ jobs:
         env:
           DATABASE_DIALECT: ${{ matrix.dialect }}
           DATABASE_URL: ${{ matrix.dialect == 'postgresql' && 'postgresql://postgres:postgres@localhost:5432/stubidp' || '' }}
+
+  docker-lint:
+    name: Lint Dockerfile
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+
+      - name: Lint Dockerfile 🐳
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: Dockerfile
