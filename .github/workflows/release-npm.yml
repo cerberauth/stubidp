@@ -1,0 +1,84 @@
+name: Release npm
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  release-npm:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v6
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v6
+        with:
+          cache: npm
+          node-version-file: '.nvmrc'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies 👨🏻‍💻
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate build artifacts 🔍
+        run: |
+          echo "Checking build artifacts..."
+
+          if [ ! -d "build" ]; then
+            echo "❌ Error: build/ directory not found"
+            exit 1
+          fi
+
+          if [ ! -f "build/index.js" ]; then
+            echo "❌ Error: build/index.js not found"
+            exit 1
+          fi
+
+          if [ ! -f "bin/run.js" ]; then
+            echo "❌ Error: bin/run.js not found"
+            exit 1
+          fi
+
+          echo "✅ All required build artifacts present"
+          ls -lah build/
+
+      - name: Publish to npm 📦
+        run: |
+          echo "📦 Publishing @cerberauth/stubidp@${{ inputs.version }} to npm..."
+          npm publish --dry-run
+          npm publish
+          echo "✅ Successfully published to npm registry"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup node env for GitHub Packages 🏗
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@cerberauth'
+
+      - name: Publish to GitHub Packages 📦
+        run: |
+          echo "📦 Publishing @cerberauth/stubidp@${{ inputs.version }} to GitHub Packages..."
+          npm publish --dry-run
+          npm publish
+          echo "✅ Successfully published to GitHub Packages Registry"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

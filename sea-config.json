@@ -1,0 +1,7 @@
+{
+  "main": "dist/sea-bundle.cjs",
+  "output": "dist/stubidp",
+  "disableExperimentalSEAWarning": true,
+  "useCodeCache": false,
+  "useSnapshot": false
+}

@@ -1,0 +1,284 @@
+name: Release SEA Binaries
+
+on:
+  workflow_call:
+    secrets:
+      HOMEBREW_GITHUB_TOKEN:
+        required: false
+      CHOCOLATEY_API_KEY:
+        required: false
+      WINGET_TOKEN:
+        required: false
+      SNAPCRAFT_STORE_CREDENTIALS:
+        required: false
+
+jobs:
+  build-sea:
+    name: Build (${{ matrix.target }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: linux-x64
+            binary: stubidp-linux-x64
+          - runner: ubuntu-24.04-arm
+            target: linux-arm64
+            binary: stubidp-linux-arm64
+            continue-on-error: true
+          - runner: macos-13
+            target: macos-x64
+            binary: stubidp-macos-x64
+          - runner: macos-latest
+            target: macos-arm64
+            binary: stubidp-macos-arm64
+          - runner: windows-latest
+            target: windows-x64
+            binary: stubidp-windows-x64.exe
+
+    permissions:
+      contents: read
+
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Bundle entry point
+        run: npm run build:bundle
+
+      - name: Set output binary name in sea-config
+        run: |
+          node --input-type=module --eval "
+            import { readFileSync, writeFileSync } from 'node:fs';
+            const cfg = JSON.parse(readFileSync('sea-config.json', 'utf8'));
+            cfg.output = 'dist/${{ matrix.binary }}';
+            writeFileSync('sea-config.json', JSON.stringify(cfg, null, 2));
+          "
+
+      - name: Build SEA binary
+        run: node --build-sea sea-config.json
+
+      - name: Sign binary (macOS)
+        if: runner.os == 'macOS'
+        run: codesign --sign - dist/${{ matrix.binary }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary }}
+          path: dist/${{ matrix.binary }}
+          if-no-files-found: error
+
+  release-sea:
+    name: Upload binaries to release
+    needs: build-sea
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/binaries
+          merge-multiple: true
+
+      - name: Generate checksums
+        working-directory: dist/binaries
+        run: sha256sum * > checksums.txt
+
+      - name: Upload binaries to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" dist/binaries/* --clobber \
+            --repo "$GITHUB_REPOSITORY"
+
+      - name: Upload checksums artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: dist/binaries/checksums.txt
+
+      - name: Append checksums to summary
+        run: |
+          echo "## Checksums" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat dist/binaries/checksums.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  update-homebrew:
+    name: Update Homebrew tap
+    needs: release-sea
+    runs-on: ubuntu-latest
+    if: "!github.event.release.prerelease"
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: checksums
+          path: dist/binaries
+
+      - name: Update Homebrew formula
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
+        run: bash scripts/update-homebrew.sh
+
+  publish-chocolatey:
+    name: Publish to Chocolatey
+    needs: release-sea
+    runs-on: windows-latest
+    if: "!github.event.release.prerelease"
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: checksums
+          path: dist/binaries
+
+      - name: Set version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Inject version and checksum into nuspec
+        shell: pwsh
+        run: |
+          $checksums = Get-Content dist/binaries/checksums.txt
+          $hash = ($checksums | Where-Object { $_ -match "stubidp-windows-x64.exe" }) -split '\s+' | Select-Object -First 1
+          $url = "https://github.com/cerberauth/stubidp/releases/download/${{ github.ref_name }}/stubidp-windows-x64.exe"
+
+          (Get-Content packaging/chocolatey/stubidp.nuspec) `
+            -replace 'VERSION_PLACEHOLDER', $env:VERSION `
+          | Set-Content packaging/chocolatey/stubidp.nuspec
+
+          (Get-Content packaging/chocolatey/tools/chocolateyInstall.ps1) `
+            -replace 'URL_PLACEHOLDER', $url `
+            -replace 'SHA256_PLACEHOLDER', $hash `
+          | Set-Content packaging/chocolatey/tools/chocolateyInstall.ps1
+
+      - name: Pack and push
+        working-directory: packaging/chocolatey
+        shell: pwsh
+        run: |
+          choco pack stubidp.nuspec
+          choco push stubidp.$env:VERSION.nupkg --source https://push.chocolatey.org --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+
+  publish-winget:
+    name: Publish to WinGet
+    needs: release-sea
+    runs-on: ubuntu-latest
+    if: "!github.event.release.prerelease"
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Submit to WinGet
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: CerberAuth.stubidp
+          version: ${{ github.ref_name }}
+          release-tag: ${{ github.ref_name }}
+          token: ${{ secrets.WINGET_TOKEN }}
+
+  publish-snap:
+    name: Publish to Snap Store
+    needs: release-sea
+    runs-on: ubuntu-latest
+    if: "!github.event.release.prerelease"
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set release tag in snapcraft.yaml
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          sed -i "s/RELEASE_TAG_PLACEHOLDER/$RELEASE_TAG/g" snapcraft.yaml
+
+      - name: Build and publish snap
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snapcraft-channel: stable
+
+  publish-linux-packages:
+    name: Publish .deb and .rpm
+    needs: release-sea
+    runs-on: ubuntu-latest
+    if: "!github.event.release.prerelease"
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/binaries
+          merge-multiple: true
+
+      - name: Set version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build .deb packages
+        uses: goreleaser/nfpm-action@v3
+        with:
+          config: packaging/nfpm.yaml
+          packager: deb
+          target: dist/packages/
+
+      - name: Build .rpm packages
+        uses: goreleaser/nfpm-action@v3
+        with:
+          config: packaging/nfpm.yaml
+          packager: rpm
+          target: dist/packages/
+
+      - name: Upload packages to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" dist/packages/* --clobber \
+            --repo "$GITHUB_REPOSITORY"

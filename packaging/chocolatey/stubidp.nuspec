@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>stubidp</id>
+    <version>VERSION_PLACEHOLDER</version>
+    <title>stubIDP</title>
+    <authors>CerberAuth</authors>
+    <projectUrl>https://github.com/cerberauth/stubidp</projectUrl>
+    <licenseUrl>https://github.com/cerberauth/stubidp/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A mock OpenID Connect server for developers. Zero config, instant OIDC.</description>
+    <tags>oidc openid-connect oauth2 testing idp stub mock development cli</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

@@ -20,6 +20,8 @@
   },
   "scripts": {
     "start": "node bin/run.js",
+    "build:bundle": "esbuild src/sea-entry.ts --bundle --platform=node --format=cjs --target=node25 --outfile=dist/sea-bundle.cjs --external:better-sqlite3 --external:pg --external:drizzle-orm/better-sqlite3 --external:drizzle-orm/node-postgres",
+    "build:sea": "npm run build:bundle && node --build-sea sea-config.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -80,6 +82,7 @@
     "@types/yargs": "17.0.35",
     "@vitest/coverage-v8": "4.0.18",
     "drizzle-kit": "0.31.8",
+    "esbuild": "0.25.0",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
