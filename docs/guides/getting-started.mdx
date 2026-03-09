@@ -1,0 +1,76 @@
+---
+title: Getting Started
+description: Get a local OIDC server running in under a minute and connect your app to it.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside } from '@/components/docs';
+
+<Steps>
+
+1. **Start stubIDP**
+
+   ```bash
+   npx @cerberauth/stubidp --redirectUri http://localhost:8080/callback
+   ```
+
+   The server starts at `http://localhost:3000`. OIDC endpoints are mounted at `/oauth2`.
+
+   `--clientId` and `--clientSecret` are optional. When omitted, a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure random secret are generated and printed in the startup log.
+
+2. **Verify it is running**
+
+   ```bash
+   curl http://localhost:3000/oauth2/.well-known/openid-configuration
+   ```
+
+   You should receive a JSON document with standard OIDC discovery fields.
+
+3. **Configure your application**
+
+   Point your OAuth 2.0 / OIDC client library at stubIDP:
+
+   | Setting | Value |
+   |---|---|
+   | Issuer / Discovery URL | `http://localhost:3000/oauth2` |
+   | Client ID | value printed in startup log |
+   | Client Secret | value printed in startup log |
+   | Authorization endpoint | `http://localhost:3000/oauth2/auth` |
+   | Token endpoint | `http://localhost:3000/oauth2/token` |
+   | JWKS URI | `http://localhost:3000/oauth2/jwks` |
+
+4. **Log in**
+
+   When your app redirects to the authorization endpoint, stubIDP shows a login form. Enter **any** username and password — all credentials are accepted.
+
+5. **Approve scopes**
+
+   After login, stubIDP shows a consent screen listing the requested scopes. Click **Allow** to complete the flow and receive tokens.
+
+</Steps>
+
+<Aside type="caution">
+  stubIDP accepts **any** username and password. It is not a real identity provider — use it only in development and testing environments.
+</Aside>
+
+## Using in GitHub Actions
+
+```yaml
+- name: Start stubIDP
+  run: |
+    npx @cerberauth/stubidp \
+      --clientId web-app \
+      --clientSecret web-app-secret \
+      --redirectUri http://localhost:8080/callback &
+    npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
+
+- name: Run integration tests
+  run: npm test
+  env:
+    OIDC_ISSUER: http://localhost:3000/oauth2
+    OIDC_CLIENT_ID: web-app
+    OIDC_CLIENT_SECRET: web-app-secret
+```
+
+In CI pipelines it's simpler to pin explicit credentials so your test environment config stays stable. `--clientId` and `--clientSecret` remain optional for interactive local use.
