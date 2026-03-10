@@ -1,0 +1,89 @@
+---
+title: Cloudflare Workers
+description: Deploy stubIdP as a globally distributed OIDC server on Cloudflare Workers with D1 persistent storage.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@/components/docs';
+
+Deploy stubIdP as a Cloudflare Worker for a globally distributed, zero-maintenance OIDC server backed by D1 persistent storage.
+
+<Aside type="note">
+  On Cloudflare Workers, OIDC endpoints are mounted at the root (`/`) rather than `/oauth2`.
+
+  Discovery URL: `https://<worker>.workers.dev/.well-known/openid-configuration`
+</Aside>
+
+## Deployment
+
+<Tabs>
+  <TabItem label="One-click deploy">
+
+Click the button below. Cloudflare will fork the repository, create a D1 database, and deploy the Worker automatically.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cerberauth/stubidp)
+
+After deployment, override the default client credentials in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**:
+
+| Variable | Description |
+|---|---|
+| `OIDC_CLIENT_ID` | OAuth 2.0 client ID |
+| `OIDC_CLIENT_SECRET` | OAuth 2.0 client secret |
+| `OIDC_REDIRECT_URI` | Allowed redirect URI |
+| `OIDC_ISSUER` | *(Optional)* Override the issuer URL — auto-detected from the request URL if omitted |
+
+  </TabItem>
+  <TabItem label="GitHub Actions">
+
+Fork the repository and add the following secrets and variables under **Settings → Secrets and variables → Actions**:
+
+| Name | Type | Description |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | Secret | API token with *Workers Scripts: Edit* and *D1: Edit* permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Your Cloudflare account ID |
+| `OIDC_ISSUER` | Variable | *(Optional)* Issuer URL override |
+
+Every push to `main` (or a manual trigger) will:
+
+1. Create the `stubidp-db` D1 database if it does not exist yet.
+2. Apply any pending migrations.
+3. Deploy the Worker.
+
+  </TabItem>
+  <TabItem label="Manual CLI">
+
+<Steps>
+
+1. Create the D1 database and note the returned `database_id`:
+
+   ```bash
+   npx wrangler d1 create stubidp-db
+   ```
+
+2. Update `wrangler.json` with the real `database_id`, then apply migrations:
+
+   ```bash
+   npx wrangler d1 migrations apply stubidp-db --remote
+   ```
+
+3. Deploy the Worker:
+
+   ```bash
+   npm run worker:deploy
+   ```
+
+</Steps>
+
+  </TabItem>
+</Tabs>
+
+## Local development
+
+```bash
+cp .dev.vars .dev.vars.local   # optional: override vars locally
+npm run worker:migrate:local
+npm run worker:dev             # runs at http://localhost:8787
+```
+
+Discovery URL during local dev: `http://localhost:8787/.well-known/openid-configuration`

@@ -1,0 +1,64 @@
+---
+title: Configuration
+description: Configure stubIdP with CLI flags and environment variables.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@/components/docs';
+
+## CLI flags
+
+| Flag | Required | Description |
+|---|---|---|
+| `--clientId` | No | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
+| `--clientSecret` | No | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted. |
+| `--redirectUri` | Yes | Redirect URI registered for your client |
+
+When `--clientId` or `--clientSecret` are omitted, the generated values are printed in the startup log so you can copy them into your application config.
+
+## Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_DIALECT` | `postgresql` | Database backend: `postgresql` or `sqlite` |
+| `DATABASE_URL` | — | Connection string (PostgreSQL) or file path (SQLite) |
+| `PORT` | `3000` | HTTP server port |
+| `OIDC_ISSUER` | `http://localhost:3000` | Issuer URL embedded in issued tokens |
+| `LOG_LEVEL` | `info` | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`) |
+
+## Database
+
+stubIdP supports two database backends for persisting OIDC session state.
+
+### In-memory (default)
+
+When no database is configured, an in-memory store is used. Sessions are lost on restart — suitable for most local development workflows.
+
+### SQLite
+
+```bash
+DATABASE_DIALECT=sqlite DATABASE_URL=./stubidp.db stubidp \
+  --redirectUri http://localhost:8080/callback
+```
+
+### PostgreSQL
+
+```bash
+DATABASE_DIALECT=postgresql \
+DATABASE_URL=postgresql://user:pass@localhost:5432/stubidp \
+stubidp \
+  --redirectUri http://localhost:8080/callback
+```
+
+<Aside type="tip">
+  For ephemeral CI environments, the in-memory default (no database config) is usually the right choice.
+</Aside>
+
+## Issuer URL
+
+The `OIDC_ISSUER` value is embedded in issued tokens as the `iss` claim and must match what your application validates.
+
+- **Local dev** — defaults to `http://localhost:3000`, no change needed.
+- **Cloudflare Workers** — derived automatically from the incoming request URL, no override required.
+- **Custom domain** — set `OIDC_ISSUER=https://idp.example.com` to match your deployed URL.
