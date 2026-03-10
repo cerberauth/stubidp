@@ -9,7 +9,7 @@ import { Steps, Aside } from '@/components/docs';
 
 <Steps>
 
-1. **Start stubIDP**
+1. **Start stubIdP**
 
    ```bash
    npx @cerberauth/stubidp --redirectUri http://localhost:8080/callback
@@ -29,7 +29,7 @@ import { Steps, Aside } from '@/components/docs';
 
 3. **Configure your application**
 
-   Point your OAuth 2.0 / OIDC client library at stubIDP:
+   Point your OAuth 2.0 / OIDC client library at stubIdP:
 
    | Setting | Value |
    |---|---|
@@ -42,22 +42,22 @@ import { Steps, Aside } from '@/components/docs';
 
 4. **Log in**
 
-   When your app redirects to the authorization endpoint, stubIDP shows a login form. Enter **any** username and password — all credentials are accepted.
+   When your app redirects to the authorization endpoint, stubIdP shows a login form. Enter **any** username and password — all credentials are accepted.
 
 5. **Approve scopes**
 
-   After login, stubIDP shows a consent screen listing the requested scopes. Click **Allow** to complete the flow and receive tokens.
+   After login, stubIdP shows a consent screen listing the requested scopes. Click **Allow** to complete the flow and receive tokens.
 
 </Steps>
 
 <Aside type="caution">
-  stubIDP accepts **any** username and password. It is not a real identity provider — use it only in development and testing environments.
+  stubIdP accepts **any** username and password. It is not a real identity provider — use it only in development and testing environments.
 </Aside>
 
 ## Using in GitHub Actions
 
 ```yaml
-- name: Start stubIDP
+- name: Start stubIdP
   run: |
     npx @cerberauth/stubidp \
       --clientId web-app \

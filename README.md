@@ -1,4 +1,4 @@
-# stubIDP
+# stubIdP
 
 A mock OpenID Connect server for developers.
 
@@ -6,9 +6,9 @@ Stop waiting for identity providers. Start building.
 
 ---
 
-## Why stubIDP?
+## Why stubIdP?
 
-Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustrating process. stubIDP is a lightweight, fully-compliant OpenID Connect provider that runs locally or in your CI pipeline so you can stay focused on building your application.
+Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustrating process. stubIdP is a lightweight, fully-compliant OpenID Connect provider that runs locally or in your CI pipeline so you can stay focused on building your application.
 
 ## Quick Start
 
@@ -42,12 +42,12 @@ TODO
 
 ## Important Notes
 
-- **For development and testing only** - stubIDP is not hardened for production identity management
-- **No user management** - stubIDP handles OAuth/OIDC flows; your app handles user authentication
+- **For development and testing only** - stubIdP is not hardened for production identity management
+- **No user management** - stubIdP handles OAuth/OIDC flows; your app handles user authentication
 
 ## Cloudflare Workers
 
-Deploy stubIDP as a globally distributed OIDC server on Cloudflare Workers with D1 persistent storage.
+Deploy stubIdP as a globally distributed OIDC server on Cloudflare Workers with D1 persistent storage.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cerberauth/stubidp)
 

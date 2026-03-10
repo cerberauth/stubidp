@@ -1,11 +1,11 @@
 ---
 title: OIDC Endpoints
-description: Reference for all OpenID Connect endpoints exposed by stubIDP.
+description: Reference for all OpenID Connect endpoints exposed by stubIdP.
 ---
 
 import { Aside } from '@/components/docs';
 
-stubIDP exposes a standard OpenID Connect endpoint set. The base path depends on the runtime:
+stubIdP exposes a standard OpenID Connect endpoint set. The base path depends on the runtime:
 
 | Runtime | Base URL |
 |---|---|
@@ -82,5 +82,5 @@ GET {base}/session/end
 Initiates RP-Initiated Logout. Accepts `id_token_hint` and `post_logout_redirect_uri` parameters.
 
 <Aside type="note">
-  stubIDP uses built-in interaction screens for login and consent. Unlike production OIDC providers, there is no separate interaction service to configure.
+  stubIdP uses built-in interaction screens for login and consent. Unlike production OIDC providers, there is no separate interaction service to configure.
 </Aside>
