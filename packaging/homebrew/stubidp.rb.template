@@ -1,0 +1,36 @@
+class Stubidp < Formula
+  desc "A mock OpenID Connect server for developers. Zero config, instant OIDC."
+  homepage "https://github.com/cerberauth/stubidp"
+  version "VERSION_PLACEHOLDER"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/cerberauth/stubidp/releases/download/vVERSION_PLACEHOLDER/stubidp-macos-arm64"
+      sha256 "SHA_MACOS_ARM64_PLACEHOLDER"
+    end
+    on_intel do
+      url "https://github.com/cerberauth/stubidp/releases/download/vVERSION_PLACEHOLDER/stubidp-macos-x64"
+      sha256 "SHA_MACOS_X64_PLACEHOLDER"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/cerberauth/stubidp/releases/download/vVERSION_PLACEHOLDER/stubidp-linux-arm64"
+      sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
+    end
+    on_intel do
+      url "https://github.com/cerberauth/stubidp/releases/download/vVERSION_PLACEHOLDER/stubidp-linux-x64"
+      sha256 "SHA_LINUX_X64_PLACEHOLDER"
+    end
+  end
+
+  def install
+    bin.install Dir["stubidp-*"].first => "stubidp"
+  end
+
+  test do
+    assert_match "stubidp", shell_output("#{bin}/stubidp --help 2>&1", 1)
+  end
+end

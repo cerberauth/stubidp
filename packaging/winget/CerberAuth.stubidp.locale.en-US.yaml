@@ -1,0 +1,25 @@
+PackageIdentifier: CerberAuth.stubidp
+PackageVersion: 0.0.3
+PackageLocale: en-US
+Publisher: CerberAuth
+PublisherUrl: https://www.cerberauth.com/
+PackageName: stubIDP
+PackageUrl: https://github.com/cerberauth/stubidp
+License: MIT
+LicenseUrl: https://github.com/cerberauth/stubidp/blob/main/LICENSE
+ShortDescription: A mock OpenID Connect server for developers. Zero config, instant OIDC.
+Description: >-
+  stubIDP is a lightweight, fully-compliant OpenID Connect provider that runs locally
+  or in your CI pipeline so you can stay focused on building your application.
+Tags:
+  - oidc
+  - openid-connect
+  - oauth2
+  - testing
+  - identity-provider
+  - idp
+  - stub
+  - mock
+  - development
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

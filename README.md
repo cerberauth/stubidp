@@ -10,6 +10,57 @@ Stop waiting for identity providers. Start building.
 
 Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustrating process. stubIDP is a lightweight, fully-compliant OpenID Connect provider that runs locally or in your CI pipeline so you can stay focused on building your application.
 
+## Installation
+
+### Docker
+
+```bash
+docker run --rm -p 3000:3000 cerberauth/stubidp \
+  --clientId web-app --clientSecret secret --redirectUri http://localhost:8080/callback
+```
+
+### npm / npx
+
+```bash
+npx @cerberauth/stubidp --clientId web-app --clientSecret web-app-secret --redirectUri http://localhost:8080/callback
+```
+
+### Snap (Linux)
+
+```bash
+snap install stubidp
+```
+
+### Homebrew (macOS / Linux)
+
+```bash
+brew install cerberauth/stubidp/stubidp
+```
+
+### Chocolatey (Windows)
+
+```powershell
+choco install stubidp
+```
+
+### WinGet (Windows)
+
+```powershell
+winget install CerberAuth.stubidp
+```
+
+### Direct binary download
+
+Download the pre-built binary for your platform from the [GitHub Releases](https://github.com/cerberauth/stubidp/releases/latest) page:
+
+| Platform | Binary |
+|----------|--------|
+| Linux x64 | `stubidp-linux-x64` |
+| Linux arm64 | `stubidp-linux-arm64` |
+| macOS x64 | `stubidp-macos-x64` |
+| macOS arm64 | `stubidp-macos-arm64` |
+| Windows x64 | `stubidp-windows-x64.exe` |
+
 ## Quick Start
 
 ```bash
@@ -33,10 +84,6 @@ TODO
 | `PORT`             | `3000`                  | HTTP server port                        |
 | `OIDC_ISSUER`      | `http://localhost:3000` | Issuer URL in tokens                    |
 | `LOG_LEVEL`        | `info`                  | Logging verbosity                       |
-
-## Docker
-
-TODO
 
 ## Important Notes
 

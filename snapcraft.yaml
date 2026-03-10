@@ -1,0 +1,35 @@
+name: stubidp
+version: 'RELEASE_TAG_PLACEHOLDER'
+summary: A mock OpenID Connect server for developers
+description: |
+  stubIDP is a lightweight, fully-compliant OpenID Connect provider that runs
+  locally or in your CI pipeline so you can stay focused on building your app.
+  Zero config, instant OIDC.
+
+grade: stable
+confinement: strict
+base: bare
+build-base: core22
+
+parts:
+  stubidp:
+    plugin: nil
+    override-build: |
+      RELEASE_TAG=RELEASE_TAG_PLACEHOLDER
+      ARCH=$(dpkg --print-architecture)
+      case "$ARCH" in
+        amd64) BINARY="stubidp-linux-x64" ;;
+        arm64) BINARY="stubidp-linux-arm64" ;;
+        *) echo "Unsupported arch: $ARCH"; exit 1 ;;
+      esac
+      curl -fsSL \
+        "https://github.com/cerberauth/stubidp/releases/download/${RELEASE_TAG}/${BINARY}" \
+        -o "$SNAPCRAFT_PART_INSTALL/stubidp"
+      chmod +x "$SNAPCRAFT_PART_INSTALL/stubidp"
+
+apps:
+  stubidp:
+    command: stubidp
+    plugs:
+      - network
+      - network-bind
