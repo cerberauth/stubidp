@@ -1,0 +1,107 @@
+---
+title: Docker
+description: Run stubIdP as a Docker container for local development or self-hosted deployments.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@/components/docs';
+
+Run stubIdP as a container using the provided `Dockerfile` or a pre-built image. The server listens on port `3000` and mounts OIDC endpoints at `/oauth2`.
+
+<Aside type="caution">
+  stubIdP is intended for development and testing only. Do not expose it publicly or use it as a production identity provider.
+</Aside>
+
+## Quick start
+
+```bash
+docker run --rm \
+  -p 3000:3000 \
+  -e OIDC_CLIENT_ID=web-app \
+  -e OIDC_CLIENT_SECRET=web-app-secret \
+  -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
+  cerberauth/stubidp
+```
+
+Discovery URL: `http://localhost:3000/oauth2/.well-known/openid-configuration`
+
+## Build from source
+
+<Steps>
+
+1. Clone the repository and build the image:
+
+   ```bash
+   git clone https://github.com/cerberauth/stubidp.git
+   cd stubidp
+   docker build -t stubidp .
+   ```
+
+2. Run the container:
+
+   ```bash
+   docker run --rm \
+     -p 3000:3000 \
+     -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
+     stubidp
+   ```
+
+   `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` are optional. When omitted, a human-readable ID and a secure random secret are generated and printed in the startup log.
+
+</Steps>
+
+## Docker Compose
+
+Add stubIdP as a service alongside your application:
+
+```yaml
+services:
+  idp:
+    image: cerberauth/stubidp
+    ports:
+      - "3000:3000"
+    environment:
+      OIDC_CLIENT_ID: web-app
+      OIDC_CLIENT_SECRET: web-app-secret
+      OIDC_REDIRECT_URI: http://localhost:8080/callback
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      OIDC_ISSUER: http://idp:3000/oauth2
+      OIDC_CLIENT_ID: web-app
+      OIDC_CLIENT_SECRET: web-app-secret
+    depends_on:
+      - idp
+```
+
+## Environment variables
+
+All [configuration](../configuration/) options are available as environment variables:
+
+| Variable | Description |
+|---|---|
+| `OIDC_CLIENT_ID` | OAuth 2.0 client ID (auto-generated if omitted) |
+| `OIDC_CLIENT_SECRET` | OAuth 2.0 client secret (auto-generated if omitted) |
+| `OIDC_REDIRECT_URI` | Allowed redirect URI |
+| `OIDC_ISSUER` | Override the issuer URL (defaults to `http://localhost:3000/oauth2`) |
+| `PORT` | HTTP port to listen on (default: `3000`) |
+| `DATABASE_DIALECT` | `sqlite` or `postgres` (default: in-memory) |
+| `DATABASE_URL` | Connection string for SQLite or PostgreSQL |
+
+## Persistent storage
+
+By default stubIdP uses an in-memory store that is wiped on restart. To persist sessions and tokens across restarts, mount a volume and use SQLite:
+
+```bash
+docker run --rm \
+  -p 3000:3000 \
+  -v $(pwd)/data:/data \
+  -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
+  -e DATABASE_DIALECT=sqlite \
+  -e DATABASE_URL=/data/stubidp.db \
+  cerberauth/stubidp
+```

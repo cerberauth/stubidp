@@ -54,23 +54,9 @@ import { Steps, Aside } from '@/components/docs';
   stubIdP accepts **any** username and password. It is not a real identity provider — use it only in development and testing environments.
 </Aside>
 
-## Using in GitHub Actions
+## Next steps
 
-```yaml
-- name: Start stubIdP
-  run: |
-    npx @cerberauth/stubidp \
-      --clientId web-app \
-      --clientSecret web-app-secret \
-      --redirectUri http://localhost:8080/callback &
-    npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
-
-- name: Run integration tests
-  run: npm test
-  env:
-    OIDC_ISSUER: http://localhost:3000/oauth2
-    OIDC_CLIENT_ID: web-app
-    OIDC_CLIENT_SECRET: web-app-secret
-```
-
-In CI pipelines it's simpler to pin explicit credentials so your test environment config stays stable. `--clientId` and `--clientSecret` remain optional for interactive local use.
+- [GitHub Actions](./guides/github-actions/) — run stubIdP in CI pipelines
+- [Cloudflare Workers](./deployment/cloudflare-workers/) — deploy a globally distributed OIDC server
+- [Docker](./deployment/docker/) — run stubIdP as a container
+- [Configuration](./configuration/) — CLI flags, environment variables, and database options
