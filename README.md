@@ -13,10 +13,10 @@ Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustratin
 ## Quick Start
 
 ```bash
-npx @cerberauth/stubidp --redirectUri http://localhost:8080/callback
+npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 ```
 
-`--clientId` and `--clientSecret` are optional — a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure secret are generated and printed on startup when omitted.
+`--client-id` and `--client-secret` are optional — a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure secret are generated and printed in the startup table when omitted.
 
 Your OIDC provider is now live at `http://localhost:3000/oauth2`
 

@@ -15,9 +15,9 @@ Start stubIdP as a background process before your integration tests, then shut i
 - name: Start stubIdP
   run: |
     npx @cerberauth/stubidp \
-      --clientId web-app \
-      --clientSecret web-app-secret \
-      --redirectUri http://localhost:8080/callback &
+      --client-id web-app \
+      --client-secret web-app-secret \
+      --redirect-uri http://localhost:8080/callback &
     npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
 
 - name: Run integration tests
@@ -29,7 +29,7 @@ Start stubIdP as a background process before your integration tests, then shut i
 ```
 
 <Aside type="tip">
-  Pin explicit `--clientId` and `--clientSecret` values in CI so your test environment configuration stays stable across runs. The flags are optional for interactive local use where auto-generated credentials are fine.
+  Pin explicit `--client-id` and `--client-secret` values in CI so your test environment configuration stays stable across runs. The flags are optional for interactive local use where auto-generated credentials are fine.
 </Aside>
 
 ## Full job example
@@ -79,8 +79,8 @@ steps:
   - name: Start stubIdP
     run: |
       npx @cerberauth/stubidp \
-        --clientId web-app \
-        --clientSecret web-app-secret \
-        --redirectUri ${{ matrix.redirect_uri }} &
+        --client-id web-app \
+        --client-secret web-app-secret \
+        --redirect-uri ${{ matrix.redirect_uri }} &
       npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
 ```

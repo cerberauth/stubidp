@@ -11,11 +11,11 @@ import { Aside } from '@/components/docs';
 
 | Flag | Required | Description |
 |---|---|---|
-| `--clientId` | No | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
-| `--clientSecret` | No | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted. |
-| `--redirectUri` | Yes | Redirect URI registered for your client |
+| `--client-id` | No | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
+| `--client-secret` | No | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted. |
+| `--redirect-uri` | Yes | Redirect URI registered for your client |
 
-When `--clientId` or `--clientSecret` are omitted, the generated values are printed in the startup log so you can copy them into your application config.
+When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
 ## Environment variables
 
@@ -39,7 +39,7 @@ When no database is configured, an in-memory store is used. Sessions are lost on
 
 ```bash
 DATABASE_DIALECT=sqlite DATABASE_URL=./stubidp.db stubidp \
-  --redirectUri http://localhost:8080/callback
+  --redirect-uri http://localhost:8080/callback
 ```
 
 ### PostgreSQL
@@ -48,7 +48,7 @@ DATABASE_DIALECT=sqlite DATABASE_URL=./stubidp.db stubidp \
 DATABASE_DIALECT=postgresql \
 DATABASE_URL=postgresql://user:pass@localhost:5432/stubidp \
 stubidp \
-  --redirectUri http://localhost:8080/callback
+  --redirect-uri http://localhost:8080/callback
 ```
 
 <Aside type="tip">
