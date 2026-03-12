@@ -28,13 +28,19 @@ TODO
 
 ### Environment Variables
 
-| Variable           | Default                 | Description                             |
-| ------------------ | ----------------------- | --------------------------------------- |
-| `DATABASE_DIALECT` | `postgresql`            | Database type: `postgresql` or `sqlite` |
-| `DATABASE_URL`     | -                       | Connection string or file path          |
-| `PORT`             | `3000`                  | HTTP server port                        |
-| `OIDC_ISSUER`      | `http://localhost:3000` | Issuer URL in tokens                    |
-| `LOG_LEVEL`        | `info`                  | Logging verbosity                       |
+All CLI flags can be set via environment variables instead:
+
+| Variable              | Default                   | Description                                          |
+| --------------------- | ------------------------- | ---------------------------------------------------- |
+| `OIDC_CLIENT_ID`      | auto-generated            | OAuth 2.0 client ID (equivalent to `--client-id`)    |
+| `OIDC_CLIENT_SECRET`  | auto-generated            | OAuth 2.0 client secret (equivalent to `--client-secret`) |
+| `OIDC_REDIRECT_URI`   | -                         | Redirect URI (equivalent to `--redirect-uri`)        |
+| `OIDC_JWKS_FILE`      | -                         | Path to JWKS JSON file (equivalent to `--jwks-file`) |
+| `OIDC_ISSUER`         | `http://localhost:{PORT}`  | Issuer URL embedded in tokens                        |
+| `PORT`                | `3000`                    | HTTP server port                                     |
+| `LOG_LEVEL`           | `info`                    | Logging verbosity                                    |
+| `DATABASE_DIALECT`    | -                         | Database type: `postgresql` or `sqlite`              |
+| `DATABASE_URL`        | -                         | Connection string or file path                       |
 
 ## Docker
 

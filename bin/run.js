@@ -20,6 +20,11 @@ const clientId = argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElem
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
 const redirectUri = argv['redirect-uri']
 
+if (!redirectUri) {
+  console.error('Error: --redirect-uri is required (or set OIDC_REDIRECT_URI)')
+  process.exit(1)
+}
+
 let jwks
 if (argv['jwks-file']) {
   const raw = await readFile(argv['jwks-file'], 'utf-8')
