@@ -29,7 +29,7 @@ Start stubIdP as a background process before your integration tests, then shut i
 ```
 
 <Aside type="tip">
-  Pin explicit `--client-id` and `--client-secret` values in CI so your test environment configuration stays stable across runs. The flags are optional for interactive local use where auto-generated credentials are fine.
+  Pin explicit client credentials in CI so your test environment configuration stays stable across runs. You can pass them as CLI flags (`--client-id`, `--client-secret`, `--redirect-uri`) or as environment variables (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`). Both are equivalent — environment variables are convenient when the same values are already available as CI secrets.
 </Aside>
 
 ## Full job example
@@ -50,11 +50,12 @@ jobs:
 
       - name: Start stubIdP
         run: |
-          npx @cerberauth/stubidp \
-            --clientId web-app \
-            --clientSecret web-app-secret \
-            --redirectUri http://localhost:8080/callback &
+          npx @cerberauth/stubidp &
           npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
+        env:
+          OIDC_CLIENT_ID: web-app
+          OIDC_CLIENT_SECRET: web-app-secret
+          OIDC_REDIRECT_URI: http://localhost:8080/callback
 
       - name: Run integration tests
         run: npm test

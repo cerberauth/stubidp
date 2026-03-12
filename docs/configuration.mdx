@@ -13,19 +13,26 @@ import { Aside } from '@/components/docs';
 |---|---|---|
 | `--client-id` | No | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
 | `--client-secret` | No | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted. |
-| `--redirect-uri` | Yes | Redirect URI registered for your client |
+| `--redirect-uri` | No* | Redirect URI registered for your client. Required unless `OIDC_REDIRECT_URI` is set. |
+| `--jwks-file` | No | Path to a JWKS JSON file. A key pair is auto-generated when omitted. |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
+
+Every CLI flag can also be set via an environment variable (see below). Environment variables take effect when the flag is not passed explicitly.
 
 ## Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `DATABASE_DIALECT` | `postgresql` | Database backend: `postgresql` or `sqlite` |
-| `DATABASE_URL` | — | Connection string (PostgreSQL) or file path (SQLite) |
+| `OIDC_CLIENT_ID` | auto-generated | OAuth 2.0 client ID (equivalent to `--client-id`) |
+| `OIDC_CLIENT_SECRET` | auto-generated | OAuth 2.0 client secret (equivalent to `--client-secret`) |
+| `OIDC_REDIRECT_URI` | — | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted) |
+| `OIDC_JWKS_FILE` | — | Path to a JWKS JSON file (equivalent to `--jwks-file`) |
+| `OIDC_ISSUER` | `http://localhost:{PORT}` | Issuer URL embedded in issued tokens |
 | `PORT` | `3000` | HTTP server port |
-| `OIDC_ISSUER` | `http://localhost:3000` | Issuer URL embedded in issued tokens |
 | `LOG_LEVEL` | `info` | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`) |
+| `DATABASE_DIALECT` | — | Database backend: `postgresql` or `sqlite` (in-memory when omitted) |
+| `DATABASE_URL` | — | Connection string (PostgreSQL) or file path (SQLite) |
 
 ## Database
 

@@ -2,7 +2,7 @@ import QuickLRU from 'quick-lru'
 
 type Payload = Record<string, unknown>
 
-let storage = new QuickLRU<string, unknown>({ maxSize: 1000 })
+const storage = new QuickLRU<string, unknown>({ maxSize: 1000 })
 
 const grantable = new Set([
   'AccessToken',
