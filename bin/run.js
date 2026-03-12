@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { randomBytes } from 'crypto'
+import { readFile } from 'fs/promises'
 import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import logger from '../build/logger.js'
@@ -19,11 +20,18 @@ const clientId = argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElem
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
 const redirectUri = argv['redirect-uri']
 
+let jwks
+if (argv['jwks-file']) {
+  const raw = await readFile(argv['jwks-file'], 'utf-8')
+  jwks = JSON.parse(raw)
+}
+
 const app = await createApp({
   issuer,
   clientId,
   clientSecret,
   redirectUri,
+  jwks,
 })
 
 app.listen(port, () => {
