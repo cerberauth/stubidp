@@ -12,12 +12,12 @@ import { Steps, Aside } from '@/components/docs';
 1. **Start stubIdP**
 
    ```bash
-   npx @cerberauth/stubidp --redirectUri http://localhost:8080/callback
+   npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
    ```
 
    The server starts at `http://localhost:3000`. OIDC endpoints are mounted at `/oauth2`.
 
-   `--clientId` and `--clientSecret` are optional. When omitted, a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure random secret are generated and printed in the startup log.
+   `--client-id` and `--client-secret` are optional. When omitted, a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure random secret are generated and printed in the startup table.
 
 2. **Verify it is running**
 

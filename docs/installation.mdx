@@ -13,7 +13,7 @@ import { Steps, Tabs, TabItem, Aside } from '@/components/docs';
   <TabItem label="npx (no install)">
 
 ```bash
-npx @cerberauth/stubidp --redirectUri http://localhost:8080/callback
+npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 ```
 
   </TabItem>
@@ -26,7 +26,7 @@ npm install -g @cerberauth/stubidp
 Then run:
 
 ```bash
-stubidp --redirectUri http://localhost:8080/callback
+stubidp --redirect-uri http://localhost:8080/callback
 ```
 
   </TabItem>
@@ -41,7 +41,7 @@ Add a script to your `package.json`:
 ```json
 {
   "scripts": {
-    "idp": "stubidp --redirectUri http://localhost:8080/callback"
+    "idp": "stubidp --redirect-uri http://localhost:8080/callback"
   }
 }
 ```
