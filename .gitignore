@@ -20,6 +20,12 @@
 # production
 /build
 
+# bun compiled binaries
+/bins
+
+# goreleaser output
+/dist
+
 # misc
 .DS_Store
 *.pem

@@ -26,14 +26,22 @@ if (process.env.DATABASE_DIALECT) {
     db = drizzle(pool)
     logger.info('connected to PostgreSQL database')
   } else {
-    const { drizzle } = await import('drizzle-orm/better-sqlite3')
-    const Database = (await import('better-sqlite3')).default
     const databasePath = process.env.DATABASE_URL
     if (!databasePath) {
       throw new Error('DATABASE_URL environment variable is required for SQLite')
     }
-    const client = new Database(databasePath)
-    db = drizzle(client)
+    if (process.versions.bun) {
+      const { drizzle } = await import('drizzle-orm/bun-sqlite')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { Database } = await import('bun:sqlite' as any)
+      const client = new Database(databasePath)
+      db = drizzle(client)
+    } else {
+      const { drizzle } = await import('drizzle-orm/better-sqlite3')
+      const Database = (await import('better-sqlite3')).default
+      const client = new Database(databasePath)
+      db = drizzle(client)
+    }
     logger.info({ path: databasePath }, 'connected to SQLite database')
   }
 }
