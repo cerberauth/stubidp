@@ -116,4 +116,4 @@ Contributions welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This repository is licensed under the [MIT License](https://github.com/cerberauth/stubidp/blob/main/LICENSE) @ [CerberAuth](https://www.cerberauth.com/). You are free to use, modify, and distribute the contents of this repository for educational and testing purposes.
+MIT © [CerberAuth](https://www.cerberauth.com/) — see [LICENSE](https://github.com/cerberauth/stubidp/blob/main/LICENSE) for details.

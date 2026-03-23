@@ -1,0 +1,257 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=jcroql
+version: 2
+
+project_name: stubidp
+
+before:
+  hooks:
+    - npm run build
+    - sh -c "mkdir -p bins/linux_amd64 bins/linux_arm64 bins/darwin_amd64 bins/darwin_arm64 bins/windows_amd64"
+    - bun build --compile --target=bun-linux-x64 --outfile=bins/linux_amd64/stubidp bin/run.js
+    - bun build --compile --target=bun-linux-arm64 --outfile=bins/linux_arm64/stubidp bin/run.js
+    - bun build --compile --target=bun-darwin-x64 --outfile=bins/darwin_amd64/stubidp bin/run.js
+    - bun build --compile --target=bun-darwin-arm64 --outfile=bins/darwin_arm64/stubidp bin/run.js
+    - bun build --compile --target=bun-windows-x64 --outfile=bins/windows_amd64/stubidp.exe bin/run.js
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+report_sizes: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+builds:
+  - id: stubidp
+    binary: stubidp
+    tool: "./scripts/build.sh"
+    no_main_check: true
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+source:
+  enabled: true
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+    builds_info:
+      group: root
+      owner: root
+      mtime: "{{ .CommitDate }}"
+    files:
+      - README.md
+      - LICENSE
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    output: true
+    artifacts: checksum
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - --yes
+
+changelog:
+  sort: asc
+  use: github
+  format: "{{ .SHA }}: {{ .Message }}{{ if .Logins }} ({{ .Logins | englishJoin }}){{ end }}"
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 1
+    - title: "Other"
+      order: 999
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore\(deps\): '
+      - '^(build|ci): '
+      - Merge pull request
+      - Merge branch
+
+milestones:
+  - close: true
+
+release:
+  name_template: "v{{ .Version }}"
+
+homebrew_casks:
+  - name: stubidp
+    description: &description "A mock OpenID Connect server for developers. Zero config, instant OIDC."
+    license: &license MIT
+    homepage: &homepage https://github.com/cerberauth/stubidp
+    repository:
+      owner: &owner cerberauth
+      name: homebrew-tap
+      branch: &main main
+    commit_author: &commit_author
+      name: cerberauth-bot
+      email: 268418261+cerberauth-bot@users.noreply.github.com
+
+scoops:
+  - name: stubidp
+    description: *description
+    homepage: *homepage
+    license: *license
+    repository:
+      owner: *owner
+      name: scoop-bucket
+      branch: *main
+    commit_author: *commit_author
+
+nfpms:
+  - file_name_template: "{{ .ConventionalFileName }}"
+    package_name: stubidp
+    vendor: CerberAuth
+    homepage: *homepage
+    maintainer: Emmanuel Gautier <emmanuel@cerberauth.com>
+    description: *description
+    license: *license
+    bindir: /usr/bin
+    section: utils
+    formats:
+      - apk
+      - deb
+      - rpm
+      - termux.deb
+      - archlinux
+
+snapcrafts:
+  - name_template: "{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    title: stubIdP
+    publish: true
+    summary: *description
+    description: "A mock OpenID Connect server for developers. Zero config, instant OIDC. Use stubIdP to test your OAuth2 and OpenID Connect integrations without setting up a real identity provider."
+    license: *license
+    confinement: strict
+    grade: stable
+    plugs:
+      home:
+      network:
+    channel_templates:
+      - edge
+      - beta
+      - candidate
+      - stable
+
+aurs:
+  - name: stubidp-bin
+    homepage: *homepage
+    description: *description
+    maintainers:
+      - Emmanuel Gautier <emmanuel@cerberauth.com>
+    license: *license
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: ssh://aur@aur.archlinux.org/stubidp-bin.git
+    skip_upload: auto
+    package: |-
+      install -Dm755 "./stubidp" "${pkgdir}/usr/bin/stubidp"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/stubidp/LICENSE"
+
+winget:
+  - name: stubidp
+    publisher: CerberAuth
+    publisher_url: https://www.cerberauth.com
+    license: *license
+    license_url: https://github.com/cerberauth/stubidp/blob/main/LICENSE
+    homepage: *homepage
+    short_description: *description
+    repository:
+      owner: *owner
+      name: winget-pkgs
+      branch: "stubidp-{{.Version}}"
+
+chocolateys:
+  - name: stubidp
+    title: stubIdP
+    owners: CerberAuth
+    authors: CerberAuth
+    description: *description
+    project_url: *homepage
+    license_url: https://github.com/cerberauth/stubidp/blob/main/LICENSE
+    copyright: CerberAuth
+    tags: "oidc openid-connect oauth2 testing identity-provider idp stub mock development"
+    summary: *description
+    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
+    source_repo: https://push.chocolatey.org/
+    skip_publish: false
+
+dockers_v2:
+  - id: stubidp-dockerhub
+    dockerfile: Dockerfile
+    images:
+      - "cerberauth/stubidp"
+    tags:
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    extra_files:
+      - src/
+      - bin/
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+
+  - id: stubidp-ghcr
+    dockerfile: Dockerfile
+    images:
+      - "ghcr.io/cerberauth/stubidp"
+    tags:
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    extra_files:
+      - src/
+      - bin/
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+
+docker_signs:
+  - cmd: cosign
+    artifacts: manifests
+    output: true
+    args:
+      - "sign"
+      - "${artifact}@${digest}"
+      - "--yes"
