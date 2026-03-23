@@ -15,12 +15,17 @@ import { Aside } from '@/components/docs';
 | `--client-secret` | No | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted. |
 | `--redirect-uri` | No* | Redirect URI registered for your client. Required unless `OIDC_REDIRECT_URI` is set. |
 | `--jwks-file` | No | Path to a JWKS JSON file. A key pair is auto-generated when omitted. |
+| `--rate-limit-window-ms` | No | Rate limit time window in milliseconds. Default: `900000` (15 min). |
+| `--rate-limit-max` | No | Max requests per IP per window. Default: `100`. |
+| `--rate-limit-disabled` | No | Disable rate limiting entirely. |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
 Every CLI flag can also be set via an environment variable (see below). Environment variables take effect when the flag is not passed explicitly.
 
 ## Environment variables
+
+### OIDC
 
 | Variable | Default | Description |
 |---|---|---|
@@ -29,10 +34,18 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `OIDC_REDIRECT_URI` | — | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted) |
 | `OIDC_JWKS_FILE` | — | Path to a JWKS JSON file (equivalent to `--jwks-file`) |
 | `OIDC_ISSUER` | `http://localhost:{PORT}` | Issuer URL embedded in issued tokens |
+
+### Server
+
+| Variable | Default | Description |
+|---|---|---|
 | `PORT` | `3000` | HTTP server port |
 | `LOG_LEVEL` | `info` | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`) |
 | `DATABASE_DIALECT` | — | Database backend: `postgresql` or `sqlite` (in-memory when omitted) |
 | `DATABASE_URL` | — | Connection string (PostgreSQL) or file path (SQLite) |
+| `RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (equivalent to `--rate-limit-window-ms`) |
+| `RATE_LIMIT_MAX` | `100` | Max requests per IP per window (equivalent to `--rate-limit-max`) |
+| `RATE_LIMIT_DISABLED` | `false` | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
 
 ## Database
 

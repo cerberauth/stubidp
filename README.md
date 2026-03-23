@@ -30,6 +30,8 @@ TODO
 
 All CLI flags can be set via environment variables instead:
 
+#### OIDC
+
 | Variable              | Default                   | Description                                          |
 | --------------------- | ------------------------- | ---------------------------------------------------- |
 | `OIDC_CLIENT_ID`      | auto-generated            | OAuth 2.0 client ID (equivalent to `--client-id`)    |
@@ -37,10 +39,18 @@ All CLI flags can be set via environment variables instead:
 | `OIDC_REDIRECT_URI`   | -                         | Redirect URI (equivalent to `--redirect-uri`)        |
 | `OIDC_JWKS_FILE`      | -                         | Path to JWKS JSON file (equivalent to `--jwks-file`) |
 | `OIDC_ISSUER`         | `http://localhost:{PORT}`  | Issuer URL embedded in tokens                        |
-| `PORT`                | `3000`                    | HTTP server port                                     |
-| `LOG_LEVEL`           | `info`                    | Logging verbosity                                    |
-| `DATABASE_DIALECT`    | -                         | Database type: `postgresql` or `sqlite`              |
-| `DATABASE_URL`        | -                         | Connection string or file path                       |
+
+#### Server
+
+| Variable                  | Default   | Description                                                   |
+| ------------------------- | --------- | ------------------------------------------------------------- |
+| `PORT`                    | `3000`    | HTTP server port                                              |
+| `LOG_LEVEL`               | `info`    | Logging verbosity                                             |
+| `DATABASE_DIALECT`        | -         | Database type: `postgresql` or `sqlite`                       |
+| `DATABASE_URL`            | -         | Connection string or file path                                |
+| `RATE_LIMIT_WINDOW_MS`    | `900000`  | Rate limit time window in milliseconds (15 min)               |
+| `RATE_LIMIT_MAX`          | `100`     | Max requests per IP per window (equivalent to `--rate-limit-max`) |
+| `RATE_LIMIT_DISABLED`     | `false`   | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
 
 ## Docker
 

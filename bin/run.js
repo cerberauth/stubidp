@@ -37,6 +37,11 @@ const app = await createApp({
   clientSecret,
   redirectUri,
   jwks,
+  rateLimit: {
+    windowMs: argv['rate-limit-window-ms'],
+    max: argv['rate-limit-max'],
+    disabled: argv['rate-limit-disabled'],
+  },
 })
 
 app.listen(port, () => {
