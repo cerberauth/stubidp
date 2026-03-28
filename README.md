@@ -32,25 +32,25 @@ All CLI flags can be set via environment variables instead:
 
 #### OIDC
 
-| Variable              | Default                   | Description                                          |
-| --------------------- | ------------------------- | ---------------------------------------------------- |
-| `OIDC_CLIENT_ID`      | auto-generated            | OAuth 2.0 client ID (equivalent to `--client-id`)    |
-| `OIDC_CLIENT_SECRET`  | auto-generated            | OAuth 2.0 client secret (equivalent to `--client-secret`) |
-| `OIDC_REDIRECT_URI`   | -                         | Redirect URI (equivalent to `--redirect-uri`)        |
-| `OIDC_JWKS_FILE`      | -                         | Path to JWKS JSON file (equivalent to `--jwks-file`) |
-| `OIDC_ISSUER`         | `http://localhost:{PORT}`  | Issuer URL embedded in tokens                        |
+| Variable             | Default                   | Description                                               |
+| -------------------- | ------------------------- | --------------------------------------------------------- |
+| `OIDC_CLIENT_ID`     | auto-generated            | OAuth 2.0 client ID (equivalent to `--client-id`)         |
+| `OIDC_CLIENT_SECRET` | auto-generated            | OAuth 2.0 client secret (equivalent to `--client-secret`) |
+| `OIDC_REDIRECT_URI`  | -                         | Redirect URI (equivalent to `--redirect-uri`)             |
+| `OIDC_JWKS_FILE`     | -                         | Path to JWKS JSON file (equivalent to `--jwks-file`)      |
+| `OIDC_ISSUER`        | `http://localhost:{PORT}` | Issuer URL embedded in tokens                             |
 
 #### Server
 
-| Variable                  | Default   | Description                                                   |
-| ------------------------- | --------- | ------------------------------------------------------------- |
-| `PORT`                    | `3000`    | HTTP server port                                              |
-| `LOG_LEVEL`               | `info`    | Logging verbosity                                             |
-| `DATABASE_DIALECT`        | -         | Database type: `postgresql` or `sqlite`                       |
-| `DATABASE_URL`            | -         | Connection string or file path                                |
-| `RATE_LIMIT_WINDOW_MS`    | `900000`  | Rate limit time window in milliseconds (15 min)               |
-| `RATE_LIMIT_MAX`          | `100`     | Max requests per IP per window (equivalent to `--rate-limit-max`) |
-| `RATE_LIMIT_DISABLED`     | `false`   | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
+| Variable               | Default  | Description                                                                    |
+| ---------------------- | -------- | ------------------------------------------------------------------------------ |
+| `PORT`                 | `3000`   | HTTP server port                                                               |
+| `LOG_LEVEL`            | `info`   | Logging verbosity                                                              |
+| `DATABASE_DIALECT`     | -        | Database type: `postgresql` or `sqlite`                                        |
+| `DATABASE_URL`         | -        | Connection string or file path                                                 |
+| `RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (15 min)                                |
+| `RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)              |
+| `RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
 
 ## Docker
 
@@ -75,6 +75,7 @@ Deploy stubIdP as a globally distributed OIDC server on Cloudflare Workers with 
 ### One-click deploy (Deploy to Cloudflare button)
 
 Click the button above. Cloudflare will:
+
 1. Fork / clone the repository to your account.
 2. Prompt you to create a new D1 database.
 3. Deploy the Worker — the issuer URL is detected at runtime.
@@ -85,13 +86,14 @@ After deployment you can override the default client credentials (`OIDC_CLIENT_I
 
 Add the following secrets to your forked repository (**Settings → Secrets and variables → Actions**):
 
-| Secret / Variable | Type | Description |
-| ----------------- | ---- | ----------- |
-| `CLOUDFLARE_API_TOKEN` | Secret | API token with *Workers Scripts: Edit* and *D1: Edit* permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Secret | Your Cloudflare account ID |
-| `OIDC_ISSUER` | Variable | *(Optional)* Override the issuer URL. When omitted the worker derives it from the request URL (e.g. `https://stubidp.<subdomain>.workers.dev`). |
+| Secret / Variable       | Type     | Description                                                                                                                                     |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | Secret   | API token with _Workers Scripts: Edit_ and _D1: Edit_ permissions                                                                               |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret   | Your Cloudflare account ID                                                                                                                      |
+| `OIDC_ISSUER`           | Variable | _(Optional)_ Override the issuer URL. When omitted the worker derives it from the request URL (e.g. `https://stubidp.<subdomain>.workers.dev`). |
 
 Every push to `main` (or a manual trigger) will:
+
 1. Create the `stubidp-db` D1 database if it does not exist yet.
 2. Apply any pending migrations.
 3. Deploy the Worker.

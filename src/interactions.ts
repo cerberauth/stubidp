@@ -28,12 +28,7 @@ export function createInteractionRouter(provider: Provider): Router {
   router.post('/:uid/login', async (req, res, next) => {
     try {
       const accountId = (req.body.login as string) || 'stub-user'
-      await provider.interactionFinished(
-        req,
-        res,
-        { login: { accountId } },
-        { mergeWithLastSubmission: false },
-      )
+      await provider.interactionFinished(req, res, { login: { accountId } }, { mergeWithLastSubmission: false })
     } catch (err) {
       next(err)
     }
