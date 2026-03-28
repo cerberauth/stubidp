@@ -46,7 +46,7 @@ jobs:
           snapcraft-store-credentials: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           chocolatey-api-key: ${{ secrets.CHOCOLATEY_API_KEY }}
           aur-key: ${{ secrets.AUR_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PAT }}
 
   npm-publish:
     needs: [release]
