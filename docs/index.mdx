@@ -17,7 +17,7 @@ sidebar:
   order: 1
 ---
 
-import { Card, CardGrid, LinkCard } from '@/components/docs';
+import { Card, CardGrid, LinkCard } from '@/components/docs'
 
 <CardGrid stagger>
   <Card title="Zero config" icon="rocket">
@@ -50,8 +50,24 @@ OIDC discovery: `http://localhost:3000/oauth2/.well-known/openid-configuration`
 ## Explore the docs
 
 <CardGrid>
-  <LinkCard title="Installation" description="Install via npx, npm global, or as a dev dependency." href="./installation/" />
-  <LinkCard title="Configuration" description="Environment variables, CLI flags, and database options." href="./configuration/" />
-  <LinkCard title="Deployment" description="Deploy with Cloudflare Workers or Docker." href="./deployment/cloudflare-workers/" />
-  <LinkCard title="OIDC Endpoints" description="Discovery, authorization, token, JWKS, and more." href="./reference/endpoints/" />
+  <LinkCard
+    title="Installation"
+    description="Install via npx, npm global, or as a dev dependency."
+    href="./installation/"
+  />
+  <LinkCard
+    title="Configuration"
+    description="Environment variables, CLI flags, and database options."
+    href="./configuration/"
+  />
+  <LinkCard
+    title="Deployment"
+    description="Deploy with Cloudflare Workers or Docker."
+    href="./deployment/cloudflare-workers/"
+  />
+  <LinkCard
+    title="OIDC Endpoints"
+    description="Discovery, authorization, token, JWKS, and more."
+    href="./reference/endpoints/"
+  />
 </CardGrid>

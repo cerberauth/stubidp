@@ -8,15 +8,65 @@ import logger from '../build/logger.js'
 
 const port = parseInt(process.env.PORT || '3000', 10)
 
-const ADJECTIVES = ['brave', 'calm', 'dark', 'eager', 'fast', 'glad', 'high', 'icy', 'jolly', 'keen', 'lush', 'mild', 'neat', 'odd', 'proud', 'quick', 'rare', 'safe', 'tall', 'vast', 'warm', 'wise', 'zany']
-const NOUNS = ['badger', 'canyon', 'dagger', 'eagle', 'falcon', 'glacier', 'harbor', 'island', 'jaguar', 'kestrel', 'lagoon', 'marble', 'nebula', 'osprey', 'panther', 'quartz', 'raven', 'summit', 'tiger', 'vortex', 'walrus', 'xenon', 'yonder', 'zenith']
+const ADJECTIVES = [
+  'brave',
+  'calm',
+  'dark',
+  'eager',
+  'fast',
+  'glad',
+  'high',
+  'icy',
+  'jolly',
+  'keen',
+  'lush',
+  'mild',
+  'neat',
+  'odd',
+  'proud',
+  'quick',
+  'rare',
+  'safe',
+  'tall',
+  'vast',
+  'warm',
+  'wise',
+  'zany',
+]
+const NOUNS = [
+  'badger',
+  'canyon',
+  'dagger',
+  'eagle',
+  'falcon',
+  'glacier',
+  'harbor',
+  'island',
+  'jaguar',
+  'kestrel',
+  'lagoon',
+  'marble',
+  'nebula',
+  'osprey',
+  'panther',
+  'quartz',
+  'raven',
+  'summit',
+  'tiger',
+  'vortex',
+  'walrus',
+  'xenon',
+  'yonder',
+  'zenith',
+]
 
 function randomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
 const issuer = process.env.OIDC_ISSUER ?? `http://localhost:${port}`
-const clientId = argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
+const clientId =
+  argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
 const redirectUri = argv['redirect-uri']
 

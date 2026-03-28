@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-import { Aside } from '@/components/docs';
+import { Aside } from '@/components/docs'
 
 Start stubIdP as a background process before your integration tests, then shut it down automatically when the job ends.
 
@@ -29,7 +29,10 @@ Start stubIdP as a background process before your integration tests, then shut i
 ```
 
 <Aside type="tip">
-  Pin explicit client credentials in CI so your test environment configuration stays stable across runs. You can pass them as CLI flags (`--client-id`, `--client-secret`, `--redirect-uri`) or as environment variables (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`). Both are equivalent — environment variables are convenient when the same values are already available as CI secrets.
+  Pin explicit client credentials in CI so your test environment configuration stays stable across runs. You can pass
+  them as CLI flags (`--client-id`, `--client-secret`, `--redirect-uri`) or as environment variables (`OIDC_CLIENT_ID`,
+  `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`). Both are equivalent — environment variables are convenient when the same
+  values are already available as CI secrets.
 </Aside>
 
 ## Full job example
