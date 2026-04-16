@@ -6,17 +6,20 @@ export const argv = yargs(hideBin(process.argv))
     'client-id': {
       type: 'string',
       demandOption: false,
+      env: 'STUBIDP_CLIENT_ID',
       description: 'Client ID (auto-generated if omitted) [env: STUBIDP_CLIENT_ID]',
     },
     'client-secret': {
       type: 'string',
       demandOption: false,
+      env: 'STUBIDP_CLIENT_SECRET',
       description: 'Client Secret (auto-generated if omitted) [env: STUBIDP_CLIENT_SECRET]',
     },
     'redirect-uri': { type: 'string', demandOption: false, description: 'Redirect URI [env: STUBIDP_REDIRECT_URI]' },
     'jwks-file': {
       type: 'string',
       demandOption: false,
+      env: 'STUBIDP_JWKS_FILE',
       description: 'Path to a JWKS JSON file (key pair auto-generated if omitted) [env: STUBIDP_JWKS_FILE]',
     },
     'rate-limit-window-ms': {
@@ -37,6 +40,12 @@ export const argv = yargs(hideBin(process.argv))
       demandOption: false,
       env: 'STUBIDP_RATE_LIMIT_DISABLED',
       description: 'Disable rate limiting [env: STUBIDP_RATE_LIMIT_DISABLED]',
+    },
+    preset: {
+      type: 'string',
+      demandOption: false,
+      choices: ['better-auth', 'next-auth'] as const,
+      description: 'Preconfigure for a specific auth library (better-auth, next-auth)',
     },
   })
   .env('STUBIDP')

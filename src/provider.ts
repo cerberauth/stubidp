@@ -6,6 +6,7 @@ export interface ProviderOptions {
   clientId: string
   clientSecret: string
   redirectUri: string
+  grantTypes?: string[]
   db?: DatabaseInstance
   issuer?: string
   jwks?: Configuration['jwks']
@@ -28,7 +29,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
         client_secret: options.clientSecret,
         redirect_uris: [options.redirectUri],
         response_types: ['code'],
-        grant_types: ['authorization_code'],
+        grant_types: options.grantTypes ?? ['authorization_code', 'refresh_token'],
       },
     ],
     jwks,
