@@ -17,7 +17,7 @@ export interface LoggerOptions {
  * Create a configured pino logger instance
  */
 function createLogger(options: LoggerOptions = {}): Logger {
-  const level = options.level || (process.env.LOG_LEVEL as LogLevel) || 'info'
+  const level = options.level || (process.env.STUBIDP_LOG_LEVEL as LogLevel) || 'info'
 
   return pino({
     level,

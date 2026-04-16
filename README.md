@@ -18,7 +18,7 @@ npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 
 `--client-id` and `--client-secret` are optional — a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure secret are generated and printed in the startup table when omitted.
 
-Your OIDC provider is now live at `http://localhost:3000/oauth2`
+Your OIDC provider is now live at `http://localhost:8484`
 
 ## Integration Examples
 
@@ -30,27 +30,20 @@ TODO
 
 All CLI flags can be set via environment variables instead:
 
-#### OIDC
-
-| Variable             | Default                   | Description                                               |
-| -------------------- | ------------------------- | --------------------------------------------------------- |
-| `OIDC_CLIENT_ID`     | auto-generated            | OAuth 2.0 client ID (equivalent to `--client-id`)         |
-| `OIDC_CLIENT_SECRET` | auto-generated            | OAuth 2.0 client secret (equivalent to `--client-secret`) |
-| `OIDC_REDIRECT_URI`  | -                         | Redirect URI (equivalent to `--redirect-uri`)             |
-| `OIDC_JWKS_FILE`     | -                         | Path to JWKS JSON file (equivalent to `--jwks-file`)      |
-| `OIDC_ISSUER`        | `http://localhost:{PORT}` | Issuer URL embedded in tokens                             |
-
-#### Server
-
-| Variable               | Default  | Description                                                                    |
-| ---------------------- | -------- | ------------------------------------------------------------------------------ |
-| `PORT`                 | `3000`   | HTTP server port                                                               |
-| `LOG_LEVEL`            | `info`   | Logging verbosity                                                              |
-| `DATABASE_DIALECT`     | -        | Database type: `postgresql` or `sqlite`                                        |
-| `DATABASE_URL`         | -        | Connection string or file path                                                 |
-| `RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (15 min)                                |
-| `RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)              |
-| `RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
+| Variable                       | Default                           | Description                                                                    |
+| ------------------------------ | --------------------------------- | ------------------------------------------------------------------------------ |
+| `STUBIDP_CLIENT_ID`            | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                              |
+| `STUBIDP_CLIENT_SECRET`        | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                      |
+| `STUBIDP_REDIRECT_URI`         | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                  |
+| `STUBIDP_JWKS_FILE`            | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                           |
+| `STUBIDP_ISSUER`               | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                  |
+| `STUBIDP_PORT`                 | `8484`                            | HTTP server port                                                               |
+| `STUBIDP_LOG_LEVEL`            | `info`                            | Logging verbosity                                                              |
+| `STUBIDP_DATABASE_DIALECT`     | -                                 | Database type: `postgresql` or `sqlite`                                        |
+| `STUBIDP_DATABASE_URL`         | -                                 | Connection string or file path                                                 |
+| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000`                          | Rate limit time window in milliseconds (15 min)                                |
+| `STUBIDP_RATE_LIMIT_MAX`       | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)              |
+| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
 
 ## Docker
 
@@ -69,7 +62,7 @@ Deploy stubIdP as a globally distributed OIDC server on Cloudflare Workers with 
 
 ### Zero-config deployment
 
-- **`OIDC_ISSUER`** is derived automatically from the incoming request URL — no placeholder to update.
+- **`STUBIDP_ISSUER`** is derived automatically from the incoming request URL — no placeholder to update.
 - **D1 database** is created and migrated automatically when you use the Deploy button or the GitHub Actions workflow.
 
 ### One-click deploy (Deploy to Cloudflare button)
@@ -80,7 +73,7 @@ Click the button above. Cloudflare will:
 2. Prompt you to create a new D1 database.
 3. Deploy the Worker — the issuer URL is detected at runtime.
 
-After deployment you can override the default client credentials (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`) in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**.
+After deployment you can override the default client credentials (`STUBIDP_CLIENT_ID`, `STUBIDP_CLIENT_SECRET`, `STUBIDP_REDIRECT_URI`) in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**.
 
 ### Automatic deploy via GitHub Actions
 
@@ -90,7 +83,7 @@ Add the following secrets to your forked repository (**Settings → Secrets and 
 | ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CLOUDFLARE_API_TOKEN`  | Secret   | API token with _Workers Scripts: Edit_ and _D1: Edit_ permissions                                                                               |
 | `CLOUDFLARE_ACCOUNT_ID` | Secret   | Your Cloudflare account ID                                                                                                                      |
-| `OIDC_ISSUER`           | Variable | _(Optional)_ Override the issuer URL. When omitted the worker derives it from the request URL (e.g. `https://stubidp.<subdomain>.workers.dev`). |
+| `STUBIDP_ISSUER`        | Variable | _(Optional)_ Override the issuer URL. When omitted the worker derives it from the request URL (e.g. `https://stubidp.<subdomain>.workers.dev`). |
 
 Every push to `main` (or a manual trigger) will:
 
@@ -119,7 +112,7 @@ npm run worker:migrate:local
 npm run worker:dev             # runs at http://localhost:8787
 ```
 
-> **Note:** The Workers deployment mounts OIDC at the root (`/`) rather than `/oauth2`.
+> **Note:** The Workers deployment mounts OIDC at the root (`/`).
 > OIDC discovery: `https://<worker>.workers.dev/.well-known/openid-configuration`
 
 ## Contributing

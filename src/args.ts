@@ -6,37 +6,38 @@ export const argv = yargs(hideBin(process.argv))
     'client-id': {
       type: 'string',
       demandOption: false,
-      description: 'Client ID (auto-generated if omitted) [env: OIDC_CLIENT_ID]',
+      description: 'Client ID (auto-generated if omitted) [env: STUBIDP_CLIENT_ID]',
     },
     'client-secret': {
       type: 'string',
       demandOption: false,
-      description: 'Client Secret (auto-generated if omitted) [env: OIDC_CLIENT_SECRET]',
+      description: 'Client Secret (auto-generated if omitted) [env: STUBIDP_CLIENT_SECRET]',
     },
-    'redirect-uri': { type: 'string', demandOption: false, description: 'Redirect URI [env: OIDC_REDIRECT_URI]' },
+    'redirect-uri': { type: 'string', demandOption: false, description: 'Redirect URI [env: STUBIDP_REDIRECT_URI]' },
     'jwks-file': {
       type: 'string',
       demandOption: false,
-      description: 'Path to a JWKS JSON file (key pair auto-generated if omitted) [env: OIDC_JWKS_FILE]',
+      description: 'Path to a JWKS JSON file (key pair auto-generated if omitted) [env: STUBIDP_JWKS_FILE]',
     },
     'rate-limit-window-ms': {
       type: 'number',
       demandOption: false,
-      env: 'RATE_LIMIT_WINDOW_MS',
-      description: 'Rate limit time window in milliseconds (default: 900000 = 15 min) [env: RATE_LIMIT_WINDOW_MS]',
+      env: 'STUBIDP_RATE_LIMIT_WINDOW_MS',
+      description:
+        'Rate limit time window in milliseconds (default: 900000 = 15 min) [env: STUBIDP_RATE_LIMIT_WINDOW_MS]',
     },
     'rate-limit-max': {
       type: 'number',
       demandOption: false,
-      env: 'RATE_LIMIT_MAX',
-      description: 'Max requests per window per IP (default: 100) [env: RATE_LIMIT_MAX]',
+      env: 'STUBIDP_RATE_LIMIT_MAX',
+      description: 'Max requests per window per IP (default: 100) [env: STUBIDP_RATE_LIMIT_MAX]',
     },
     'rate-limit-disabled': {
       type: 'boolean',
       demandOption: false,
-      env: 'RATE_LIMIT_DISABLED',
-      description: 'Disable rate limiting [env: RATE_LIMIT_DISABLED]',
+      env: 'STUBIDP_RATE_LIMIT_DISABLED',
+      description: 'Disable rate limiting [env: STUBIDP_RATE_LIMIT_DISABLED]',
     },
   })
-  .env('OIDC')
+  .env('STUBIDP')
   .parseSync()

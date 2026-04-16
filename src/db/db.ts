@@ -11,24 +11,24 @@ export type DatabaseInstance = any
 
 let db: DatabaseInstance = null
 
-if (process.env.DATABASE_DIALECT) {
-  const dialect = process.env.DATABASE_DIALECT as dialect
+if (process.env.STUBIDP_DATABASE_DIALECT) {
+  const dialect = process.env.STUBIDP_DATABASE_DIALECT as dialect
   logger.info({ dialect }, 'initializing database connection')
 
   if (dialect === 'postgres') {
     const { drizzle } = await import('drizzle-orm/node-postgres')
     const pg = await import('pg')
-    const connectionString = process.env.DATABASE_URL
+    const connectionString = process.env.STUBIDP_DATABASE_URL
     if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is required for PostgreSQL')
+      throw new Error('STUBIDP_DATABASE_URL environment variable is required for PostgreSQL')
     }
     const pool = new pg.default.Pool({ connectionString })
     db = drizzle(pool)
     logger.info('connected to PostgreSQL database')
   } else {
-    const databasePath = process.env.DATABASE_URL
+    const databasePath = process.env.STUBIDP_DATABASE_URL
     if (!databasePath) {
-      throw new Error('DATABASE_URL environment variable is required for SQLite')
+      throw new Error('STUBIDP_DATABASE_URL environment variable is required for SQLite')
     }
     if (process.versions.bun) {
       const { drizzle } = await import('drizzle-orm/bun-sqlite')

@@ -72,8 +72,8 @@ jobs:
       - name: Generate migrations 🗃️
         run: npm run db:generate
         env:
-          DATABASE_DIALECT: ${{ matrix.dialect }}
-          DATABASE_URL: ${{ matrix.dialect == 'postgresql' && 'postgresql://postgres:postgres@localhost:5432/stubidp' || '' }}
+          STUBIDP_DATABASE_DIALECT: ${{ matrix.dialect }}
+          STUBIDP_DATABASE_URL: ${{ matrix.dialect == 'postgresql' && 'postgresql://postgres:postgres@localhost:5432/stubidp' || '' }}
 
   docker-lint:
     name: Lint Dockerfile

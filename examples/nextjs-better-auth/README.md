@@ -12,7 +12,7 @@ This example shows how to use [better-auth](https://www.better-auth.com) with [s
 
 ### 1. Start stubidp
 
-In a terminal, start the stub identity provider. It will run on port 3000 by default.
+In a terminal, start the stub identity provider. It will run on port 8484 by default.
 
 ```bash
 npx @cerberauth/stubidp \

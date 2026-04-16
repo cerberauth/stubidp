@@ -7,7 +7,7 @@ sidebar:
 
 import { Steps, Aside, Tabs, TabItem } from '@/components/docs'
 
-Run stubIdP as a container using the provided `Dockerfile` or a pre-built image. The server listens on port `3000` and mounts OIDC endpoints at `/oauth2`.
+Run stubIdP as a container using the provided `Dockerfile` or a pre-built image. The server listens on port `8484`.
 
 <Aside type="caution">
   stubIdP is intended for development and testing only. Do not expose it publicly or use it as a production identity
@@ -18,14 +18,14 @@ Run stubIdP as a container using the provided `Dockerfile` or a pre-built image.
 
 ```bash
 docker run --rm \
-  -p 3000:3000 \
-  -e OIDC_CLIENT_ID=web-app \
-  -e OIDC_CLIENT_SECRET=web-app-secret \
-  -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
+  -p 8484:8484 \
+  -e STUBIDP_CLIENT_ID=web-app \
+  -e STUBIDP_CLIENT_SECRET=web-app-secret \
+  -e STUBIDP_REDIRECT_URI=http://localhost:8080/callback \
   cerberauth/stubidp
 ```
 
-Discovery URL: `http://localhost:3000/.well-known/openid-configuration`
+Discovery URL: `http://localhost:8484/.well-known/openid-configuration`
 
 ## Build from source
 
@@ -43,12 +43,12 @@ Discovery URL: `http://localhost:3000/.well-known/openid-configuration`
 
    ```bash
    docker run --rm \
-     -p 3000:3000 \
-     -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
+     -p 8484:8484 \
+     -e STUBIDP_REDIRECT_URI=http://localhost:8080/callback \
      stubidp
    ```
 
-   `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` are optional. When omitted, a human-readable ID and a secure random secret are generated and printed in the startup log.
+   `STUBIDP_CLIENT_ID` and `STUBIDP_CLIENT_SECRET` are optional. When omitted, a human-readable ID and a secure random secret are generated and printed in the startup log.
 
 </Steps>
 
@@ -61,20 +61,20 @@ services:
   idp:
     image: cerberauth/stubidp
     ports:
-      - '3000:3000'
+      - '8484:8484'
     environment:
-      OIDC_CLIENT_ID: web-app
-      OIDC_CLIENT_SECRET: web-app-secret
-      OIDC_REDIRECT_URI: http://localhost:8080/callback
+      STUBIDP_CLIENT_ID: web-app
+      STUBIDP_CLIENT_SECRET: web-app-secret
+      STUBIDP_REDIRECT_URI: http://localhost:8080/callback
 
   app:
     build: .
     ports:
       - '8080:8080'
     environment:
-      OIDC_ISSUER: http://idp:3000/oauth2
-      OIDC_CLIENT_ID: web-app
-      OIDC_CLIENT_SECRET: web-app-secret
+      STUBIDP_ISSUER: http://idp:8484
+      STUBIDP_CLIENT_ID: web-app
+      STUBIDP_CLIENT_SECRET: web-app-secret
     depends_on:
       - idp
 ```
@@ -83,15 +83,15 @@ services:
 
 All [configuration](../configuration/) options are available as environment variables:
 
-| Variable             | Description                                                          |
-| -------------------- | -------------------------------------------------------------------- |
-| `OIDC_CLIENT_ID`     | OAuth 2.0 client ID (auto-generated if omitted)                      |
-| `OIDC_CLIENT_SECRET` | OAuth 2.0 client secret (auto-generated if omitted)                  |
-| `OIDC_REDIRECT_URI`  | Allowed redirect URI                                                 |
-| `OIDC_ISSUER`        | Override the issuer URL (defaults to `http://localhost:3000/oauth2`) |
-| `PORT`               | HTTP port to listen on (default: `3000`)                             |
-| `DATABASE_DIALECT`   | `sqlite` or `postgres` (default: in-memory)                          |
-| `DATABASE_URL`       | Connection string for SQLite or PostgreSQL                           |
+| Variable                   | Description                                                   |
+| -------------------------- | ------------------------------------------------------------- |
+| `STUBIDP_CLIENT_ID`        | OAuth 2.0 client ID (auto-generated if omitted)               |
+| `STUBIDP_CLIENT_SECRET`    | OAuth 2.0 client secret (auto-generated if omitted)           |
+| `STUBIDP_REDIRECT_URI`     | Allowed redirect URI                                          |
+| `STUBIDP_ISSUER`           | Override the issuer URL (defaults to `http://localhost:8484`) |
+| `STUBIDP_PORT`             | HTTP port to listen on (default: `8484`)                      |
+| `STUBIDP_DATABASE_DIALECT` | `sqlite` or `postgres` (default: in-memory)                   |
+| `STUBIDP_DATABASE_URL`     | Connection string for SQLite or PostgreSQL                    |
 
 ## Persistent storage
 
@@ -99,10 +99,10 @@ By default stubIdP uses an in-memory store that is wiped on restart. To persist 
 
 ```bash
 docker run --rm \
-  -p 3000:3000 \
+  -p 8484:8484 \
   -v $(pwd)/data:/data \
-  -e OIDC_REDIRECT_URI=http://localhost:8080/callback \
-  -e DATABASE_DIALECT=sqlite \
-  -e DATABASE_URL=/data/stubidp.db \
+  -e STUBIDP_REDIRECT_URI=http://localhost:8080/callback \
+  -e STUBIDP_DATABASE_DIALECT=sqlite \
+  -e STUBIDP_DATABASE_URL=/data/stubidp.db \
   cerberauth/stubidp
 ```

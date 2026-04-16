@@ -32,7 +32,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
   }
 
   app.use('/interaction', createInteractionRouter(oidc))
-  app.use('/oauth2', oidc.callback())
+  app.use('/', oidc.callback())
 
   return app
 }
