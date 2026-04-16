@@ -22,7 +22,7 @@ import { Steps, Aside } from '@/components/docs'
 2. **Verify it is running**
 
    ```bash
-   curl http://localhost:3000/oauth2/.well-known/openid-configuration
+   curl http://localhost:3000/.well-known/openid-configuration
    ```
 
    You should receive a JSON document with standard OIDC discovery fields.
@@ -31,14 +31,14 @@ import { Steps, Aside } from '@/components/docs'
 
    Point your OAuth 2.0 / OIDC client library at stubIdP:
 
-   | Setting                | Value                                |
-   | ---------------------- | ------------------------------------ |
-   | Issuer / Discovery URL | `http://localhost:3000/oauth2`       |
-   | Client ID              | value printed in startup log         |
-   | Client Secret          | value printed in startup log         |
-   | Authorization endpoint | `http://localhost:3000/oauth2/auth`  |
-   | Token endpoint         | `http://localhost:3000/oauth2/token` |
-   | JWKS URI               | `http://localhost:3000/oauth2/jwks`  |
+   | Setting                | Value                          |
+   | ---------------------- | ------------------------------ |
+   | Issuer / Discovery URL | `http://localhost:3000/oauth2` |
+   | Client ID              | value printed in startup log   |
+   | Client Secret          | value printed in startup log   |
+   | Authorization endpoint | `http://localhost:3000/auth`   |
+   | Token endpoint         | `http://localhost:3000/token`  |
+   | JWKS URI               | `http://localhost:3000/jwks`   |
 
 4. **Log in**
 
