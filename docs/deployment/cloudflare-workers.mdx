@@ -10,7 +10,7 @@ import { Steps, Aside, Tabs, TabItem } from '@/components/docs'
 Deploy stubIdP as a Cloudflare Worker for a globally distributed, zero-maintenance OIDC server backed by D1 persistent storage.
 
 <Aside type="note">
-  On Cloudflare Workers, OIDC endpoints are mounted at the root (`/`) rather than `/oauth2`.
+  On Cloudflare Workers, OIDC endpoints are mounted at the root (`/`).
 
 Discovery URL: `https://<worker>.workers.dev/.well-known/openid-configuration`
 
@@ -27,12 +27,12 @@ Click the button below. Cloudflare will fork the repository, create a D1 databas
 
 After deployment, override the default client credentials in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**:
 
-| Variable             | Description                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `OIDC_CLIENT_ID`     | OAuth 2.0 client ID                                                                  |
-| `OIDC_CLIENT_SECRET` | OAuth 2.0 client secret                                                              |
-| `OIDC_REDIRECT_URI`  | Allowed redirect URI                                                                 |
-| `OIDC_ISSUER`        | _(Optional)_ Override the issuer URL — auto-detected from the request URL if omitted |
+| Variable                | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `STUBIDP_CLIENT_ID`     | OAuth 2.0 client ID                                                                  |
+| `STUBIDP_CLIENT_SECRET` | OAuth 2.0 client secret                                                              |
+| `STUBIDP_REDIRECT_URI`  | Allowed redirect URI                                                                 |
+| `STUBIDP_ISSUER`        | _(Optional)_ Override the issuer URL — auto-detected from the request URL if omitted |
 
   </TabItem>
   <TabItem label="GitHub Actions">
@@ -43,7 +43,7 @@ Fork the repository and add the following secrets and variables under **Settings
 | ----------------------- | -------- | ----------------------------------------------------------------- |
 | `CLOUDFLARE_API_TOKEN`  | Secret   | API token with _Workers Scripts: Edit_ and _D1: Edit_ permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Secret   | Your Cloudflare account ID                                        |
-| `OIDC_ISSUER`           | Variable | _(Optional)_ Issuer URL override                                  |
+| `STUBIDP_ISSUER`        | Variable | _(Optional)_ Issuer URL override                                  |
 
 Every push to `main` (or a manual trigger) will:
 

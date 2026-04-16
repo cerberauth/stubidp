@@ -12,7 +12,7 @@ export interface ProviderOptions {
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
-  const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:3000'
+  const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:8484'
 
   let jwks = options.jwks
   if (!jwks) {

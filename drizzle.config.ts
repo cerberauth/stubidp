@@ -1,11 +1,11 @@
 import 'dotenv/config'
 import type { Config } from 'drizzle-kit'
 
-const { DATABASE_DIALECT, DATABASE_URL } = process.env
+const { STUBIDP_DATABASE_DIALECT, STUBIDP_DATABASE_URL } = process.env
 
-const dialect = DATABASE_DIALECT as Config['dialect'] | undefined
+const dialect = STUBIDP_DATABASE_DIALECT as Config['dialect'] | undefined
 if (!dialect) {
-  throw new Error('DATABASE_DIALECT is not set')
+  throw new Error('STUBIDP_DATABASE_DIALECT is not set')
 }
 
 const commonConfig: Pick<Config, 'schema' | 'dialect' | 'out'> = {
@@ -18,7 +18,7 @@ export default dialect === 'postgresql'
   ? {
       ...commonConfig,
       dbCredentials: {
-        url: DATABASE_URL!,
+        url: STUBIDP_DATABASE_URL!,
       },
     }
   : commonConfig

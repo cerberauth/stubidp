@@ -45,6 +45,7 @@ app.use(async (req, res, next) => {
   handler(req, res, next)
 })
 
-app.listen(3000)
+const port = 8484
+app.listen(port)
 
-export default httpServerHandler({ port: 3000 })
+export default httpServerHandler({ port })

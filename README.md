@@ -18,7 +18,7 @@ npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 
 `--client-id` and `--client-secret` are optional — a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure secret are generated and printed in the startup table when omitted.
 
-Your OIDC provider is now live at `http://localhost:3000/oauth2`
+Your OIDC provider is now live at `http://localhost:8484`
 
 ## Integration Examples
 
@@ -37,7 +37,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_REDIRECT_URI`         | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                  |
 | `STUBIDP_JWKS_FILE`            | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                           |
 | `STUBIDP_ISSUER`               | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                  |
-| `STUBIDP_PORT`                 | `3000`                            | HTTP server port                                                               |
+| `STUBIDP_PORT`                 | `8484`                            | HTTP server port                                                               |
 | `STUBIDP_LOG_LEVEL`            | `info`                            | Logging verbosity                                                              |
 | `STUBIDP_DATABASE_DIALECT`     | -                                 | Database type: `postgresql` or `sqlite`                                        |
 | `STUBIDP_DATABASE_URL`         | -                                 | Connection string or file path                                                 |
@@ -112,7 +112,7 @@ npm run worker:migrate:local
 npm run worker:dev             # runs at http://localhost:8787
 ```
 
-> **Note:** The Workers deployment mounts OIDC at the root (`/`) rather than `/oauth2`.
+> **Note:** The Workers deployment mounts OIDC at the root (`/`).
 > OIDC discovery: `https://<worker>.workers.dev/.well-known/openid-configuration`
 
 ## Contributing

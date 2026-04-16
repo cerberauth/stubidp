@@ -1,8 +1,8 @@
-const { DATABASE_DIALECT, DATABASE_URL } = process.env
+const { STUBIDP_DATABASE_DIALECT, STUBIDP_DATABASE_URL } = process.env
 
-const dialect = DATABASE_DIALECT
+const dialect = STUBIDP_DATABASE_DIALECT
 if (!dialect) {
-  throw new Error('DATABASE_DIALECT is not set')
+  throw new Error('STUBIDP_DATABASE_DIALECT is not set')
 }
 
 const commonConfig = {
@@ -14,7 +14,7 @@ export default dialect === 'postgresql'
   ? {
       ...commonConfig,
       dbCredentials: {
-        url: DATABASE_URL,
+        url: STUBIDP_DATABASE_URL,
       },
     }
   : {}

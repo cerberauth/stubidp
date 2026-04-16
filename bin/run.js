@@ -6,7 +6,7 @@ import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import logger from '../build/logger.js'
 
-const port = parseInt(process.env.STUBIDP_PORT || '3000', 10)
+const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
 const ADJECTIVES = [
   'brave',

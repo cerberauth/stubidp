@@ -19,6 +19,6 @@ RUN npm ci --production
 COPY ./bin ./bin
 COPY --from=builder /usr/src/app/build ./build
 
-EXPOSE 3000
+EXPOSE 8484
 
 CMD [ "node", "bin/run.js" ]

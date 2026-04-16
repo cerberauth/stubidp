@@ -13,7 +13,7 @@ export const auth = betterAuth({
           providerId: 'stubidp',
           clientId: process.env.STUBIDP_CLIENT_ID!,
           clientSecret: process.env.STUBIDP_CLIENT_SECRET!,
-          discoveryUrl: `${process.env.STUBIDP_ISSUER || 'http://localhost:3000'}/.well-known/openid-configuration`,
+          discoveryUrl: `${process.env.STUBIDP_ISSUER || 'http://localhost:8484'}/.well-known/openid-configuration`,
           scopes: ['openid', 'profile', 'email'],
         },
       ],
