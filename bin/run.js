@@ -6,7 +6,7 @@ import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import logger from '../build/logger.js'
 
-const port = parseInt(process.env.PORT || '3000', 10)
+const port = parseInt(process.env.STUBIDP_PORT || '3000', 10)
 
 const ADJECTIVES = [
   'brave',
@@ -64,14 +64,14 @@ function randomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-const issuer = process.env.OIDC_ISSUER ?? `http://localhost:${port}`
+const issuer = process.env.STUBIDP_ISSUER ?? `http://localhost:${port}`
 const clientId =
   argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
 const redirectUri = argv['redirect-uri']
 
 if (!redirectUri) {
-  console.error('Error: --redirect-uri is required (or set OIDC_REDIRECT_URI)')
+  console.error('Error: --redirect-uri is required (or set STUBIDP_REDIRECT_URI)')
   process.exit(1)
 }
 

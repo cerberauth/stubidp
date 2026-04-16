@@ -12,7 +12,7 @@ export interface ProviderOptions {
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
-  const issuer = options.issuer ?? process.env.OIDC_ISSUER ?? 'http://localhost:3000'
+  const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:3000'
 
   let jwks = options.jwks
   if (!jwks) {
@@ -45,7 +45,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     const { DrizzleAdapter } = await import('./adapter.js')
     const db = options.db
     configuration.adapter = (name: string) => new DrizzleAdapter(db, name)
-  } else if (process.env.DATABASE_DIALECT) {
+  } else if (process.env.STUBIDP_DATABASE_DIALECT) {
     // Node.js CLI path: initialize DB from env vars
     const { DrizzleAdapter } = await import('./adapter.js')
     const { db } = await import('./db/db.js')
