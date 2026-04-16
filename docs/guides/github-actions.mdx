@@ -18,7 +18,7 @@ Start stubIdP as a background process before your integration tests, then shut i
       --client-id web-app \
       --client-secret web-app-secret \
       --redirect-uri http://localhost:8080/callback &
-    npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
+    npx wait-on http://localhost:3000/.well-known/openid-configuration
 
 - name: Run integration tests
   run: npm test
@@ -54,7 +54,7 @@ jobs:
       - name: Start stubIdP
         run: |
           npx @cerberauth/stubidp &
-          npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
+          npx wait-on http://localhost:3000/.well-known/openid-configuration
         env:
           OIDC_CLIENT_ID: web-app
           OIDC_CLIENT_SECRET: web-app-secret
@@ -86,5 +86,5 @@ steps:
         --client-id web-app \
         --client-secret web-app-secret \
         --redirect-uri ${{ matrix.redirect_uri }} &
-      npx wait-on http://localhost:3000/oauth2/.well-known/openid-configuration
+      npx wait-on http://localhost:3000/.well-known/openid-configuration
 ```

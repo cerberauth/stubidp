@@ -99,7 +99,7 @@ app.listen(port, () => {
     ['Client ID', clientId],
     ['Client Secret', clientSecret],
     ['Redirect URI', redirectUri],
-    ['Discovery URL', `${issuer}/oauth2/.well-known/openid-configuration`],
+    ['Discovery URL', `${issuer}/.well-known/openid-configuration`],
   ]
   const col1 = Math.max(...rows.map(([k]) => k.length))
   const col2 = Math.max(...rows.map(([, v]) => v.length))

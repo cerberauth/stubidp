@@ -73,7 +73,7 @@ genericOAuth({
       providerId: 'stubidp',
       clientId: process.env.STUBIDP_CLIENT_ID!,
       clientSecret: process.env.STUBIDP_CLIENT_SECRET!,
-      discoveryUrl: `${process.env.STUBIDP_ISSUER}/oauth2/.well-known/openid-configuration`,
+      discoveryUrl: `${process.env.STUBIDP_ISSUER}/.well-known/openid-configuration`,
       scopes: ['openid', 'profile', 'email'],
     },
   ],
