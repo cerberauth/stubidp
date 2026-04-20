@@ -43,6 +43,26 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       accountId: sub,
       claims: async () => ({ sub }),
     }),
+    clientBasedCORS(_ctx, origin, client) {
+      if (!origin) {
+        return true
+      }
+
+      const origins = client.redirectUris
+        ?.map((uri) => {
+          try {
+            return new URL(uri).origin
+          } catch {
+            return null
+          }
+        })
+        .filter(Boolean) as string[] | undefined
+      if (!origins?.length) {
+        return true
+      }
+
+      return origins.includes(origin)
+    },
   }
 
   if (options.db) {
