@@ -4,9 +4,12 @@ import { randomBytes } from 'crypto'
 import { readFile } from 'fs/promises'
 import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
+import { getPreset } from '../build/presets.js'
 import logger from '../build/logger.js'
 
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
+
+const preset = argv['preset'] ? getPreset(argv['preset']) : null
 
 const ADJECTIVES = [
   'brave',
@@ -68,10 +71,10 @@ const issuer = process.env.STUBIDP_ISSUER ?? `http://localhost:${port}`
 const clientId =
   argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
-const redirectUri = argv['redirect-uri']
+const redirectUri = argv['redirect-uri'] ?? process.env.STUBIDP_REDIRECT_URI ?? preset?.defaultRedirectUri
 
 if (!redirectUri) {
-  console.error('Error: --redirect-uri is required (or set STUBIDP_REDIRECT_URI)')
+  console.error('Error: --redirect-uri is required when not using a preset (or set STUBIDP_REDIRECT_URI)')
   process.exit(1)
 }
 
@@ -86,6 +89,7 @@ const app = await createApp({
   clientId,
   clientSecret,
   redirectUri,
+  grantTypes: preset?.grantTypes,
   jwks,
   rateLimit: {
     windowMs: argv['rate-limit-window-ms'],
@@ -110,4 +114,8 @@ app.listen(port, () => {
     console.log(`| ${key.padEnd(col1)} | ${val.padEnd(col2)} |`)
   }
   console.log(line + '\n')
+
+  if (preset) {
+    preset.printInstructions({ issuer, clientId, clientSecret })
+  }
 })

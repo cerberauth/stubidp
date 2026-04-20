@@ -65,8 +65,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           cache: npm
-          node-version-file: '.nvmrc'
-          registry-url: 'https://registry.npmjs.org'
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies 👨🏻‍💻
         run: npm ci
@@ -85,7 +85,8 @@ jobs:
       - name: Setup node env for GitHub Packages 🏗
         uses: actions/setup-node@v6
         with:
-          registry-url: 'https://npm.pkg.github.com'
+          node-version-file: .nvmrc
+          registry-url: https://npm.pkg.github.com
 
       - name: Publish to GitHub Packages 📦
         run: npm publish --provenance

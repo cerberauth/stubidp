@@ -5,7 +5,6 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "bin": {
-    "@cerberauth/stubidp": "bin/run.js",
     "stubidp": "bin/run.js"
   },
   "files": [
@@ -59,11 +58,10 @@
   "homepage": "https://github.com/cerberauth/stubidp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cerberauth/stubidp.git"
+    "url": "git+https://github.com/cerberauth/stubidp.git"
   },
   "dependencies": {
     "better-sqlite3": "12.6.2",
-    "dotenv": "17.2.4",
     "drizzle-orm": "0.45.1",
     "express": "5.2.1",
     "express-rate-limit": "8.3.1",
@@ -84,6 +82,7 @@
     "@types/pg": "8.16.0",
     "@types/yargs": "17.0.35",
     "@vitest/coverage-v8": "4.0.18",
+    "dotenv": "17.4.2",
     "drizzle-kit": "0.31.8",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",

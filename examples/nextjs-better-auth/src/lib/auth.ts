@@ -5,7 +5,7 @@ import Database from 'better-sqlite3'
 export const auth = betterAuth({
   database: new Database('./auth.db'),
   secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   plugins: [
     genericOAuth({
       config: [
