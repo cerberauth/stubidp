@@ -37,17 +37,39 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       devInteractions: { enabled: false },
     },
     interactions: {
-      url: (_ctx, interaction) => `/interaction/${interaction.uid}`,
+      url: async (_ctx, interaction) => `/interaction/${interaction.uid}`,
+    },
+    findAccount: async (_ctx, sub) => ({
+      accountId: sub,
+      claims: async () => ({ sub }),
+    }),
+    clientBasedCORS(_ctx, origin, client) {
+      if (!origin) {
+        return true
+      }
+
+      const origins = client.redirectUris
+        ?.map((uri) => {
+          try {
+            return new URL(uri).origin
+          } catch {
+            return null
+          }
+        })
+        .filter(Boolean) as string[] | undefined
+      if (!origins?.length) {
+        return true
+      }
+
+      return origins.includes(origin)
     },
   }
 
   if (options.db) {
-    // Worker path: db already initialized with D1 binding
     const { DrizzleAdapter } = await import('./adapter.js')
     const db = options.db
     configuration.adapter = (name: string) => new DrizzleAdapter(db, name)
   } else if (process.env.STUBIDP_DATABASE_DIALECT) {
-    // Node.js CLI path: initialize DB from env vars
     const { DrizzleAdapter } = await import('./adapter.js')
     const { db } = await import('./db/db.js')
     configuration.adapter = (name: string) => new DrizzleAdapter(db, name)

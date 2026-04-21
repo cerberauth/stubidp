@@ -1,24 +1,35 @@
 import express, { Router } from 'express'
 import type { Provider } from 'oidc-provider'
 
-import { loginPage, consentPage } from './views.js'
+import { loginPage, consentPage } from './views/index.js'
 
 export function createInteractionRouter(provider: Provider): Router {
   const router = Router()
+
+  router.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store')
+    res.setHeader('Pragma', 'no-cache')
+    next()
+  })
   router.use(express.urlencoded({ extended: false }))
 
   router.get('/:uid', async (req, res, next) => {
     try {
-      const interaction = await provider.interactionDetails(req, res)
-      const { prompt, params } = interaction
+      const details = await provider.interactionDetails(req, res)
+      const { prompt, params } = details
+      const clientId = String(params.client_id ?? 'unknown')
 
-      if (prompt.name === 'login') {
-        res.send(loginPage(interaction.uid))
-      } else if (prompt.name === 'consent') {
-        const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
-        res.send(consentPage(interaction.uid, String(params.client_id), missingScopes))
-      } else {
-        next(new Error(`Unknown prompt: ${prompt.name}`))
+      switch (prompt.name) {
+        case 'login':
+          res.type('html').send(loginPage({ uid: req.params.uid, clientId }))
+          break
+        case 'consent': {
+          const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
+          res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes }))
+          break
+        }
+        default:
+          next(new Error(`Unsupported prompt: ${prompt.name}`))
       }
     } catch (err) {
       next(err)
@@ -27,8 +38,13 @@ export function createInteractionRouter(provider: Provider): Router {
 
   router.post('/:uid/login', async (req, res, next) => {
     try {
-      const accountId = (req.body.login as string) || 'stub-user'
-      await provider.interactionFinished(req, res, { login: { accountId } }, { mergeWithLastSubmission: false })
+      const { username } = req.body as { username?: string }
+      await provider.interactionFinished(
+        req,
+        res,
+        { login: { accountId: username?.trim() || 'stub-user' } },
+        { mergeWithLastSubmission: false },
+      )
     } catch (err) {
       next(err)
     }
@@ -36,29 +52,42 @@ export function createInteractionRouter(provider: Provider): Router {
 
   router.post('/:uid/confirm', async (req, res, next) => {
     try {
+      const details = await provider.interactionDetails(req, res)
       const {
-        grantId,
-        session,
+        prompt: { details: promptDetails },
         params,
-        prompt: { details },
-      } = await provider.interactionDetails(req, res)
+        grantId,
+      } = details
 
-      const grant =
-        grantId != null
-          ? await provider.Grant.find(grantId)
-          : new provider.Grant({
-              accountId: session!.accountId,
-              clientId: String(params.client_id),
-            })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const Grant = provider.Grant as any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const session = (details as any).session as { accountId?: string } | undefined
 
-      if (details.missingOIDCScope) {
-        grant!.addOIDCScope((details.missingOIDCScope as string[]).join(' '))
+      let grant: ReturnType<typeof Grant>
+      if (grantId) {
+        grant = await Grant.find(grantId)
       }
-      if (details.missingOIDCClaims) {
-        grant!.addOIDCClaims(details.missingOIDCClaims as string[])
+      if (!grant) {
+        grant = new Grant({
+          accountId: session?.accountId,
+          clientId: params.client_id as string,
+        })
       }
 
-      const savedGrantId = await grant!.save()
+      if (promptDetails.missingOIDCScope) {
+        grant.addOIDCScope((promptDetails.missingOIDCScope as string[]).join(' '))
+      }
+      if (promptDetails.missingOIDCClaims) {
+        grant.addOIDCClaims(promptDetails.missingOIDCClaims as string[])
+      }
+      if (promptDetails.missingResourceScopes) {
+        for (const [indicator, scopes] of Object.entries(promptDetails.missingResourceScopes)) {
+          grant.addResourceScope(indicator, (scopes as string[]).join(' '))
+        }
+      }
+
+      const savedGrantId = await grant.save()
       await provider.interactionFinished(
         req,
         res,

@@ -38,17 +38,6 @@ export function loginPage(uid: string): string {
             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            placeholder="any value"
-            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
         <button
           type="submit"
           class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors mt-2"
