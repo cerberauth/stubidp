@@ -3,9 +3,11 @@ import { Provider, Configuration } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 
 export interface ProviderOptions {
-  clientId: string
-  clientSecret: string
-  redirectUri: string
+  enableRegistration?: boolean
+  initialAccessToken?: boolean | string
+  clientId?: string
+  clientSecret?: string
+  redirectUri?: string
   grantTypes?: string[]
   db?: DatabaseInstance
   issuer?: string
@@ -22,19 +24,36 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     jwks = { keys: [{ ...privateJwk, use: 'sig', alg: 'RS256' }] }
   }
 
+  const staticClient =
+    options.clientId && options.redirectUri
+      ? [
+          {
+            client_id: options.clientId,
+            client_secret: options.clientSecret,
+            redirect_uris: [options.redirectUri],
+            response_types: ['code'] as ['code'],
+            grant_types: options.grantTypes ?? ['authorization_code', 'refresh_token'],
+          },
+        ]
+      : []
+
   const configuration: Configuration = {
-    clients: [
-      {
-        client_id: options.clientId,
-        client_secret: options.clientSecret,
-        redirect_uris: [options.redirectUri],
-        response_types: ['code'],
-        grant_types: options.grantTypes ?? ['authorization_code', 'refresh_token'],
-      },
-    ],
+    clients: staticClient,
     jwks,
     features: {
       devInteractions: { enabled: false },
+      registration: options.enableRegistration
+        ? {
+            enabled: true,
+            initialAccessToken: options.initialAccessToken ?? false,
+          }
+        : { enabled: false },
+      registrationManagement: options.enableRegistration
+        ? {
+            enabled: true,
+            rotateRegistrationAccessToken: false,
+          }
+        : { enabled: false },
     },
     interactions: {
       url: async (_ctx, interaction) => `/interaction/${interaction.uid}`,

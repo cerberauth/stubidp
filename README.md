@@ -12,17 +12,68 @@ Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustratin
 
 ## Quick Start
 
+**Single client (local dev):**
+
 ```bash
 npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 ```
 
 `--client-id` and `--client-secret` are optional — a human-readable ID (e.g. `brave-falcon-3a9f12`) and a secure secret are generated and printed in the startup table when omitted.
 
+**Central test IdP with dynamic client registration (RFC 7591/7592):**
+
+```bash
+npx @cerberauth/stubidp --enable-registration
+```
+
+Any service can register its own client via `POST /register` without restarting the server.
+
 Your OIDC provider is now live at `http://localhost:8484`
 
 ## Integration Examples
 
-TODO
+### better-auth
+
+```bash
+npx @cerberauth/stubidp --preset better-auth
+```
+
+```ts
+import { betterAuth } from 'better-auth'
+
+export const auth = betterAuth({
+  socialProviders: {
+    genericOAuth: {
+      clientId: '<printed client ID>',
+      clientSecret: '<printed client secret>',
+      discoveryUrl: 'http://localhost:8484/.well-known/openid-configuration',
+    },
+  },
+})
+```
+
+### next-auth
+
+```bash
+npx @cerberauth/stubidp --preset next-auth
+```
+
+Auth.js v5:
+
+```ts
+import NextAuth from 'next-auth'
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    {
+      type: 'oidc',
+      issuer: 'http://localhost:8484',
+      clientId: '<printed client ID>',
+      clientSecret: '<printed client secret>',
+    },
+  ],
+})
+```
 
 ## Configuration
 
@@ -30,20 +81,69 @@ TODO
 
 All CLI flags can be set via environment variables instead:
 
-| Variable                       | Default                           | Description                                                                    |
-| ------------------------------ | --------------------------------- | ------------------------------------------------------------------------------ |
-| `STUBIDP_CLIENT_ID`            | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                              |
-| `STUBIDP_CLIENT_SECRET`        | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                      |
-| `STUBIDP_REDIRECT_URI`         | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                  |
-| `STUBIDP_JWKS_FILE`            | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                           |
-| `STUBIDP_ISSUER`               | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                  |
-| `STUBIDP_PORT`                 | `8484`                            | HTTP server port                                                               |
-| `STUBIDP_LOG_LEVEL`            | `info`                            | Logging verbosity                                                              |
-| `STUBIDP_DATABASE_DIALECT`     | -                                 | Database type: `postgresql` or `sqlite`                                        |
-| `STUBIDP_DATABASE_URL`         | -                                 | Connection string or file path                                                 |
-| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000`                          | Rate limit time window in milliseconds (15 min)                                |
-| `STUBIDP_RATE_LIMIT_MAX`       | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)              |
-| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`) |
+| Variable                                    | Default                           | Description                                                                                         |
+| ------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `STUBIDP_CLIENT_ID`                         | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                                                   |
+| `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                           |
+| `STUBIDP_REDIRECT_URI`                      | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                                       |
+| `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                                                |
+| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                                       |
+| `STUBIDP_PORT`                              | `8484`                            | HTTP server port                                                                                    |
+| `STUBIDP_LOG_LEVEL`                         | `info`                            | Logging verbosity                                                                                   |
+| `STUBIDP_DATABASE_DIALECT`                  | -                                 | Database type: `postgresql` or `sqlite`                                                             |
+| `STUBIDP_DATABASE_URL`                      | -                                 | Connection string or file path                                                                      |
+| `STUBIDP_RATE_LIMIT_WINDOW_MS`              | `900000`                          | Rate limit time window in milliseconds (15 min)                                                     |
+| `STUBIDP_RATE_LIMIT_MAX`                    | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)                                   |
+| `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                      |
+| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /register`, `GET/PUT/DELETE /register/:id`) |
+| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /register` (open registration when omitted)                     |
+
+## Dynamic Client Registration
+
+stubIdP supports [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (Dynamic Client Registration) and [RFC 7592](https://www.rfc-editor.org/rfc/rfc7592) (Client Registration Management), making it suitable as a shared OIDC server for teams or multi-service test environments.
+
+### Enable DCR
+
+```bash
+# Open registration — any caller can register a client
+npx @cerberauth/stubidp --enable-registration
+
+# Protected registration — callers must supply a bearer token
+npx @cerberauth/stubidp --enable-registration --registration-initial-access-token mysecret
+```
+
+### Register a client
+
+```bash
+curl -X POST http://localhost:8484/register \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "client_name": "my-service",
+    "redirect_uris": ["http://localhost:3000/callback"],
+    "grant_types": ["authorization_code", "refresh_token"],
+    "response_types": ["code"]
+  }'
+```
+
+The response includes `client_id`, `client_secret`, and a `registration_access_token` used for subsequent management calls.
+
+### Manage a registered client
+
+```bash
+# Read
+curl http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>'
+
+# Update
+curl -X PUT http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{ "redirect_uris": ["http://localhost:3001/callback"], ... }'
+
+# Delete
+curl -X DELETE http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>'
+```
 
 ## Docker
 
@@ -121,4 +221,4 @@ Contributions welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT © [CerberAuth](https://www.cerberauth.com/) — see [LICENSE](https://github.com/cerberauth/stubidp/blob/main/LICENSE) for details.
+This repository is licensed under the MIT License @ [CerberAuth](https://www.cerberauth.com/).

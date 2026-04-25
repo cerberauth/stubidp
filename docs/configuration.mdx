@@ -9,15 +9,17 @@ import { Aside } from '@/components/docs'
 
 ## CLI flags
 
-| Flag                     | Required | Description                                                                                              |
-| ------------------------ | -------- | -------------------------------------------------------------------------------------------------------- |
-| `--client-id`            | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
-| `--client-secret`        | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.  |
-| `--redirect-uri`         | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                  |
-| `--jwks-file`            | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                     |
-| `--rate-limit-window-ms` | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                      |
-| `--rate-limit-max`       | No       | Max requests per IP per window. Default: `100`.                                                          |
-| `--rate-limit-disabled`  | No       | Disable rate limiting entirely.                                                                          |
+| Flag                                  | Required | Description                                                                                              |
+| ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `--client-id`                         | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
+| `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.  |
+| `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                  |
+| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                     |
+| `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                      |
+| `--rate-limit-max`                    | No       | Max requests per IP per window. Default: `100`.                                                          |
+| `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                          |
+| `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                 |
+| `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                              |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -27,13 +29,15 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 
 ### OIDC
 
-| Variable                | Default                           | Description                                                                |
-| ----------------------- | --------------------------------- | -------------------------------------------------------------------------- |
-| `STUBIDP_CLIENT_ID`     | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                          |
-| `STUBIDP_CLIENT_SECRET` | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                  |
-| `STUBIDP_REDIRECT_URI`  | —                                 | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted) |
-| `STUBIDP_JWKS_FILE`     | —                                 | Path to a JWKS JSON file (equivalent to `--jwks-file`)                     |
-| `STUBIDP_ISSUER`        | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in issued tokens                                       |
+| Variable                                    | Default                           | Description                                                                                         |
+| ------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `STUBIDP_CLIENT_ID`                         | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                                                   |
+| `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                           |
+| `STUBIDP_REDIRECT_URI`                      | —                                 | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted)                          |
+| `STUBIDP_JWKS_FILE`                         | —                                 | Path to a JWKS JSON file (equivalent to `--jwks-file`)                                              |
+| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in issued tokens                                                                |
+| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /register`, `GET/PUT/DELETE /register/:id`) |
+| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /register` (open registration when omitted)                     |
 
 ### Server
 
