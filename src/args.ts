@@ -47,6 +47,20 @@ export const argv = yargs(hideBin(process.argv))
       choices: ['better-auth', 'next-auth'] as const,
       description: 'Preconfigure for a specific auth library (better-auth, next-auth)',
     },
+    'enable-registration': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_ENABLE_REGISTRATION',
+      description:
+        'Enable dynamic client registration (RFC 7591) and management (RFC 7592) [env: STUBIDP_ENABLE_REGISTRATION]',
+    },
+    'registration-initial-access-token': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN',
+      description:
+        'Bearer token required to register new clients via POST /register (omit for open registration) [env: STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

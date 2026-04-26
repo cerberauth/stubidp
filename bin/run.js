@@ -71,10 +71,14 @@ const issuer = process.env.STUBIDP_ISSUER ?? `http://localhost:${port}`
 const clientId =
   argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
 const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
+const enableRegistration = argv['enable-registration'] ?? false
+const initialAccessToken = argv['registration-initial-access-token']
 const redirectUri = argv['redirect-uri'] ?? process.env.STUBIDP_REDIRECT_URI ?? preset?.defaultRedirectUri
 
-if (!redirectUri) {
-  console.error('Error: --redirect-uri is required when not using a preset (or set STUBIDP_REDIRECT_URI)')
+if (!redirectUri && !enableRegistration) {
+  console.error(
+    'Error: --redirect-uri is required when not using a preset or --enable-registration (or set STUBIDP_REDIRECT_URI)',
+  )
   process.exit(1)
 }
 
@@ -86,11 +90,13 @@ if (argv['jwks-file']) {
 
 const app = await createApp({
   issuer,
-  clientId,
-  clientSecret,
+  clientId: redirectUri ? clientId : undefined,
+  clientSecret: redirectUri ? clientSecret : undefined,
   redirectUri,
   grantTypes: preset?.grantTypes,
   jwks,
+  enableRegistration,
+  initialAccessToken,
   rateLimit: {
     windowMs: argv['rate-limit-window-ms'],
     max: argv['rate-limit-max'],
@@ -100,10 +106,20 @@ const app = await createApp({
 
 app.listen(port, () => {
   const rows = [
-    ['Client ID', clientId],
-    ['Client Secret', clientSecret],
-    ['Redirect URI', redirectUri],
+    ...(redirectUri
+      ? [
+          ['Client ID', clientId],
+          ['Client Secret', clientSecret],
+          ['Redirect URI', redirectUri],
+        ]
+      : []),
     ['Discovery URL', `${issuer}/.well-known/openid-configuration`],
+    ...(enableRegistration
+      ? [
+          ['Registration URL', `${issuer}/register`],
+          ...(initialAccessToken ? [['Initial Access Token', initialAccessToken]] : []),
+        ]
+      : []),
   ]
   const col1 = Math.max(...rows.map(([k]) => k.length))
   const col2 = Math.max(...rows.map(([, v]) => v.length))

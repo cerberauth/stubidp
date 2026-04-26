@@ -1,0 +1,147 @@
+---
+title: Dynamic Client Registration
+description: Use stubIdP as a shared OIDC server for teams or multi-service test environments via RFC 7591/7592.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside } from '@/components/docs'
+
+Dynamic client registration lets any service register its own OAuth 2.0 client at runtime — no server restart, no shared config file. This makes stubIdP suitable as a single, shared OIDC server for a team or a multi-service test environment.
+
+stubIdP implements:
+
+- **[RFC 7591](https://www.rfc-editor.org/rfc/rfc7591)** — OAuth 2.0 Dynamic Client Registration Protocol (`POST /register`)
+- **[RFC 7592](https://www.rfc-editor.org/rfc/rfc7592)** — OAuth 2.0 Dynamic Client Registration Management Protocol (`GET/PUT/DELETE /register/:id`)
+
+## Start with registration enabled
+
+```bash
+# Open registration — any caller may register a client
+npx @cerberauth/stubidp --enable-registration
+
+# Protected registration — callers must present a bearer token
+npx @cerberauth/stubidp --enable-registration --registration-initial-access-token mysecret
+```
+
+The startup table will show the registration endpoint:
+
+```
+| Registration URL | http://localhost:8484/register |
+```
+
+<Aside type="tip">
+  You can combine `--enable-registration` with `--redirect-uri` to have both a pre-configured static client and open DCR
+  at the same time.
+</Aside>
+
+## Register a client
+
+<Steps>
+
+1. **Send a registration request**
+
+   ```bash
+   curl -X POST http://localhost:8484/register \
+     -H 'Content-Type: application/json' \
+     -d '{
+       "client_name": "my-service",
+       "redirect_uris": ["http://localhost:3000/callback"],
+       "grant_types": ["authorization_code", "refresh_token"],
+       "response_types": ["code"]
+     }'
+   ```
+
+   If you started with `--registration-initial-access-token mysecret`, add:
+
+   ```
+   -H 'Authorization: Bearer mysecret'
+   ```
+
+2. **Save the response**
+
+   ```json
+   {
+     "client_id": "abc123",
+     "client_secret": "s3cr3t",
+     "registration_access_token": "rat_xyz...",
+     "registration_client_uri": "http://localhost:8484/register/abc123",
+     "redirect_uris": ["http://localhost:3000/callback"],
+     ...
+   }
+   ```
+
+   Store `client_id`, `client_secret`, and `registration_access_token` — you will need them later.
+
+3. **Configure your application**
+
+   Use the returned `client_id` and `client_secret` exactly as you would with a statically configured client. The issuer and discovery URL remain unchanged:
+
+   | Setting       | Value                                                    |
+   | ------------- | -------------------------------------------------------- |
+   | Issuer        | `http://localhost:8484`                                  |
+   | Discovery URL | `http://localhost:8484/.well-known/openid-configuration` |
+   | Client ID     | value from registration response                         |
+   | Client Secret | value from registration response                         |
+
+</Steps>
+
+## Manage a registered client
+
+Use the `registration_access_token` from the registration response to read, update, or delete the client.
+
+### Read
+
+```bash
+curl http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>'
+```
+
+### Update
+
+`PUT` replaces the full client object — supply all fields, not just the ones that changed.
+
+```bash
+curl -X PUT http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "client_id": "<client_id>",
+    "redirect_uris": ["http://localhost:3001/callback"],
+    "grant_types": ["authorization_code", "refresh_token"],
+    "response_types": ["code"]
+  }'
+```
+
+### Delete
+
+```bash
+curl -X DELETE http://localhost:8484/register/<client_id> \
+  -H 'Authorization: Bearer <registration_access_token>'
+```
+
+## Multi-service test environments
+
+Each service in your stack can register its own client at startup and tear it down afterward, with no coordination needed:
+
+```bash
+# service-a bootstrap
+CLIENT=$(curl -sX POST http://stubidp:8484/register \
+  -H 'Content-Type: application/json' \
+  -d '{"redirect_uris":["http://service-a/cb"],"grant_types":["authorization_code"]}')
+
+CLIENT_ID=$(echo $CLIENT | jq -r .client_id)
+CLIENT_SECRET=$(echo $CLIENT | jq -r .client_secret)
+RAT=$(echo $CLIENT | jq -r .registration_access_token)
+
+# ... run tests ...
+
+# cleanup
+curl -sX DELETE http://stubidp:8484/register/$CLIENT_ID \
+  -H "Authorization: Bearer $RAT"
+```
+
+<Aside type="caution">
+  stubIdP accepts any username and password during login. It is designed for development and testing only — do not
+  expose it publicly or use it to protect real resources.
+</Aside>
