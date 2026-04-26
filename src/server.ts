@@ -14,6 +14,7 @@ export interface RateLimitOptions {
 
 export interface AppOptions extends ProviderOptions {
   rateLimit?: RateLimitOptions
+  skipPrompt?: boolean
 }
 
 export async function createApp(options: AppOptions): Promise<Express> {
@@ -35,7 +36,10 @@ export async function createApp(options: AppOptions): Promise<Express> {
   app.get('/', (_req, res) => {
     res.type('html').send(homePage(oidc.issuer))
   })
-  app.use('/interaction', createInteractionRouter(oidc))
+  app.use(
+    '/interaction',
+    createInteractionRouter(oidc, { skipPrompt: options.skipPrompt, defaultUser: options.defaultUser }),
+  )
   app.use('/', oidc.callback())
 
   return app

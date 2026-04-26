@@ -9,17 +9,19 @@ import { Aside } from '@/components/docs'
 
 ## CLI flags
 
-| Flag                                  | Required | Description                                                                                              |
-| ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `--client-id`                         | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted. |
-| `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.  |
-| `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                  |
-| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                     |
-| `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                      |
-| `--rate-limit-max`                    | No       | Max requests per IP per window. Default: `100`.                                                          |
-| `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                          |
-| `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                 |
-| `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                              |
+| Flag                                  | Required | Description                                                                                                              |
+| ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--client-id`                         | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted.                 |
+| `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.                  |
+| `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                                  |
+| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                                     |
+| `--skip-prompt`                       | No       | Skip login and consent UI and auto-approve every interaction. Intended for E2E tests and automation.                     |
+| `--default-user`                      | No       | JSON object of OIDC claims returned for every authenticated user (e.g. `'{"sub":"alice","email":"alice@example.com"}'`). |
+| `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                                      |
+| `--rate-limit-max`                    | No       | Max requests per IP per window. Default: `100`.                                                                          |
+| `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                                          |
+| `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                                 |
+| `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                                              |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -41,15 +43,17 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 
 ### Server
 
-| Variable                       | Default  | Description                                                                     |
-| ------------------------------ | -------- | ------------------------------------------------------------------------------- |
-| `STUBIDP_PORT`                 | `8484`   | HTTP server port                                                                |
-| `STUBIDP_LOG_LEVEL`            | `info`   | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`)          |
-| `STUBIDP_DATABASE_DIALECT`     | —        | Database backend: `postgresql` or `sqlite` (in-memory when omitted)             |
-| `STUBIDP_DATABASE_URL`         | —        | Connection string (PostgreSQL) or file path (SQLite)                            |
-| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (equivalent to `--rate-limit-window-ms`) |
-| `STUBIDP_RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)               |
-| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)  |
+| Variable                       | Default  | Description                                                                                               |
+| ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------- |
+| `STUBIDP_PORT`                 | `8484`   | HTTP server port                                                                                          |
+| `STUBIDP_LOG_LEVEL`            | `info`   | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`)                                    |
+| `STUBIDP_DATABASE_DIALECT`     | —        | Database backend: `postgresql` or `sqlite` (in-memory when omitted)                                       |
+| `STUBIDP_DATABASE_URL`         | —        | Connection string (PostgreSQL) or file path (SQLite)                                                      |
+| `STUBIDP_SKIP_PROMPT`          | `false`  | Set to `true` to skip login/consent UI and auto-approve every interaction (equivalent to `--skip-prompt`) |
+| `STUBIDP_DEFAULT_USER`         | —        | JSON object of OIDC claims for the stub user (equivalent to `--default-user`)                             |
+| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (equivalent to `--rate-limit-window-ms`)                           |
+| `STUBIDP_RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)                                         |
+| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                            |
 
 ## Database
 
@@ -86,3 +90,36 @@ The `STUBIDP_ISSUER` value is embedded in issued tokens as the `iss` claim and m
 - **Local dev** — defaults to `http://localhost:8484`, no change needed.
 - **Cloudflare Workers** — derived automatically from the incoming request URL, no override required.
 - **Custom domain** — set `STUBIDP_ISSUER=https://idp.example.com` to match your deployed URL.
+
+## Automation and E2E testing
+
+stubIdP has two mechanisms for running auth flows without any human interaction.
+
+### `--skip-prompt` / `STUBIDP_SKIP_PROMPT`
+
+When this flag is set, every redirect to the login or consent screen is silently auto-approved. The browser (or test runner) follows the normal OIDC redirect chain and receives the authorization code at the redirect URI without any UI being rendered.
+
+```bash
+STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
+```
+
+### `GET /interaction/:uid/auto`
+
+A headless endpoint that is always available regardless of `--skip-prompt`. Navigate the browser to this URL instead of `/interaction/:uid` to complete the current interaction step programmatically. Useful when you want UI available by default but need headless completion in specific test cases.
+
+### `--default-user` / `STUBIDP_DEFAULT_USER`
+
+Provide a JSON object of standard OIDC claims that stubIdP will include in the ID token and UserInfo response for every authenticated session. The `sub` field controls the subject identifier used during `--skip-prompt` auto-login; all other fields are returned as-is.
+
+```bash
+STUBIDP_DEFAULT_USER='{"sub":"alice","name":"Alice Example","email":"alice@example.com","email_verified":true}' \
+STUBIDP_SKIP_PROMPT=true \
+stubidp --redirect-uri http://localhost:3000/callback
+```
+
+Supported fields: any standard [OIDC claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) (`name`, `given_name`, `family_name`, `email`, `email_verified`, `picture`, `locale`, `phone_number`, etc.) plus arbitrary custom claims.
+
+<Aside type="tip">
+  `--default-user` is also useful without `--skip-prompt`. Any user who logs in through the UI will receive these claims
+  in their tokens, regardless of the username they enter.
+</Aside>

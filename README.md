@@ -92,6 +92,8 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_LOG_LEVEL`                         | `info`                            | Logging verbosity                                                                                   |
 | `STUBIDP_DATABASE_DIALECT`                  | -                                 | Database type: `postgresql` or `sqlite`                                                             |
 | `STUBIDP_DATABASE_URL`                      | -                                 | Connection string or file path                                                                      |
+| `STUBIDP_SKIP_PROMPT`                       | `false`                           | Set to `true` to skip login/consent UI and auto-approve every interaction                           |
+| `STUBIDP_DEFAULT_USER`                      | —                                 | JSON object of OIDC claims returned for every authenticated user                                    |
 | `STUBIDP_RATE_LIMIT_WINDOW_MS`              | `900000`                          | Rate limit time window in milliseconds (15 min)                                                     |
 | `STUBIDP_RATE_LIMIT_MAX`                    | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)                                   |
 | `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                      |
@@ -144,6 +146,32 @@ curl -X PUT http://localhost:8484/register/<client_id> \
 curl -X DELETE http://localhost:8484/register/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>'
 ```
+
+## E2E Testing and Automation
+
+stubIdP supports fully headless authentication for use in E2E test suites, CI pipelines, and other automation scenarios.
+
+### Skip login and consent UI
+
+Pass `--skip-prompt` (or set `STUBIDP_SKIP_PROMPT=true`) to make stubIdP auto-approve every login and consent interaction. The OIDC redirect chain completes transparently — your test runner receives the authorization code at the redirect URI without any browser interaction.
+
+```bash
+STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
+```
+
+### Configure stub user claims
+
+Use `--default-user` (or `STUBIDP_DEFAULT_USER`) to specify the OIDC claims returned in every ID token and UserInfo response. The `sub` field also sets the subject identifier used during auto-login.
+
+```bash
+STUBIDP_DEFAULT_USER='{"sub":"alice","name":"Alice Example","email":"alice@example.com","email_verified":true}' \
+STUBIDP_SKIP_PROMPT=true \
+stubidp --redirect-uri http://localhost:3000/callback
+```
+
+### Headless endpoint (selective use)
+
+If you need UI available by default but headless completion in specific tests, navigate to `GET /interaction/:uid/auto` instead of `/interaction/:uid` to auto-complete the current step without any flags.
 
 ## Docker
 
