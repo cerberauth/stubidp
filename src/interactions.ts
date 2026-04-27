@@ -1,9 +1,76 @@
-import express, { Router } from 'express'
-import type { Provider } from 'oidc-provider'
+import express, { Router, Request, Response, NextFunction } from 'express'
+import type { Provider, Interaction, Grant } from 'oidc-provider'
 
+import type { DefaultUser } from './provider.js'
 import { loginPage, consentPage } from './views/index.js'
 
-export function createInteractionRouter(provider: Provider): Router {
+export interface InteractionRouterOptions {
+  skipPrompt?: boolean
+  defaultUser?: DefaultUser
+}
+
+async function autoCompleteInteraction(
+  provider: Provider,
+  defaultUser: DefaultUser | undefined,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const details: Interaction = await provider.interactionDetails(req, res)
+  const { prompt, params, grantId } = details
+
+  if (prompt.name === 'login') {
+    await provider.interactionFinished(
+      req,
+      res,
+      { login: { accountId: defaultUser?.sub ?? 'stub-user' } },
+      { mergeWithLastSubmission: false },
+    )
+    return
+  }
+
+  if (prompt.name === 'consent') {
+    const Grant = provider.Grant
+    const session = details.session
+
+    let grant: Grant | undefined
+    if (grantId) {
+      grant = await Grant.find(grantId)
+    }
+    if (!grant) {
+      grant = new Grant({
+        accountId: session?.accountId,
+        clientId: params.client_id as string,
+      })
+    }
+
+    const { missingOIDCScope, missingOIDCClaims, missingResourceScopes } = prompt.details
+    if (missingOIDCScope) {
+      grant.addOIDCScope((missingOIDCScope as string[]).join(' '))
+    }
+    if (missingOIDCClaims) {
+      grant.addOIDCClaims(missingOIDCClaims as string[])
+    }
+    if (missingResourceScopes) {
+      for (const [indicator, scopes] of Object.entries(missingResourceScopes)) {
+        grant.addResourceScope(indicator, (scopes as string[]).join(' '))
+      }
+    }
+
+    const savedGrantId = await grant.save()
+    await provider.interactionFinished(
+      req,
+      res,
+      { consent: { grantId: savedGrantId } },
+      { mergeWithLastSubmission: true },
+    )
+    return
+  }
+
+  next(new Error(`Unsupported prompt: ${prompt.name}`))
+}
+
+export function createInteractionRouter(provider: Provider, options: InteractionRouterOptions = {}): Router {
   const router = Router()
 
   router.use((_req, res, next) => {
@@ -13,9 +80,22 @@ export function createInteractionRouter(provider: Provider): Router {
   })
   router.use(express.urlencoded({ extended: false }))
 
+  router.get('/:uid/auto', async (req, res, next) => {
+    try {
+      await autoCompleteInteraction(provider, options.defaultUser, req, res, next)
+    } catch (err) {
+      next(err)
+    }
+  })
+
   router.get('/:uid', async (req, res, next) => {
     try {
-      const details = await provider.interactionDetails(req, res)
+      if (options.skipPrompt) {
+        await autoCompleteInteraction(provider, options.defaultUser, req, res, next)
+        return
+      }
+
+      const details: Interaction = await provider.interactionDetails(req, res)
       const { prompt, params } = details
       const clientId = String(params.client_id ?? 'unknown')
 
@@ -52,19 +132,17 @@ export function createInteractionRouter(provider: Provider): Router {
 
   router.post('/:uid/confirm', async (req, res, next) => {
     try {
-      const details = await provider.interactionDetails(req, res)
+      const details: Interaction = await provider.interactionDetails(req, res)
       const {
         prompt: { details: promptDetails },
         params,
         grantId,
       } = details
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const Grant = provider.Grant as any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session = (details as any).session as { accountId?: string } | undefined
+      const Grant = provider.Grant
+      const session = details.session
 
-      let grant: ReturnType<typeof Grant>
+      let grant: Grant | undefined
       if (grantId) {
         grant = await Grant.find(grantId)
       }

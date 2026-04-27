@@ -88,6 +88,16 @@ if (argv['jwks-file']) {
   jwks = JSON.parse(raw)
 }
 
+let defaultUser
+if (argv['default-user']) {
+  try {
+    defaultUser = JSON.parse(argv['default-user'])
+  } catch {
+    console.error('Error: --default-user must be a valid JSON object')
+    process.exit(1)
+  }
+}
+
 const app = await createApp({
   issuer,
   clientId: redirectUri ? clientId : undefined,
@@ -97,6 +107,8 @@ const app = await createApp({
   jwks,
   enableRegistration,
   initialAccessToken,
+  skipPrompt: argv['skip-prompt'],
+  defaultUser,
   rateLimit: {
     windowMs: argv['rate-limit-window-ms'],
     max: argv['rate-limit-max'],

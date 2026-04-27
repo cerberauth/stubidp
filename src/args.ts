@@ -41,6 +41,20 @@ export const argv = yargs(hideBin(process.argv))
       env: 'STUBIDP_RATE_LIMIT_DISABLED',
       description: 'Disable rate limiting [env: STUBIDP_RATE_LIMIT_DISABLED]',
     },
+    'skip-prompt': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_SKIP_PROMPT',
+      description:
+        'Skip login/consent UI and auto-approve every interaction (for E2E/automation) [env: STUBIDP_SKIP_PROMPT]',
+    },
+    'default-user': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_DEFAULT_USER',
+      description:
+        'JSON object of OIDC claims for the stub user returned by every auth flow [env: STUBIDP_DEFAULT_USER]',
+    },
     preset: {
       type: 'string',
       demandOption: false,

@@ -2,6 +2,30 @@ import { generateKeyPair, exportJWK } from 'jose'
 import { Provider, Configuration } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 
+export interface DefaultUser {
+  sub?: string
+  name?: string
+  given_name?: string
+  family_name?: string
+  middle_name?: string
+  nickname?: string
+  preferred_username?: string
+  profile?: string
+  picture?: string
+  website?: string
+  email?: string
+  email_verified?: boolean
+  gender?: string
+  birthdate?: string
+  zoneinfo?: string
+  locale?: string
+  phone_number?: string
+  phone_number_verified?: boolean
+  address?: Record<string, string>
+  updated_at?: number
+  [key: string]: unknown
+}
+
 export interface ProviderOptions {
   enableRegistration?: boolean
   initialAccessToken?: boolean | string
@@ -12,6 +36,7 @@ export interface ProviderOptions {
   db?: DatabaseInstance
   issuer?: string
   jwks?: Configuration['jwks']
+  defaultUser?: DefaultUser
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
@@ -60,7 +85,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     },
     findAccount: async (_ctx, sub) => ({
       accountId: sub,
-      claims: async () => ({ sub }),
+      claims: async () => ({ ...options.defaultUser, sub }),
     }),
     clientBasedCORS(_ctx, origin, client) {
       if (!origin) {
