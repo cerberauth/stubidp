@@ -111,7 +111,7 @@ homebrew_casks:
   - name: stubidp
     description: &description "A mock OpenID Connect server for developers. Zero config, instant OIDC."
     license: &license MIT
-    homepage: &homepage https://github.com/cerberauth/stubidp
+    homepage: &homepage https://www.cerberauth.com/docs/stubidp/
     repository:
       owner: &owner cerberauth
       name: homebrew-tap
@@ -157,9 +157,12 @@ snapcrafts:
     license: *license
     confinement: strict
     grade: stable
-    plugs:
-      home:
-      network:
+    apps:
+      stubidp:
+        plugs:
+          - home
+          - network
+          - removable-media
     channel_templates:
       - edge
       - beta
@@ -184,10 +187,20 @@ winget:
   - name: stubidp
     publisher: CerberAuth
     publisher_url: https://www.cerberauth.com
+    publisher_support_url: &support https://github.com/cerberauth/stubidp/issues
     license: *license
     license_url: https://github.com/cerberauth/stubidp/blob/main/LICENSE
     homepage: *homepage
     short_description: *description
+    release_notes_url: "https://github.com/cerberauth/stubidp/releases/tag/v{{ .Version }}"
+    tags:
+      - oidc
+      - openid-connect
+      - oauth2
+      - testing
+      - identity-provider
+      - stub
+      - mock
     repository:
       owner: *owner
       name: winget-pkgs
@@ -200,10 +213,16 @@ chocolateys:
     authors: CerberAuth
     description: *description
     project_url: *homepage
+    icon_url: https://github.com/cerberauth.png?size=128
     license_url: https://github.com/cerberauth/stubidp/blob/main/LICENSE
     copyright: CerberAuth
     tags: "oidc openid-connect oauth2 testing identity-provider idp stub mock development"
     summary: *description
+    release_notes: "https://github.com/cerberauth/stubidp/releases/tag/v{{ .Version }}"
+    package_source_url: &source https://github.com/cerberauth/stubidp
+    project_source_url: *source
+    docs_url: "https://www.cerberauth.com/docs/stubidp/"
+    bug_tracker_url: *support
     api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
     source_repo: https://push.chocolatey.org/
     skip_publish: false
