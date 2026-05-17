@@ -109,6 +109,8 @@ const app = await createApp({
   initialAccessToken,
   skipPrompt: argv['skip-prompt'],
   defaultUser,
+  trustProxy: argv['trust-proxy'],
+  httpsRedirect: argv['https-redirect'],
   rateLimit: {
     windowMs: argv['rate-limit-window-ms'],
     max: argv['rate-limit-max'],

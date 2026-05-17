@@ -75,6 +75,20 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Bearer token required to register new clients via POST /register (omit for open registration) [env: STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN]',
     },
+    'trust-proxy': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_TRUST_PROXY',
+      description:
+        'Trust reverse proxy headers (X-Forwarded-*). Enable when running behind a proxy [env: STUBIDP_TRUST_PROXY]',
+    },
+    'https-redirect': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_HTTPS_REDIRECT',
+      description:
+        'Redirect HTTP requests to HTTPS and set CSP upgrade-insecure-requests [env: STUBIDP_HTTPS_REDIRECT]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

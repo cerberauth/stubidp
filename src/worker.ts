@@ -11,6 +11,8 @@ export interface Env {
   STUBIDP_CLIENT_SECRET: string
   STUBIDP_REDIRECT_URI: string
   STUBIDP_ISSUER: string
+  STUBIDP_TRUST_PROXY?: string
+  STUBIDP_HTTPS_REDIRECT?: string
 }
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
@@ -29,6 +31,8 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     redirectUri: currentEnv.STUBIDP_REDIRECT_URI,
     db,
     issuer: currentEnv.STUBIDP_ISSUER,
+    trustProxy: currentEnv.STUBIDP_TRUST_PROXY === 'true',
+    httpsRedirect: currentEnv.STUBIDP_HTTPS_REDIRECT === 'true',
   })
 
   cachedEntry = { key, app }
