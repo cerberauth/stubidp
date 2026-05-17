@@ -11,6 +11,9 @@
     "enabled": true,
     "head_sampling_rate": 1
   },
+  "alias": {
+    "bun:sqlite": "./src/db/bun-sqlite-stub"
+  },
   "vars": {
     "STUBIDP_TRUST_PROXY": "true",
     "STUBIDP_HTTPS_REDIRECT": "true"
