@@ -10,7 +10,7 @@ export interface Env {
   STUBIDP_CLIENT_ID: string
   STUBIDP_CLIENT_SECRET: string
   STUBIDP_REDIRECT_URI: string
-  STUBIDP_ISSUER: string
+  STUBIDP_ISSUER?: string
   STUBIDP_TRUST_PROXY?: string
   STUBIDP_HTTPS_REDIRECT?: string
 }
