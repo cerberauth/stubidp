@@ -16,7 +16,10 @@
   },
   "vars": {
     "STUBIDP_TRUST_PROXY": "true",
-    "STUBIDP_HTTPS_REDIRECT": "true"
+    "STUBIDP_HTTPS_REDIRECT": "true",
+    "STUBIDP_ISSUER": "https://stubidp.cerberauth.com",
+    "STUBIDP_LOG_LEVEL": "warn",
+    "STUBIDP_ENABLE_REGISTRATION": "true"
   },
   "d1_databases": [
     {
