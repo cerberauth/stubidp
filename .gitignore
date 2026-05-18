@@ -40,6 +40,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# wrangler local dev secrets (override template)
+.dev.vars.local
+
 # vercel
 .vercel
 

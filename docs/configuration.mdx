@@ -22,6 +22,9 @@ import { Aside } from '@/components/docs'
 | `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                                          |
 | `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                                 |
 | `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                                              |
+| `--trust-proxy`                       | No       | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a reverse proxy or load balancer.              |
+| `--https-redirect`                    | No       | Redirect HTTP requests to HTTPS and enable CSP `upgrade-insecure-requests`. Enable in production behind TLS termination. |
+| `--security-headers`                  | No       | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed; omit for local development.                  |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -43,17 +46,20 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 
 ### Server
 
-| Variable                       | Default  | Description                                                                                               |
-| ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------- |
-| `STUBIDP_PORT`                 | `8484`   | HTTP server port                                                                                          |
-| `STUBIDP_LOG_LEVEL`            | `info`   | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`)                                    |
-| `STUBIDP_DATABASE_DIALECT`     | —        | Database backend: `postgresql` or `sqlite` (in-memory when omitted)                                       |
-| `STUBIDP_DATABASE_URL`         | —        | Connection string (PostgreSQL) or file path (SQLite)                                                      |
-| `STUBIDP_SKIP_PROMPT`          | `false`  | Set to `true` to skip login/consent UI and auto-approve every interaction (equivalent to `--skip-prompt`) |
-| `STUBIDP_DEFAULT_USER`         | —        | JSON object of OIDC claims for the stub user (equivalent to `--default-user`)                             |
-| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (equivalent to `--rate-limit-window-ms`)                           |
-| `STUBIDP_RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)                                         |
-| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                            |
+| Variable                       | Default  | Description                                                                                                           |
+| ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `STUBIDP_PORT`                 | `8484`   | HTTP server port                                                                                                      |
+| `STUBIDP_LOG_LEVEL`            | `info`   | Logging verbosity (`fatal`, `error`, `warn`, `info`, `debug`, `trace`)                                                |
+| `STUBIDP_DATABASE_DIALECT`     | —        | Database backend: `postgresql` or `sqlite` (in-memory when omitted)                                                   |
+| `STUBIDP_DATABASE_URL`         | —        | Connection string (PostgreSQL) or file path (SQLite)                                                                  |
+| `STUBIDP_SKIP_PROMPT`          | `false`  | Set to `true` to skip login/consent UI and auto-approve every interaction (equivalent to `--skip-prompt`)             |
+| `STUBIDP_DEFAULT_USER`         | —        | JSON object of OIDC claims for the stub user (equivalent to `--default-user`)                                         |
+| `STUBIDP_RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit time window in milliseconds (equivalent to `--rate-limit-window-ms`)                                       |
+| `STUBIDP_RATE_LIMIT_MAX`       | `100`    | Max requests per IP per window (equivalent to `--rate-limit-max`)                                                     |
+| `STUBIDP_RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                                        |
+| `STUBIDP_TRUST_PROXY`          | `false`  | Set to `true` to trust reverse proxy headers (`X-Forwarded-*`) (equivalent to `--trust-proxy`)                        |
+| `STUBIDP_HTTPS_REDIRECT`       | `false`  | Set to `true` to redirect HTTP to HTTPS and enable CSP `upgrade-insecure-requests` (equivalent to `--https-redirect`) |
+| `STUBIDP_SECURITY_HEADERS`     | `false`  | Set to `true` to enable security headers (CSP, HSTS, etc.) via helmet (equivalent to `--security-headers`)            |
 
 ## Database
 

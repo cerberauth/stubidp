@@ -99,6 +99,9 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                      |
 | `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /register`, `GET/PUT/DELETE /register/:id`) |
 | `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /register` (open registration when omitted)                     |
+| `STUBIDP_TRUST_PROXY`                       | `false`                           | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a proxy                   |
+| `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                             |
+| `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev       |
 
 ## Dynamic Client Registration
 

@@ -1,15 +1,18 @@
 import { defineConfig } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'bun:sqlite': path.resolve(__dirname, 'src/db/bun-sqlite-stub.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: ['src/**/*.ts'],
-      exclude: ['**/node_modules/**', '**/dist/**', '**/*.test.ts'],
       thresholds: {
         lines: 80,
         branches: 80,

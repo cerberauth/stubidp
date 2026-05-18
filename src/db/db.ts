@@ -1,4 +1,5 @@
 import logger from '../logger.js'
+import { isBun } from '../utils/runtime.js'
 
 type dialect = 'postgres' | 'sqlite'
 
@@ -30,7 +31,7 @@ if (process.env.STUBIDP_DATABASE_DIALECT) {
     if (!databasePath) {
       throw new Error('STUBIDP_DATABASE_URL environment variable is required for SQLite')
     }
-    if (process.versions.bun) {
+    if (isBun()) {
       const { drizzle } = await import('drizzle-orm/bun-sqlite')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { Database } = await import('bun:sqlite' as any)
