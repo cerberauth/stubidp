@@ -111,6 +111,7 @@ const app = await createApp({
   defaultUser,
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],
+  securityHeaders: argv['security-headers'],
   rateLimit: {
     windowMs: argv['rate-limit-window-ms'],
     max: argv['rate-limit-max'],

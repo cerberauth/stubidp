@@ -19,26 +19,29 @@ export interface AppOptions extends ProviderOptions {
   skipPrompt?: boolean
   trustProxy?: boolean
   httpsRedirect?: boolean
+  securityHeaders?: boolean
 }
 
 export async function createApp(options: AppOptions): Promise<Express> {
   const app: Express = express()
   const oidc: Provider = await createProvider(options)
 
-  const directives = helmet.contentSecurityPolicy.getDefaultDirectives()
-  delete directives['form-action']
-  delete directives['upgrade-insecure-requests']
-  if (options.httpsRedirect) {
-    directives['upgrade-insecure-requests'] = []
+  if (options.securityHeaders) {
+    const directives = helmet.contentSecurityPolicy.getDefaultDirectives()
+    delete directives['form-action']
+    delete directives['upgrade-insecure-requests']
+    if (options.httpsRedirect) {
+      directives['upgrade-insecure-requests'] = []
+    }
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          useDefaults: false,
+          directives,
+        },
+      }),
+    )
   }
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        useDefaults: false,
-        directives,
-      },
-    }),
-  )
 
   const rl = options.rateLimit ?? {}
   if (!rl.disabled) {

@@ -24,6 +24,7 @@ import { Aside } from '@/components/docs'
 | `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                                              |
 | `--trust-proxy`                       | No       | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a reverse proxy or load balancer.              |
 | `--https-redirect`                    | No       | Redirect HTTP requests to HTTPS and enable CSP `upgrade-insecure-requests`. Enable in production behind TLS termination. |
+| `--security-headers`                  | No       | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed; omit for local development.                  |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -58,6 +59,7 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_RATE_LIMIT_DISABLED`  | `false`  | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                                        |
 | `STUBIDP_TRUST_PROXY`          | `false`  | Set to `true` to trust reverse proxy headers (`X-Forwarded-*`) (equivalent to `--trust-proxy`)                        |
 | `STUBIDP_HTTPS_REDIRECT`       | `false`  | Set to `true` to redirect HTTP to HTTPS and enable CSP `upgrade-insecure-requests` (equivalent to `--https-redirect`) |
+| `STUBIDP_SECURITY_HEADERS`     | `false`  | Set to `true` to enable security headers (CSP, HSTS, etc.) via helmet (equivalent to `--security-headers`)            |
 
 ## Database
 

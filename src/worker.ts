@@ -33,6 +33,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     issuer: currentEnv.STUBIDP_ISSUER,
     trustProxy: currentEnv.STUBIDP_TRUST_PROXY === 'true',
     httpsRedirect: currentEnv.STUBIDP_HTTPS_REDIRECT === 'true',
+    securityHeaders: true,
   })
 
   cachedEntry = { key, app }

@@ -89,6 +89,13 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Redirect HTTP requests to HTTPS and set CSP upgrade-insecure-requests [env: STUBIDP_HTTPS_REDIRECT]',
     },
+    'security-headers': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_SECURITY_HEADERS',
+      description:
+        'Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed [env: STUBIDP_SECURITY_HEADERS]',
+    },
   })
   .env('STUBIDP')
   .parseSync()
