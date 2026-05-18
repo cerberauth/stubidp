@@ -128,6 +128,61 @@ DELETE {base}/register/{client_id}
 
 Removes the client registration. Requires `Authorization: Bearer <registration_access_token>`.
 
+## Health
+
+These endpoints are not part of the OIDC spec and are served at the root path regardless of runtime.
+
+### Liveness
+
+```
+GET /healthz
+```
+
+Always returns `200 OK` when the server process is running. Use this for liveness probes.
+
+```json
+{ "status": "ok" }
+```
+
+### Readiness
+
+```
+GET /readyz
+```
+
+Returns `200 OK` when stubIdP is ready to serve traffic, or `503 Service Unavailable` if any check fails. Use this for readiness probes.
+
+Checks:
+
+| Check  | Always present     | Description                              |
+| ------ | ------------------ | ---------------------------------------- |
+| `oidc` | Yes                | OIDC provider initialized and issuer set |
+| `db`   | When DB configured | Database reachable via `SELECT 1`        |
+
+Example response (all healthy):
+
+```json
+{
+  "status": "ok",
+  "checks": {
+    "oidc": { "status": "ok" },
+    "db": { "status": "ok" }
+  }
+}
+```
+
+Example response (DB unreachable):
+
+```json
+{
+  "status": "error",
+  "checks": {
+    "oidc": { "status": "ok" },
+    "db": { "status": "error", "error": "Connection refused" }
+  }
+}
+```
+
 <Aside type="note">
   stubIdP uses built-in interaction screens for login and consent. Unlike production OIDC providers, there is no
   separate interaction service to configure.
