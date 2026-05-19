@@ -20,13 +20,15 @@ export function homePage(issuer: string): string {
       <td class="px-6 py-3.5">
         ${
           link
-            ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="font-mono text-xs text-purple-400 hover:text-purple-300 transition-colors break-all">${escapeHtml(url)}</a>`
+            ? `<a href="${escapeHtml(url)}" target="_blank" class="font-mono text-xs text-purple-400 hover:text-purple-300 transition-colors break-all">${escapeHtml(url)}</a>`
             : `<span class="font-mono text-xs text-gray-500 break-all">${escapeHtml(url)}</span>`
         }
       </td>
     </tr>`,
     )
     .join('')
+
+  const description = 'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
 
   return layout(
     'Mock OpenID Connect Server',
@@ -44,12 +46,12 @@ export function homePage(issuer: string): string {
       </p>
       <div class="flex items-center justify-center gap-3 flex-wrap">
         <a href="https://nacho.cerberauth.com/client/create"
-           target="_blank" rel="noopener"
+           target="_blank"
            class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm">
           Create a client →
         </a>
         <a href="${escapeHtml(discoveryUrl)}"
-           target="_blank" rel="noopener"
+           target="_blank"
            class="inline-flex items-center gap-2 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-6 py-3 rounded-lg transition-colors text-sm">
           OIDC Discovery
         </a>
@@ -66,7 +68,7 @@ export function homePage(issuer: string): string {
           <code class="bg-gray-800/80 border border-gray-700 px-1.5 py-0.5 rounded text-xs text-purple-300">client_secret</code> in seconds.
         </p>
         <a href="https://nacho.cerberauth.com/client/create"
-           target="_blank" rel="noopener"
+           target="_blank"
            class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors">
           Create a client at nacho.cerberauth.com →
         </a>
@@ -145,5 +147,7 @@ export function homePage(issuer: string): string {
       </div>
     </section>
   `,
+    description,
+    issuer,
   )
 }
