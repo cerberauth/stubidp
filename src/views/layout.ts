@@ -8,7 +8,9 @@ export function escapeHtml(str: string): string {
 }
 
 export function layout(title: string, body: string, description?: string, url?: string): string {
-  const desc = description || 'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
+  const desc =
+    description ||
+    'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
   const ogUrl = url || 'https://stubidp.cerberauth.com'
   return `<!DOCTYPE html>
 <html lang="en">

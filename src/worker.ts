@@ -33,7 +33,6 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     redirectUri: currentEnv.STUBIDP_REDIRECT_URI,
     db,
     issuer: currentEnv.STUBIDP_ISSUER,
-    trustProxy: currentEnv.STUBIDP_TRUST_PROXY === 'true',
     httpsRedirect: currentEnv.STUBIDP_HTTPS_REDIRECT === 'true',
     securityHeaders: true,
     enableRegistration: currentEnv.STUBIDP_ENABLE_REGISTRATION === 'true',

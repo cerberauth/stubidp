@@ -15,7 +15,11 @@ import { homePage } from './views/index.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function cacheControl(
-  options: { maxAge?: number; staleWhileRevalidate?: number; pathRules?: Record<string, { maxAge: number; staleWhileRevalidate?: number }> } = {},
+  options: {
+    maxAge?: number
+    staleWhileRevalidate?: number
+    pathRules?: Record<string, { maxAge: number; staleWhileRevalidate?: number }>
+  } = {},
 ) {
   return (_req: Request, res: Response, next: NextFunction) => {
     let maxAge = options.maxAge
@@ -101,7 +105,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  const rl = options.rateLimit ?? {}
+  const rl = options.rateLimit ?? { disabled: true }
   if (!rl.disabled) {
     app.use(
       rateLimit({
@@ -110,7 +114,9 @@ export async function createApp(options: AppOptions): Promise<Express> {
         standardHeaders: 'draft-8',
         legacyHeaders: false,
         skip: (req) => {
-          return req.path === '/.well-known/openid-configuration' || req.path === '/.well-known/openid-configuration/jwks'
+          return (
+            req.path === '/.well-known/openid-configuration' || req.path === '/.well-known/openid-configuration/jwks'
+          )
         },
       }),
     )

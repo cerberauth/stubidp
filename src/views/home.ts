@@ -28,7 +28,8 @@ export function homePage(issuer: string): string {
     )
     .join('')
 
-  const description = 'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
+  const description =
+    'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
 
   return layout(
     'Mock OpenID Connect Server',
