@@ -3,10 +3,14 @@ import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
 import helmet from 'helmet'
 import * as url from 'node:url'
+import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { createInteractionRouter } from './interactions.js'
 import { createProvider, ProviderOptions } from './provider.js'
 import { homePage } from './views/index.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export interface RateLimitOptions {
   windowMs?: number
@@ -42,6 +46,8 @@ export async function createApp(options: AppOptions): Promise<Express> {
       }),
     )
   }
+
+  app.use(express.static(path.join(__dirname, '..', 'public')))
 
   const rl = options.rateLimit ?? {}
   if (!rl.disabled) {
