@@ -4,6 +4,8 @@ import type { Provider } from 'oidc-provider'
 import helmet from 'helmet'
 import * as url from 'node:url'
 
+import type { DatabaseInstance } from './db/db.js'
+import { livenessHandler, pingDb, readinessHandler } from './health.js'
 import { createInteractionRouter } from './interactions.js'
 import { createProvider, ProviderOptions } from './provider.js'
 import { homePage } from './views/index.js'
@@ -25,6 +27,25 @@ export interface AppOptions extends ProviderOptions {
 export async function createApp(options: AppOptions): Promise<Express> {
   const app: Express = express()
   const oidc: Provider = await createProvider(options)
+
+  let resolvedDb: DatabaseInstance | null = options.db ?? null
+  if (!resolvedDb && process.env.STUBIDP_DATABASE_DIALECT) {
+    const { db } = await import('./db/db.js')
+    resolvedDb = db
+  }
+
+  const readinessChecks: Record<string, () => Promise<void>> = {
+    oidc: async () => {
+      if (!oidc.issuer) throw new Error('provider not initialized')
+    },
+  }
+  if (resolvedDb) {
+    const db = resolvedDb
+    readinessChecks.db = () => pingDb(db)
+  }
+
+  app.get('/healthz', livenessHandler)
+  app.get('/readyz', readinessHandler(readinessChecks))
 
   if (options.securityHeaders) {
     const directives = helmet.contentSecurityPolicy.getDefaultDirectives()
