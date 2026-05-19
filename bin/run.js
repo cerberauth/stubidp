@@ -5,7 +5,6 @@ import { readFile } from 'fs/promises'
 import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
-import logger from '../build/logger.js'
 
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 

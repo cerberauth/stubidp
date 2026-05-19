@@ -9,6 +9,12 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 })
 
-const eslintConfig = [...compat.extends('prettier'), ...compat.extends('plugin:@typescript-eslint/recommended')]
+const eslintConfig = [
+  {
+    ignores: ['build/**', 'coverage/**', 'dist/**', 'bins/**', 'public/output.css'],
+  },
+  ...compat.extends('prettier'),
+  ...compat.extends('plugin:@typescript-eslint/recommended'),
+]
 
 export default eslintConfig
