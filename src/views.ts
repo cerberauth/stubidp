@@ -5,7 +5,7 @@ function layout(title: string, content: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} — stubIdP</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/output.css" />
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex items-center justify-center p-4">
   <div class="w-full max-w-md">

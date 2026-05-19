@@ -14,7 +14,7 @@ export function layout(title: string, body: string): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)} — stubIDP</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/output.css" />
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col antialiased">
   <header class="border-b border-gray-800 shrink-0">
