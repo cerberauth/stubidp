@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /interaction
+
+Sitemap: https://stubidp.cerberauth.com/sitemap.xml

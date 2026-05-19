@@ -1,4 +1,4 @@
-import express, { Express } from 'express'
+import express, { Express, Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
 import helmet from 'helmet'
@@ -13,6 +13,41 @@ import { createProvider, ProviderOptions } from './provider.js'
 import { homePage } from './views/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+function cacheControl(
+  options: {
+    maxAge?: number
+    staleWhileRevalidate?: number
+    pathRules?: Record<string, { maxAge: number; staleWhileRevalidate?: number }>
+  } = {},
+) {
+  return (_req: Request, res: Response, next: NextFunction) => {
+    let maxAge = options.maxAge
+    let staleWhileRevalidate = options.staleWhileRevalidate
+
+    if (options.pathRules) {
+      const path = _req.path
+      for (const [pathPattern, rule] of Object.entries(options.pathRules)) {
+        if (path === pathPattern) {
+          maxAge = rule.maxAge
+          staleWhileRevalidate = rule.staleWhileRevalidate
+          break
+        }
+      }
+    }
+
+    if (maxAge === undefined) {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    } else {
+      let header = `public, max-age=${maxAge}`
+      if (staleWhileRevalidate) {
+        header += `, stale-while-revalidate=${staleWhileRevalidate}`
+      }
+      res.set('Cache-Control', header)
+    }
+    next()
+  }
+}
 
 export interface RateLimitOptions {
   windowMs?: number
@@ -70,7 +105,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  const rl = options.rateLimit ?? {}
+  const rl = options.rateLimit ?? { disabled: true }
   if (!rl.disabled) {
     app.use(
       rateLimit({
@@ -78,6 +113,11 @@ export async function createApp(options: AppOptions): Promise<Express> {
         limit: rl.max ?? 100,
         standardHeaders: 'draft-8',
         legacyHeaders: false,
+        skip: (req) => {
+          return (
+            req.path === '/.well-known/openid-configuration' || req.path === '/.well-known/openid-configuration/jwks'
+          )
+        },
       }),
     )
   }
@@ -108,14 +148,24 @@ export async function createApp(options: AppOptions): Promise<Express> {
     })
   }
 
-  app.get('/', (_req, res) => {
+  app.get('/', cacheControl({ maxAge: 86400 }), (_req, res) => {
     res.type('html').send(homePage(oidc.issuer))
   })
   app.use(
     '/interaction',
+    cacheControl(),
     createInteractionRouter(oidc, { skipPrompt: options.skipPrompt, defaultUser: options.defaultUser }),
   )
-  app.use('/', oidc.callback())
+  app.use(
+    '/',
+    cacheControl({
+      pathRules: {
+        '/.well-known/openid-configuration': { maxAge: 86400, staleWhileRevalidate: 3600 },
+        '/.well-known/openid-configuration/jwks': { maxAge: 3600, staleWhileRevalidate: 900 },
+      },
+    }),
+    oidc.callback(),
+  )
 
   return app
 }
