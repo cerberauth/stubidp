@@ -68,7 +68,7 @@
     "express": "5.2.1",
     "express-rate-limit": "8.5.2",
     "helmet": "8.1.0",
-    "oidc-provider": "9.8.3",
+    "oidc-provider": "github:emmanuelgautier/node-oidc-provider#8e48b797470094c212f18783a1266bb5a4d12007",
     "pg": "8.21.0",
     "pino": "10.3.1",
     "yargs": "18.0.0"
