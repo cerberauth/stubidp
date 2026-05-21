@@ -12,8 +12,6 @@ import { createInteractionRouter } from './interactions.js'
 import { createProvider, ProviderOptions } from './provider.js'
 import { homePage } from './views/index.js'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
 function cacheControl(
   options: {
     maxAge?: number
@@ -103,7 +101,15 @@ export async function createApp(options: AppOptions): Promise<Express> {
     )
   }
 
-  app.use(express.static(path.join(__dirname, '..', 'public')))
+  if (process.env.STUBIDP_SERVE_STATIC) {
+    const __dirname =
+      import.meta.url && import.meta.url.startsWith('file:') ? path.dirname(fileURLToPath(import.meta.url)) : undefined
+    if (!__dirname) {
+      throw new Error('unable to determine __dirname')
+    }
+
+    app.use(express.static(path.join(__dirname, process.env.STUBIDP_SERVE_STATIC)))
+  }
 
   const rl = options.rateLimit ?? { disabled: true }
   if (!rl.disabled) {
