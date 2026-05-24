@@ -17,7 +17,7 @@ COPY package*.json ./
 RUN npm ci --production
 
 COPY ./bin ./bin
-COPY ./public ./public
+COPY --from=builder /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/build ./build
 
 ENV STUBIDP_SERVE_STATIC='public'

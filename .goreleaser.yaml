@@ -243,9 +243,11 @@ dockers_v2:
     extra_files:
       - src/
       - bin/
+      - public/
       - package.json
       - package-lock.json
       - tsconfig.json
+      - tailwind.config.ts
 
   - id: stubidp-ghcr
     dockerfile: Dockerfile
@@ -262,9 +264,11 @@ dockers_v2:
     extra_files:
       - src/
       - bin/
+      - public/
       - package.json
       - package-lock.json
       - tsconfig.json
+      - tailwind.config.ts
 
 docker_signs:
   - cmd: cosign
