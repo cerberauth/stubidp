@@ -221,7 +221,7 @@ chocolateys:
     release_notes: "https://github.com/cerberauth/stubidp/releases/tag/v{{ .Version }}"
     package_source_url: &source https://github.com/cerberauth/stubidp
     project_source_url: *source
-    docs_url: "https://www.cerberauth.com/docs/stubidp/"
+    docs_url: *homepage
     bug_tracker_url: *support
     api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
     source_repo: https://push.chocolatey.org/
