@@ -5,6 +5,9 @@
   "compatibility_date": "2026-05-14",
   "compatibility_flags": ["nodejs_compat"],
   "tsconfig": "tsconfig.worker.json",
+  "build": {
+    "command": "npm run build"
+  },
   "workers_dev": false,
   "preview_urls": false,
   "routes": [
@@ -15,6 +18,9 @@
   ],
   "alias": {
     "bun:sqlite": "./src/db/bun-sqlite-stub"
+  },
+  "assets": {
+    "directory": "./public"
   },
   "vars": {
     "STUBIDP_HTTPS_REDIRECT": "true",
