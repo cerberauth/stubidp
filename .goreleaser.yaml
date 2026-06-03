@@ -247,7 +247,7 @@ dockers_v2:
       - package.json
       - package-lock.json
       - tsconfig.json
-      - tailwind.config.ts
+      - tailwind.config.js
 
   - id: stubidp-ghcr
     dockerfile: Dockerfile
@@ -268,7 +268,7 @@ dockers_v2:
       - package.json
       - package-lock.json
       - tsconfig.json
-      - tailwind.config.ts
+      - tailwind.config.js
 
 docker_signs:
   - cmd: cosign
