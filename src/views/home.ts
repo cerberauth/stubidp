@@ -34,7 +34,6 @@ export function homePage(issuer: string): string {
   return layout(
     'Mock OpenID Connect Server',
     `
-    <!-- Hero -->
     <section class="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
       <div class="inline-flex items-center gap-2 bg-purple-500/10 text-purple-300 text-xs px-3 py-1.5 rounded-full border border-purple-500/20 mb-8 font-medium uppercase tracking-wider">
         OpenID Connect &amp; OAuth 2.0
@@ -46,7 +45,7 @@ export function homePage(issuer: string): string {
         Stop waiting for identity providers. Start building.<br/>Zero config. Instant OIDC for local dev and CI/CD.
       </p>
       <div class="flex items-center justify-center gap-3 flex-wrap">
-        <a href="https://nacho.cerberauth.com/client/create"
+        <a href="https://nacho.cerberauth.com/clients/create"
            target="_blank"
            class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm">
           Create a client →
@@ -59,7 +58,6 @@ export function homePage(issuer: string): string {
       </div>
     </section>
 
-    <!-- Create Client CTA -->
     <section class="max-w-4xl mx-auto px-6 pb-16">
       <div class="relative overflow-hidden bg-gradient-to-br from-purple-900/40 via-purple-900/20 to-gray-900/40 border border-purple-700/40 rounded-2xl p-8 sm:p-12 text-center">
         <h2 class="text-2xl sm:text-3xl font-bold mb-3">Register a new client</h2>
@@ -68,7 +66,7 @@ export function homePage(issuer: string): string {
           Get your <code class="bg-gray-800/80 border border-gray-700 px-1.5 py-0.5 rounded text-xs text-purple-300">client_id</code> and
           <code class="bg-gray-800/80 border border-gray-700 px-1.5 py-0.5 rounded text-xs text-purple-300">client_secret</code> in seconds.
         </p>
-        <a href="https://nacho.cerberauth.com/client/create"
+        <a href="https://nacho.cerberauth.com/clients/create"
            target="_blank"
            class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors">
           Create a client at nacho.cerberauth.com →
@@ -76,7 +74,6 @@ export function homePage(issuer: string): string {
       </div>
     </section>
 
-    <!-- Quick Start -->
     <section class="max-w-4xl mx-auto px-6 pb-16">
       <h2 class="text-2xl font-bold mb-5">Quick Start</h2>
       <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -97,7 +94,6 @@ export function homePage(issuer: string): string {
       </p>
     </section>
 
-    <!-- OIDC Endpoints -->
     <section class="max-w-4xl mx-auto px-6 pb-16">
       <h2 class="text-2xl font-bold mb-5">OIDC Endpoints</h2>
       <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -115,7 +111,6 @@ export function homePage(issuer: string): string {
       </div>
     </section>
 
-    <!-- Features -->
     <section class="max-w-4xl mx-auto px-6 pb-16">
       <h2 class="text-2xl font-bold mb-5">Why stubIDP?</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -137,7 +132,6 @@ export function homePage(issuer: string): string {
       </div>
     </section>
 
-    <!-- Warning -->
     <section class="max-w-4xl mx-auto px-6 pb-16">
       <div class="flex gap-4 items-start bg-yellow-500/5 border border-yellow-500/20 rounded-xl px-6 py-5">
         <span class="text-yellow-500 text-lg shrink-0">⚠</span>
