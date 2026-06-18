@@ -125,7 +125,7 @@ app.listen(port, () => {
     ...(redirectUri
       ? [
           ['Client ID', clientId],
-          ['Client Secret', clientSecret],
+          ...(clientSecret ? [['Client Secret', clientSecret]] : [['Token Auth Method', 'none (public client)']]),
           ['Redirect URI', redirectUri],
         ]
       : []),

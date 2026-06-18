@@ -96,6 +96,13 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed [env: STUBIDP_SECURITY_HEADERS]',
     },
+    'public-client': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_PUBLIC_CLIENT',
+      description:
+        'Configure as public client (no client_secret, token_endpoint_auth_method=none). For SPAs and native apps [env: STUBIDP_PUBLIC_CLIENT]',
+    },
     'post-logout-redirect-uri': {
       type: 'string',
       demandOption: false,
