@@ -79,7 +79,15 @@ Returns the JSON Web Key Set used to verify token signatures. Use this endpoint 
 GET {base}/session/end
 ```
 
-Initiates RP-Initiated Logout. Accepts `id_token_hint` and `post_logout_redirect_uri` parameters.
+Initiates RP-Initiated Logout ([OpenID Connect RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)).
+
+| Parameter                  | Description                                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `id_token_hint`            | Previously issued ID token. Used to identify the session to end.                                                                        |
+| `post_logout_redirect_uri` | URI to redirect to after logout. Must match the value configured via `--post-logout-redirect-uri` / `STUBIDP_POST_LOGOUT_REDIRECT_URI`. |
+| `state`                    | Opaque value passed back to the client in the post-logout redirect.                                                                     |
+
+When `--skip-prompt` is enabled, stubIdP auto-approves logout without showing a confirmation page and immediately performs back-channel logout notifications before destroying the session.
 
 ## Dynamic Client Registration
 

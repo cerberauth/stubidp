@@ -14,6 +14,7 @@ export interface Env {
   STUBIDP_HTTPS_REDIRECT?: string
   STUBIDP_ENABLE_REGISTRATION?: string
   STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN?: string
+  STUBIDP_SKIP_PROMPT?: string
 }
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
@@ -36,6 +37,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     securityHeaders: true,
     enableRegistration: currentEnv.STUBIDP_ENABLE_REGISTRATION === 'true',
     initialAccessToken: currentEnv.STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN,
+    skipPrompt: currentEnv.STUBIDP_SKIP_PROMPT === 'true',
   })
 
   cachedEntry = { key, app }
