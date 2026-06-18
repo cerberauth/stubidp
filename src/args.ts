@@ -96,6 +96,12 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed [env: STUBIDP_SECURITY_HEADERS]',
     },
+    'post-logout-redirect-uri': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_POST_LOGOUT_REDIRECT_URI',
+      description: 'Allowed post-logout redirect URI [env: STUBIDP_POST_LOGOUT_REDIRECT_URI]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

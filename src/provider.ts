@@ -1,4 +1,5 @@
 import { generateKeyPair, exportJWK } from 'jose'
+import { logoutPage, logoutSuccessPage } from './views/index.js'
 import { Provider, Configuration } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 
@@ -32,11 +33,13 @@ export interface ProviderOptions {
   clientId?: string
   clientSecret?: string
   redirectUri?: string
+  postLogoutRedirectUri?: string
   grantTypes?: string[]
   db?: DatabaseInstance
   issuer?: string
   jwks?: Configuration['jwks']
   defaultUser?: DefaultUser
+  skipPrompt?: boolean
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
@@ -56,6 +59,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             client_id: options.clientId,
             client_secret: options.clientSecret,
             redirect_uris: [options.redirectUri],
+            ...(options.postLogoutRedirectUri ? { post_logout_redirect_uris: [options.postLogoutRedirectUri] } : {}),
             response_types: ['code'] as ['code'],
             grant_types: options.grantTypes ?? ['authorization_code', 'refresh_token'],
           },
@@ -67,6 +71,59 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     jwks,
     features: {
       devInteractions: { enabled: false },
+      rpInitiatedLogout: {
+        enabled: true,
+        async logoutSource(ctx, form) {
+          const clientId = ctx.oidc.client?.clientId
+          if (options.skipPrompt) {
+            const { session, provider } = ctx.oidc
+            if (!session) {
+              ctx.body = logoutPage({ clientId, form })
+              return
+            }
+
+            // back-channel: notify any RP that registered a backchannelLogoutUri
+            const { accountId } = session
+            if (accountId) {
+              await Promise.all(
+                Object.keys(session.authorizations ?? {}).map(async (cid) => {
+                  const client = await provider.Client.find(cid)
+                  const backchannel = (client as unknown as Record<string, unknown>)?.backchannelLogout
+                  const sid = session.sidFor(cid)
+                  if (client?.backchannelLogoutUri && typeof backchannel === 'function' && sid) {
+                    await (backchannel as (accountId: string, sid: string) => Promise<void>)
+                      .call(client, accountId, sid)
+                      .then(() => provider.emit('backchannel.success', ctx, client, accountId, sid))
+                      .catch((err: unknown) => provider.emit('backchannel.error', ctx, err, client, accountId, sid))
+                  }
+                }),
+              )
+            }
+
+            // front-channel: destroy session + redirect (no JS, no HTML)
+            const postLogoutRedirectUri = session.state?.postLogoutRedirectUri as string | undefined
+            const stateParam = session.state?.state as string | undefined
+            await session.destroy()
+
+            let target: string
+            if (postLogoutRedirectUri) {
+              const url = new URL(postLogoutRedirectUri)
+              if (stateParam) url.searchParams.set('state', stateParam)
+              target = url.href
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              target = (ctx.oidc as any).urlFor('end_session_success')
+            }
+            ctx.redirect(target)
+            return
+          }
+          ctx.body = logoutPage({ clientId, form })
+        },
+        async postLogoutSuccessSource(ctx) {
+          const clientId = ctx.oidc.client?.clientId
+          ctx.body = logoutSuccessPage({ clientId })
+        },
+      },
       registration: options.enableRegistration
         ? {
             enabled: true,
