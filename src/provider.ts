@@ -57,7 +57,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       ? [
           {
             client_id: options.clientId,
-            client_secret: options.clientSecret,
+            ...(options.clientSecret
+              ? { client_secret: options.clientSecret }
+              : { token_endpoint_auth_method: 'none' as const }),
             redirect_uris: [options.redirectUri],
             ...(options.postLogoutRedirectUri ? { post_logout_redirect_uris: [options.postLogoutRedirectUri] } : {}),
             response_types: ['code'] as ['code'],

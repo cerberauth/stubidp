@@ -85,6 +85,7 @@ All CLI flags can be set via environment variables instead:
 | ------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `STUBIDP_CLIENT_ID`                         | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                                                             |
 | `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                     |
+| `STUBIDP_PUBLIC_CLIENT`                     | `false`                           | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps  |
 | `STUBIDP_REDIRECT_URI`                      | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                                                 |
 | `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                                                          |
 | `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                                                 |
