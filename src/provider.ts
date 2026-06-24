@@ -38,6 +38,8 @@ export interface ProviderOptions {
   db?: DatabaseInstance
   issuer?: string
   jwks?: Configuration['jwks']
+  scopes?: string[]
+  claims?: Configuration['claims']
   defaultUser?: DefaultUser
   skipPrompt?: boolean
 }
@@ -68,7 +70,49 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
         ]
       : []
 
+  const resolvedScopes = options.scopes ??
+    process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
+      'openid',
+      'offline_access',
+      'email',
+      'profile',
+      'phone',
+      'address',
+    ]
+
+  const allDefaultClaims: Configuration['claims'] = {
+    openid: ['sub'],
+    email: ['email', 'email_verified'],
+    profile: [
+      'name',
+      'given_name',
+      'family_name',
+      'middle_name',
+      'nickname',
+      'preferred_username',
+      'profile',
+      'picture',
+      'website',
+      'gender',
+      'birthdate',
+      'zoneinfo',
+      'locale',
+      'updated_at',
+    ],
+    phone: ['phone_number', 'phone_number_verified'],
+    address: ['address'],
+  }
+
+  const resolvedClaims: Configuration['claims'] =
+    options.claims ??
+    (process.env.STUBIDP_CLAIMS ? (JSON.parse(process.env.STUBIDP_CLAIMS) as Configuration['claims']) : undefined) ??
+    (Object.fromEntries(
+      Object.entries(allDefaultClaims).filter(([scope]) => resolvedScopes.includes(scope)),
+    ) as Configuration['claims'])
+
   const configuration: Configuration = {
+    scopes: resolvedScopes,
+    claims: resolvedClaims,
     clients: staticClient,
     jwks,
     features: {

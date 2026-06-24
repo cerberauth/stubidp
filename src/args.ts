@@ -109,6 +109,20 @@ export const argv = yargs(hideBin(process.argv))
       env: 'STUBIDP_POST_LOGOUT_REDIRECT_URI',
       description: 'Allowed post-logout redirect URI [env: STUBIDP_POST_LOGOUT_REDIRECT_URI]',
     },
+    scopes: {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_SCOPES',
+      description:
+        'Comma-separated list of supported OIDC scopes (default: openid,offline_access,email,profile,phone,address) [env: STUBIDP_SCOPES]',
+    },
+    claims: {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_CLAIMS',
+      description:
+        'JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. \'{"openid":["sub"],"email":["email"]}\') [env: STUBIDP_CLAIMS]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

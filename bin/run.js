@@ -108,6 +108,8 @@ const app = await createApp({
   jwks,
   enableRegistration,
   initialAccessToken,
+  scopes: argv['scopes'] ? argv['scopes'].split(',').map((s) => s.trim()) : undefined,
+  claims: argv['claims'] ? JSON.parse(argv['claims']) : undefined,
   skipPrompt: argv['skip-prompt'],
   defaultUser,
   trustProxy: argv['trust-proxy'],
