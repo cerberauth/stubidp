@@ -1,4 +1,5 @@
 import { generateKeyPair, exportJWK } from 'jose'
+import { isEmail, isPhone } from './hint.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
 import { Provider, Configuration } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
@@ -188,7 +189,12 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     },
     findAccount: async (_ctx, sub) => ({
       accountId: sub,
-      claims: async () => ({ ...options.defaultUser, sub }),
+      claims: async () => ({
+        ...options.defaultUser,
+        sub,
+        ...(options.defaultUser?.email === undefined && isEmail(sub) ? { email: sub } : {}),
+        ...(options.defaultUser?.phone_number === undefined && isPhone(sub) ? { phone_number: sub } : {}),
+      }),
     }),
     clientBasedCORS(_ctx, origin, client) {
       if (!origin) {

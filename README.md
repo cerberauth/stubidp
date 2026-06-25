@@ -182,6 +182,19 @@ STUBIDP_SKIP_PROMPT=true \
 stubidp --redirect-uri http://localhost:3000/callback
 ```
 
+### Use `login_hint` as subject
+
+When `--skip-prompt` is set but no `--default-user` is configured, stubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number — it becomes the subject (`sub`) and also auto-populates the matching claim (`email` or `phone_number`).
+
+```bash
+# Client sends: ?login_hint=alice@example.com
+STUBIDP_SKIP_PROMPT=true \
+stubidp --redirect-uri http://localhost:3000/callback
+# → sub: "alice@example.com", email: "alice@example.com"
+```
+
+This lets E2E tests drive different user identities per-request without restarting stubIdP or changing server configuration.
+
 ### Headless endpoint (selective use)
 
 If you need UI available by default but headless completion in specific tests, navigate to `GET /interaction/:uid/auto` instead of `/interaction/:uid` to auto-complete the current step without any flags.
