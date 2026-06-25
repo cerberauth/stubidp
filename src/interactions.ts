@@ -2,6 +2,7 @@ import express, { Router, Request, Response, NextFunction } from 'express'
 import type { Provider, Interaction, Grant } from 'oidc-provider'
 
 import type { DefaultUser } from './provider.js'
+import { isEmail, isPhone } from './hint.js'
 import { loginPage, consentPage } from './views/index.js'
 
 export interface InteractionRouterOptions {
@@ -20,12 +21,22 @@ async function autoCompleteInteraction(
   const { prompt, params, grantId } = details
 
   if (prompt.name === 'login') {
-    await provider.interactionFinished(
-      req,
-      res,
-      { login: { accountId: defaultUser?.sub ?? 'stub-user' } },
-      { mergeWithLastSubmission: false },
-    )
+    let accountId: string
+    if (defaultUser) {
+      accountId = defaultUser.sub ?? 'stub-user'
+    } else {
+      const loginHint = params.login_hint as string | undefined
+      if (!loginHint) {
+        next(new Error('login_hint is required when no default user is configured'))
+        return
+      }
+      if (!isEmail(loginHint) && !isPhone(loginHint)) {
+        next(new Error('login_hint must be a valid email address or E.164 phone number'))
+        return
+      }
+      accountId = loginHint
+    }
+    await provider.interactionFinished(req, res, { login: { accountId } }, { mergeWithLastSubmission: false })
     return
   }
 

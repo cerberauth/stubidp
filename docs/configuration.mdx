@@ -135,3 +135,18 @@ Supported fields: any standard [OIDC claims](https://openid.net/specs/openid-con
   `--default-user` is also useful without `--skip-prompt`. Any user who logs in through the UI will receive these claims
   in their tokens, regardless of the username they enter.
 </Aside>
+
+### `login_hint` as subject
+
+When `--skip-prompt` is active and no `--default-user` is set, stubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number. It is used as the subject identifier (`sub`) and automatically populates the `email` or `phone_number` claim to match.
+
+```bash
+# Authorization request includes: login_hint=alice@example.com
+STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
+# Result: sub = "alice@example.com", email = "alice@example.com"
+```
+
+<Aside type="caution">
+  If `login_hint` is missing or not a valid email or E.164 phone number, the flow errors. Set `--default-user` if you
+  need a fixed identity without per-request hints.
+</Aside>
