@@ -96,7 +96,9 @@ jobs:
         run: npm ci
 
       - name: Set version
-        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: npm version "${TAG#v}" --no-git-tag-version
 
       - name: Build TypeScript 🔨
         run: npm run build
