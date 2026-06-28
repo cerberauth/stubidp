@@ -69,7 +69,9 @@ function randomElement(arr) {
 const issuer = process.env.STUBIDP_ISSUER ?? `http://localhost:${port}`
 const clientId =
   argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
-const clientSecret = argv['client-secret'] ?? randomBytes(32).toString('base64url')
+const clientSecret = argv['public-client']
+  ? undefined
+  : (argv['client-secret'] ?? randomBytes(32).toString('base64url'))
 const enableRegistration = argv['enable-registration'] ?? false
 const initialAccessToken = argv['registration-initial-access-token']
 const redirectUri = argv['redirect-uri'] ?? process.env.STUBIDP_REDIRECT_URI ?? preset?.defaultRedirectUri
