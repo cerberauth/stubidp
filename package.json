@@ -74,7 +74,7 @@
     "yargs": "18.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4",
+    "@cloudflare/workers-types": "5",
     "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "10.0.1",
     "@eslint/json": "1.2.0",
