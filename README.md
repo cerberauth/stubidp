@@ -201,7 +201,24 @@ If you need UI available by default but headless completion in specific tests, n
 
 ## Docker
 
-TODO
+Official images are published on every release:
+
+```bash
+docker run -p 8484:8484 cerberauth/stubidp:latest --redirect-uri http://localhost:3000/callback
+```
+
+Also available at `ghcr.io/cerberauth/stubidp`. Pin a version tag (`:v1`, `:v1.2`, ...) instead of `:latest` for
+reproducible CI runs.
+
+```yaml
+services:
+  stubidp:
+    image: cerberauth/stubidp:latest
+    ports:
+      - '8484:8484'
+    environment:
+      STUBIDP_SKIP_PROMPT: 'true'
+```
 
 ## Important Notes
 
@@ -268,6 +285,50 @@ npm run worker:dev             # runs at http://localhost:8787
 
 > **Note:** The Workers deployment mounts OIDC at the root (`/`).
 > OIDC discovery: `https://<worker>.workers.dev/.well-known/openid-configuration`
+
+## Agent Skills
+
+This repo ships two Agent Skills under [`skills/`](skills/) — portable `SKILL.md` packages that teach a coding agent
+how to set up and drive stubIdP without re-deriving CLI flags, env vars, or endpoint shapes from scratch. The format
+is open and not tied to any one tool — Claude Code, Cursor, OpenCode, Codex, and other agents that support
+`SKILL.md` packages can all use them.
+
+| Skill                                               | Triggers on                                                                                                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`local-oidc-provider`](skills/local-oidc-provider) | First-time setup — no real IdP credentials yet, IAM-blocked, offline dev, wiring an app's OIDC client for the first time                                     |
+| [`stubidp`](skills/stubidp)                         | Everything past first setup — headless/automated E2E login (Playwright, Cypress), GitHub Actions/CI, Docker, dynamic client registration, Cloudflare Workers |
+
+### Install
+
+The easiest way, for any agent, is `npx skills` — it detects which agent you're using and installs into the right directory automatically:
+
+```sh
+npx skills add cerberauth/stubidp --skill local-oidc-provider
+npx skills add cerberauth/stubidp --skill stubidp
+```
+
+**Manual install, Claude Code:** auto-discovers skills from `.claude/skills/` (project) or `~/.claude/skills/`
+(personal) — a plain top-level `skills/` directory isn't picked up on its own.
+
+Inside a `stubidp` checkout:
+
+```sh
+ln -s ../skills .claude/skills
+```
+
+In any other project, to use these skills everywhere:
+
+```sh
+cp -r skills/local-oidc-provider skills/stubidp ~/.claude/skills/
+```
+
+**Manual install, other agents** — consult your tool's docs for where it looks for `SKILL.md` packages; the files
+here follow the same open format, no stubIdP-specific conventions.
+
+Then ask your agent things like "I need a local OIDC provider for testing" or "set up stubIdP in my GitHub Actions
+workflow" — the matching skill triggers automatically. Each `SKILL.md` includes a decision table for which recipe to
+use; `stubidp/references/cli-flags.md` and `stubidp/references/endpoints.md` cover the full CLI flag and OIDC
+endpoint reference.
 
 ## Contributing
 
