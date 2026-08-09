@@ -1,0 +1,41 @@
+{
+  "skill_name": "local-oidc-provider",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a new internal tool and want to add login. Our IT/IAM team hasn't set up an Okta app for us yet and probably won't for a couple weeks. I don't want to block on that — can I develop the login flow locally somehow in the meantime? My app runs on http://localhost:3000 and the callback route is /api/auth/callback.",
+      "expected_output": "Recommends running a local OIDC provider (@cerberauth/stubidp) via npx with --redirect-uri http://localhost:3000/api/auth/callback, explains it auto-generates client-id/secret, points to the discovery URL, and explains this is a drop-in stand-in that can later be swapped for the real Okta app without changing app code (since it's spec-compliant OIDC). Should not require network access or real Okta credentials.",
+      "files": [],
+      "assertions": [
+        "Recommends running a local/mock OIDC or OAuth provider on localhost instead of waiting on the IAM team or real Okta credentials",
+        "Gives a concrete npx command with no separate install step",
+        "The redirect URI used matches http://localhost:3000/api/auth/callback exactly (port and path)",
+        "States or implies the client-id/client-secret are auto-generated (not asking the user to obtain real Okta credentials)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "First time setting up better-auth in my Next.js app (src/lib/auth.ts). I don't have a real OAuth provider to test against yet, just want to get login working end to end locally so I can build the rest of the UI. What do I configure?",
+      "expected_output": "Uses the stubidp better-auth preset (npx @cerberauth/stubidp --preset better-auth), shows the genericOAuth plugin config block with discoveryUrl pointing at the printed STUBIDP_ISSUER, and explains reading the printed client-id/secret (or STUBIDP_CLIENT_ID/SECRET env vars) into the app config. Focused on first-time working login, not E2E automation.",
+      "files": [],
+      "assertions": [
+        "Uses the better-auth-specific preset/shortcut rather than hand-rolling generic OIDC config from scratch",
+        "Shows a genericOAuth plugin config block with a discoveryUrl field",
+        "Explains where the client-id/client-secret values come from (auto-generated output or env vars), not left as unexplained placeholders",
+        "Response is scoped to getting first login working, not E2E test automation or CI"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I started a mock OIDC provider locally for dev but when I try to log in from my app it fails with something like an issuer mismatch / invalid_token error. My app is in a docker-compose stack and reaches the provider at http://idp:8484 but I open the login page in my browser at http://localhost:8484. What's going on?",
+      "expected_output": "Diagnoses the issuer mismatch gotcha: the app is configured to trust one issuer URL while the browser and app reach the provider at different hostnames (docker service name vs localhost). Recommends explicitly setting STUBIDP_ISSUER to a single consistent URL reachable by both, rather than relying on the default. Should reference this as a common first-setup mistake.",
+      "files": [],
+      "assertions": [
+        "Correctly identifies the root cause as a mismatch between the issuer URL the app trusts and the different hostnames (idp vs localhost) used to reach the provider",
+        "Recommends explicitly setting the issuer (e.g. STUBIDP_ISSUER or equivalent) to one consistent value rather than relying on a default that differs per-caller",
+        "Explains why this happens specifically in a docker-compose context (service name vs localhost resolve differently for container vs host browser)",
+        "Does not misdiagnose this as an unrelated problem (e.g. CORS, expired token, wrong client secret)"
+      ]
+    }
+  ]
+}

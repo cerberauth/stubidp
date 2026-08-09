@@ -1,0 +1,23 @@
+{
+  "skill_name": "stubidp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm writing Playwright E2E tests for our app and I don't want to hit our real Okta tenant every run. Our login button redirects to an OIDC authorization endpoint and comes back to http://localhost:3000/callback. Can you set up a fake IdP I can run locally and in CI, where the test just logs in as a fixed user (email alice@example.com) without clicking through any consent screens?",
+      "expected_output": "Recommends and sets up @cerberauth/stubidp with --skip-prompt and --default-user (or STUBIDP_DEFAULT_USER) carrying alice@example.com, redirect-uri matching http://localhost:3000/callback, and a wait-on/healthz readiness check before the Playwright suite runs. Should explain the skip-prompt + default-user combination and not require login_hint since app doesn't clearly support passing it.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We use better-auth in our Next.js app (src/lib/auth.ts) with the genericOAuth plugin already configured for a real provider. I want to swap in a mock OIDC provider for local dev so I don't need real credentials. What do I add?",
+      "expected_output": "Uses the stubidp better-auth preset (npx @cerberauth/stubidp --preset better-auth), shows the genericOAuth config block with discoveryUrl pointing at STUBIDP_ISSUER, and sets STUBIDP_CLIENT_ID/SECRET/ISSUER env vars matching the printed startup credentials.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "In our GitHub Actions workflow we need to run integration tests that go through a full OAuth authorization code flow against a mock IdP, then verify our backend correctly validates the id_token issuer and audience. Can you write the workflow step and explain what env vars our test process needs?",
+      "expected_output": "GitHub Actions step starting stubidp in the background with pinned --client-id/--client-secret/--redirect-uri, waiting on /healthz (or /readyz if DB configured), then running tests with STUBIDP_ISSUER/STUBIDP_CLIENT_ID/STUBIDP_CLIENT_SECRET env vars set so issuer/audience match exactly.",
+      "files": []
+    }
+  ]
+}
