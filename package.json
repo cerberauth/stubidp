@@ -20,6 +20,9 @@
   },
   "scripts": {
     "start": "node bin/run.js",
+    "dev": "npm run build:css && tsc && concurrently -n tsc,css,server -k -c blue,magenta,green \"tsc --watch --preserveWatchOutput\" \"npm:dev:css\" \"npm:dev:server\"",
+    "dev:css": "tailwindcss -i ./src/styles/input.css -o ./public/output.css --watch=always",
+    "dev:server": "node --watch bin/run.js",
     "test": "vitest run",
     "ci-test": "vitest run",
     "test:watch": "vitest",
@@ -74,11 +77,12 @@
     "yargs": "18.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4",
+    "@cerberauth/tokens": "0.3.0",
+    "@cloudflare/workers-types": "5",
     "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "10.0.1",
     "@eslint/json": "1.2.0",
-    "@tailwindcss/cli": "4.3.1",
+    "@tailwindcss/cli": "4.3.3",
     "@types/better-sqlite3": "7.6.13",
     "@types/express": "5.0.6",
     "@types/node": "24",
@@ -86,6 +90,7 @@
     "@types/pg": "8.20.0",
     "@types/yargs": "17.0.35",
     "@vitest/coverage-v8": "4.1.9",
+    "concurrently": "10.0.4",
     "dotenv": "17.4.2",
     "drizzle-kit": "0.31.10",
     "eslint": "10.5.0",
