@@ -6,11 +6,11 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
   const scopeItems = scopes
     .map(
       (scope) => `
-    <li class="flex items-center gap-2.5 text-sm text-gray-300 py-1">
-      <svg class="text-green-400 shrink-0 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <li class="flex items-center gap-2.5 text-sm text-on-surface-variant py-1">
+      <svg class="text-success shrink-0 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
       </svg>
-      <code class="text-purple-300 text-xs bg-gray-800 px-1.5 py-0.5 rounded">${escapeHtml(scope)}</code>
+      <code class="text-primary text-xs bg-muted px-1.5 py-0.5 rounded">${escapeHtml(scope)}</code>
     </li>`,
     )
     .join('')
@@ -20,14 +20,14 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
     `
     <div class="flex items-center justify-center min-h-[80vh] px-4 py-10">
       <div class="w-full max-w-md">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+        <div class="bg-card text-card-fg rounded-xl border border-border p-8 shadow-sm">
           <div class="text-center mb-8">
-            <div class="w-14 h-14 bg-purple-500/15 border border-purple-500/30 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-5">
+            <div class="w-14 h-14 bg-primary/15 border border-primary/30 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-5">
               🔑
             </div>
             <h1 class="text-2xl font-bold mb-2">Authorize access</h1>
-            <p class="text-gray-400 text-sm">
-              <span class="font-semibold text-white">${escapeHtml(clientId)}</span>
+            <p class="text-muted-fg text-sm">
+              <span class="font-semibold text-on-surface">${escapeHtml(clientId)}</span>
               is requesting access to your account
             </p>
           </div>
@@ -35,8 +35,8 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
           ${
             scopes.length > 0
               ? `
-          <div class="bg-gray-800/50 border border-gray-700/50 rounded-xl px-5 py-4 mb-6">
-            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Requested permissions</p>
+          <div class="bg-surface-container-low border border-border rounded-xl px-5 py-4 mb-6">
+            <p class="text-xs text-muted-fg font-semibold uppercase tracking-wider mb-3">Requested permissions</p>
             <ul class="space-y-0.5">
               ${scopeItems}
             </ul>
@@ -49,7 +49,7 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
             <form action="/interaction/${escapeHtml(uid)}/confirm" method="POST">
               <button
                 type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 rounded-lg transition-colors text-sm"
+                class="w-full bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 py-3 rounded-lg transition-all text-sm"
               >
                 Allow access
               </button>
@@ -57,14 +57,14 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
             <form action="/interaction/${escapeHtml(uid)}/abort" method="POST">
               <button
                 type="submit"
-                class="w-full border border-gray-700 hover:border-gray-600 bg-gray-800/50 hover:bg-gray-800 text-gray-300 hover:text-white font-semibold py-3 rounded-lg transition-colors text-sm"
+                class="w-full border border-border bg-surface hover:bg-accent hover:text-accent-fg text-on-surface-variant font-semibold py-3 rounded-lg transition-colors text-sm"
               >
                 Deny
               </button>
             </form>
           </div>
 
-          <p class="text-center text-xs text-gray-700 mt-6">
+          <p class="text-center text-xs text-muted-fg mt-6">
             Powered by stubIDP · Development use only
           </p>
         </div>

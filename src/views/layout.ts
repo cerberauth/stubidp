@@ -16,6 +16,18 @@ export function layout(title: string, body: string, description?: string, url?: 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function () {
+      var mql = window.matchMedia('(prefers-color-scheme: dark)')
+      var apply = function (matches) {
+        document.documentElement.setAttribute('data-theme', matches ? 'dark' : 'light')
+      }
+      apply(mql.matches)
+      mql.addEventListener('change', function (e) {
+        apply(e.matches)
+      })
+    })()
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="${escapeHtml(desc)}" />
   <meta name="keywords" content="OpenID Connect, OAuth 2.0, OIDC, identity provider, mock, testing, development" />
@@ -30,13 +42,13 @@ export function layout(title: string, body: string, description?: string, url?: 
   <title>${escapeHtml(title)} — stubIDP</title>
   <link rel="stylesheet" href="/output.css" />
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col antialiased">
-  <header class="border-b border-gray-800 shrink-0">
+<body class="min-h-screen flex flex-col antialiased">
+  <header class="border-b border-border shrink-0">
     <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="/" class="text-xl font-bold tracking-tight">
-        stub<span class="text-purple-400">IDP</span>
+      <a href="/" class="text-xl font-bold tracking-tight text-on-surface hover:text-on-surface hover:no-underline">
+        stub<span class="text-primary">IDP</span>
       </a>
-      <span class="text-xs bg-yellow-500/20 text-yellow-300 px-2.5 py-1 rounded-full border border-yellow-500/30 font-medium">
+      <span class="inline-flex items-center justify-center rounded-full border border-transparent bg-warning text-warning-fg px-2.5 py-1 text-xs font-medium">
         DEV ONLY
       </span>
     </div>
@@ -44,11 +56,11 @@ export function layout(title: string, body: string, description?: string, url?: 
   <div class="flex-1">
     ${body}
   </div>
-  <footer class="border-t border-gray-800 shrink-0">
-    <div class="max-w-5xl mx-auto px-6 py-4 text-center text-gray-600 text-xs">
-      <a href="https://github.com/cerberauth/stubidp" target="_blank" rel="noopener" class="hover:text-gray-400 transition-colors">Open Source</a>
-      &nbsp;·&nbsp; stubIDP by <a href="https://www.cerberauth.com" target="_blank" class="hover:text-gray-400 transition-colors">CerberAuth</a>
-      &nbsp;·&nbsp; Powered by <a href="https://github.com/panva/node-oidc-provider" target="_blank" rel="noopener" class="hover:text-gray-400 transition-colors">oidc-provider</a>
+  <footer class="border-t border-border shrink-0">
+    <div class="max-w-5xl mx-auto px-6 py-4 text-center text-muted-fg text-xs">
+      <a href="https://github.com/cerberauth/stubidp" target="_blank" rel="noopener" class="text-muted-fg hover:text-on-surface-variant hover:no-underline transition-colors">Open Source</a>
+      &nbsp;·&nbsp; stubIDP by <a href="https://www.cerberauth.com" target="_blank" class="text-muted-fg hover:text-on-surface-variant hover:no-underline transition-colors">CerberAuth</a>
+      &nbsp;·&nbsp; Powered by <a href="https://github.com/panva/node-oidc-provider" target="_blank" rel="noopener" class="text-muted-fg hover:text-on-surface-variant hover:no-underline transition-colors">oidc-provider</a>
       &nbsp;·&nbsp; For development and testing only
     </div>
   </footer>
