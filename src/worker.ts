@@ -19,13 +19,14 @@ export interface Env {
   STUBIDP_CLAIMS?: string
   STUBIDP_ACCESS_TOKEN_FORMAT?: string
   STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS?: string
+  STUBIDP_INTERACTION_PATH?: string
 }
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -46,6 +47,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     claims: currentEnv.STUBIDP_CLAIMS ? JSON.parse(currentEnv.STUBIDP_CLAIMS) : undefined,
     accessTokenFormat: currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined,
     idTokenIncludesUserInfoClaims: currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true',
+    interactionPath: currentEnv.STUBIDP_INTERACTION_PATH,
   })
 
   cachedEntry = { key, app }

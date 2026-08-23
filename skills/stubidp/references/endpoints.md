@@ -100,3 +100,5 @@ GET {base}/interaction/:uid/auto
 Auto-completes the in-flight login/consent/logout step for one interaction without setting `--skip-prompt`
 globally — useful when most tests need the real UI but one test wants headless completion. Grab `:uid` from the
 redirect stubIdP issues after the `/auth` request.
+
+`/interaction` is the default base path; override with `--interaction-path` / `STUBIDP_INTERACTION_PATH`.

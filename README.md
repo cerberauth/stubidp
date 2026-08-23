@@ -106,6 +106,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`) |
 | `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)        |
 | `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                  |
+| `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                       |
 
 ## Dynamic Client Registration
 
@@ -217,7 +218,7 @@ stubidp --redirect-uri http://localhost:3000/callback
 
 ### Headless endpoint (selective use)
 
-If you need UI available by default but headless completion in specific tests, navigate to `GET /interaction/:uid/auto` instead of `/interaction/:uid` to auto-complete the current step without any flags.
+If you need UI available by default but headless completion in specific tests, navigate to `GET /interaction/:uid/auto` instead of `/interaction/:uid` to auto-complete the current step without any flags. This path moves with `--interaction-path` / `STUBIDP_INTERACTION_PATH` if set.
 
 ## Docker
 
