@@ -44,6 +44,7 @@ export interface ProviderOptions {
   defaultUser?: DefaultUser
   skipPrompt?: boolean
   accessTokenFormat?: 'opaque' | 'jwt'
+  idTokenIncludesUserInfoClaims?: boolean
 }
 
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
@@ -83,6 +84,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   const accessTokenFormat =
     options.accessTokenFormat ?? (process.env.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined) ?? 'opaque'
+
+  const idTokenIncludesUserInfoClaims =
+    options.idTokenIncludesUserInfoClaims ?? process.env.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true'
 
   const resolvedScopes = options.scopes ??
     process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
@@ -129,6 +133,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     claims: resolvedClaims,
     clients: staticClient,
     jwks,
+    // opt-in: keep requested claims in the ID token instead of splitting them
+    // off to the UserInfo endpoint, so clients get email/profile without a /me call
+    conformIdTokenClaims: !idTokenIncludesUserInfoClaims,
     features: {
       devInteractions: { enabled: false },
       rpInitiatedLogout: {
