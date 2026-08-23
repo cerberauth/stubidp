@@ -28,6 +28,7 @@ import { Aside } from '@/components/docs'
 | `--security-headers`                  | No       | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed; omit for local development.                         |
 | `--scopes`                            | No       | Comma-separated list of supported OIDC scopes. Default: `openid,offline_access,email,profile,phone,address`.                    |
 | `--claims`                            | No       | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. `'{"openid":["sub"],"email":["email"]}'`). |
+| `--access-token-format`               | No       | Access token format: `opaque` (default) or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.).               |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -49,6 +50,7 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                                   | Bearer token required to call `POST /register` (open registration when omitted)                                                                |
 | `STUBIDP_SCOPES`                            | `openid,offline_access,email,profile,phone,address` | Comma-separated list of supported OIDC scopes (equivalent to `--scopes`)                                                                       |
 | `STUBIDP_CLAIMS`                            | auto-derived from scopes                            | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (equivalent to `--claims`)                                      |
+| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                                            | Access token format: `opaque` or `jwt` (equivalent to `--access-token-format`)                                                                 |
 
 ### Server
 
@@ -149,4 +151,23 @@ STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
 <Aside type="caution">
   If `login_hint` is missing or not a valid email or E.164 phone number, the flow errors. Set `--default-user` if you
   need a fixed identity without per-request hints.
+</Aside>
+
+## Access token format
+
+By default, access tokens issued by stubIdP are opaque strings — identity claims (`email`, `profile`, etc.) are only
+available via the [UserInfo endpoint](/reference/endpoints#userinfo) or the ID token. Some providers instead issue
+access tokens as JWTs carrying identity claims directly, which resource servers can validate locally without an
+extra UserInfo call. Set `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to match that behavior.
+
+```bash
+STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/callback
+```
+
+The resulting access token is a signed JWT containing `sub` plus any claims from `--default-user` (or auto-populated
+from `login_hint`), alongside standard OAuth claims (`scope`, `client_id`, `iss`, `aud`, `exp`, `iat`, `jti`).
+
+<Aside type="tip">
+  ID token claims are controlled separately by `--scopes` / `--claims`. Access token claims always include the full
+  identity claim set regardless of requested scope, since it mirrors what a real resource server would expect.
 </Aside>

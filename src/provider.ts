@@ -43,6 +43,16 @@ export interface ProviderOptions {
   claims?: Configuration['claims']
   defaultUser?: DefaultUser
   skipPrompt?: boolean
+  accessTokenFormat?: 'opaque' | 'jwt'
+}
+
+function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
+  return {
+    ...defaultUser,
+    sub,
+    ...(defaultUser?.email === undefined && isEmail(sub) ? { email: sub } : {}),
+    ...(defaultUser?.phone_number === undefined && isPhone(sub) ? { phone_number: sub } : {}),
+  }
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
@@ -70,6 +80,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
           },
         ]
       : []
+
+  const accessTokenFormat =
+    options.accessTokenFormat ?? (process.env.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined) ?? 'opaque'
 
   const resolvedScopes = options.scopes ??
     process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
@@ -183,19 +196,39 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             rotateRegistrationAccessToken: false,
           }
         : { enabled: false },
+      resourceIndicators:
+        accessTokenFormat === 'jwt'
+          ? {
+              enabled: true,
+              // no explicit `resource` param needed: every request is treated as
+              // targeting this single stub resource so access tokens are always JWTs
+              defaultResource: () => issuer,
+              // oidc-provider otherwise skips attaching the resource at token exchange
+              // when the `openid` scope is present (favoring the UserInfo endpoint)
+              useGrantedResource: () => true,
+              getResourceServerInfo: async () => ({
+                scope: resolvedScopes.join(' '),
+                accessTokenFormat: 'jwt' as const,
+                jwt: {
+                  sign: { alg: 'RS256' },
+                },
+              }),
+            }
+          : { enabled: false },
     },
     interactions: {
       url: async (_ctx, interaction) => `/interaction/${interaction.uid}`,
     },
     findAccount: async (_ctx, sub) => ({
       accountId: sub,
-      claims: async () => ({
-        ...options.defaultUser,
-        sub,
-        ...(options.defaultUser?.email === undefined && isEmail(sub) ? { email: sub } : {}),
-        ...(options.defaultUser?.phone_number === undefined && isPhone(sub) ? { phone_number: sub } : {}),
-      }),
+      claims: async () => identityClaimsFor(sub, options.defaultUser),
     }),
+    async extraTokenClaims(_ctx, token) {
+      if (token.kind !== 'AccessToken' || !token.accountId) {
+        return undefined
+      }
+      return identityClaimsFor(token.accountId, options.defaultUser)
+    },
     clientBasedCORS(_ctx, origin, client) {
       if (!origin) {
         return true

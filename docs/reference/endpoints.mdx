@@ -56,6 +56,7 @@ Request body (form-encoded):
 | `client_secret` | Client secret                                 |
 
 The response includes `access_token`, `id_token`, and optionally `refresh_token` when `offline_access` is requested.
+`access_token` is opaque by default; set [`--access-token-format jwt`](/configuration#access-token-format) to issue it as a signed JWT carrying identity claims.
 
 ## UserInfo
 

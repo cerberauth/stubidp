@@ -123,6 +123,14 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. \'{"openid":["sub"],"email":["email"]}\') [env: STUBIDP_CLAIMS]',
     },
+    'access-token-format': {
+      type: 'string',
+      demandOption: false,
+      choices: ['opaque', 'jwt'] as const,
+      env: 'STUBIDP_ACCESS_TOKEN_FORMAT',
+      description:
+        'Access token format: opaque (default) or jwt. JWT access tokens include identity claims (sub, email, etc.) [env: STUBIDP_ACCESS_TOKEN_FORMAT]',
+    },
   })
   .env('STUBIDP')
   .parseSync()
