@@ -105,6 +105,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                 |
 | `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`) |
 | `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)        |
+| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                  |
 
 ## Dynamic Client Registration
 
@@ -198,10 +199,20 @@ This lets E2E tests drive different user identities per-request without restarti
 
 ### JWT access tokens
 
-By default access tokens are opaque; identity claims are only available via the ID token or `GET /me`. Pass `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to instead issue access tokens as signed JWTs carrying `sub` and the configured identity claims (`email`, `profile`, etc.) directly, so resource servers can validate them locally.
+By default access tokens are opaque; identity claims are only available via `GET /me`. Pass `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to instead issue access tokens as signed JWTs carrying `sub` and the configured identity claims (`email`, `profile`, etc.) directly, so resource servers can validate them locally.
 
 ```bash
 STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/callback
+```
+
+### Identity claims in the ID token
+
+By default (spec-compliant), the ID token only carries `sub` — claims like `email` and `profile` are only returned via `GET /me`. Pass `--id-token-includes-userinfo-claims` (or `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true`) to have stubIdP put those claims directly in the ID token as well, for clients that don't call UserInfo.
+
+```bash
+STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true \
+STUBIDP_DEFAULT_USER='{"sub":"alice","email":"alice@example.com","email_verified":true}' \
+stubidp --redirect-uri http://localhost:3000/callback
 ```
 
 ### Headless endpoint (selective use)

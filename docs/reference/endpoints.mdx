@@ -57,6 +57,7 @@ Request body (form-encoded):
 
 The response includes `access_token`, `id_token`, and optionally `refresh_token` when `offline_access` is requested.
 `access_token` is opaque by default; set [`--access-token-format jwt`](/configuration#access-token-format) to issue it as a signed JWT carrying identity claims.
+`id_token` only carries `sub` by default (spec-compliant); set [`--id-token-includes-userinfo-claims`](/configuration#id-token-claims) to include `email`/`profile`/etc. claims directly in it.
 
 ## UserInfo
 

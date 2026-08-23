@@ -9,26 +9,27 @@ import { Aside } from '@/components/docs'
 
 ## CLI flags
 
-| Flag                                  | Required | Description                                                                                                                     |
-| ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `--client-id`                         | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted.                        |
-| `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.                         |
-| `--public-client`                     | No       | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps.                   |
-| `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                                         |
-| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                                            |
-| `--skip-prompt`                       | No       | Skip login and consent UI and auto-approve every interaction. Intended for E2E tests and automation.                            |
-| `--default-user`                      | No       | JSON object of OIDC claims returned for every authenticated user (e.g. `'{"sub":"alice","email":"alice@example.com"}'`).        |
-| `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                                             |
-| `--rate-limit-max`                    | No       | Max requests per IP per window. Default: `100`.                                                                                 |
-| `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                                                 |
-| `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                                        |
-| `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                                                     |
-| `--trust-proxy`                       | No       | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a reverse proxy or load balancer.                     |
-| `--https-redirect`                    | No       | Redirect HTTP requests to HTTPS and enable CSP `upgrade-insecure-requests`. Enable in production behind TLS termination.        |
-| `--security-headers`                  | No       | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed; omit for local development.                         |
-| `--scopes`                            | No       | Comma-separated list of supported OIDC scopes. Default: `openid,offline_access,email,profile,phone,address`.                    |
-| `--claims`                            | No       | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. `'{"openid":["sub"],"email":["email"]}'`). |
-| `--access-token-format`               | No       | Access token format: `opaque` (default) or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.).               |
+| Flag                                  | Required | Description                                                                                                                               |
+| ------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--client-id`                         | No       | OAuth 2.0 client ID your application will use. Auto-generated (e.g. `brave-falcon-3a9f12`) when omitted.                                  |
+| `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.                                   |
+| `--public-client`                     | No       | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps.                             |
+| `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                                                   |
+| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                                                      |
+| `--skip-prompt`                       | No       | Skip login and consent UI and auto-approve every interaction. Intended for E2E tests and automation.                                      |
+| `--default-user`                      | No       | JSON object of OIDC claims returned for every authenticated user (e.g. `'{"sub":"alice","email":"alice@example.com"}'`).                  |
+| `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                                                       |
+| `--rate-limit-max`                    | No       | Max requests per IP per window. Default: `100`.                                                                                           |
+| `--rate-limit-disabled`               | No       | Disable rate limiting entirely.                                                                                                           |
+| `--enable-registration`               | No       | Enable dynamic client registration (RFC 7591) and management (RFC 7592) via `/register`.                                                  |
+| `--registration-initial-access-token` | No       | Bearer token required to call `POST /register`. Omit for open registration.                                                               |
+| `--trust-proxy`                       | No       | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a reverse proxy or load balancer.                               |
+| `--https-redirect`                    | No       | Redirect HTTP requests to HTTPS and enable CSP `upgrade-insecure-requests`. Enable in production behind TLS termination.                  |
+| `--security-headers`                  | No       | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed; omit for local development.                                   |
+| `--scopes`                            | No       | Comma-separated list of supported OIDC scopes. Default: `openid,offline_access,email,profile,phone,address`.                              |
+| `--claims`                            | No       | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. `'{"openid":["sub"],"email":["email"]}'`).           |
+| `--access-token-format`               | No       | Access token format: `opaque` (default) or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.).                         |
+| `--id-token-includes-userinfo-claims` | No       | Include email/profile/etc. claims directly in the ID token instead of requiring a separate `/me` call. Default: `false` (spec-compliant). |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -51,6 +52,7 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_SCOPES`                            | `openid,offline_access,email,profile,phone,address` | Comma-separated list of supported OIDC scopes (equivalent to `--scopes`)                                                                       |
 | `STUBIDP_CLAIMS`                            | auto-derived from scopes                            | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (equivalent to `--claims`)                                      |
 | `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                                            | Access token format: `opaque` or `jwt` (equivalent to `--access-token-format`)                                                                 |
+| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                                             | Include email/profile/etc. claims directly in the ID token (equivalent to `--id-token-includes-userinfo-claims`)                               |
 
 ### Server
 
@@ -156,9 +158,9 @@ STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
 ## Access token format
 
 By default, access tokens issued by stubIdP are opaque strings — identity claims (`email`, `profile`, etc.) are only
-available via the [UserInfo endpoint](/reference/endpoints#userinfo) or the ID token. Some providers instead issue
-access tokens as JWTs carrying identity claims directly, which resource servers can validate locally without an
-extra UserInfo call. Set `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to match that behavior.
+available via the [UserInfo endpoint](/reference/endpoints#userinfo). Some providers instead issue access tokens as
+JWTs carrying identity claims directly, which resource servers can validate locally without an extra UserInfo call.
+Set `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to match that behavior.
 
 ```bash
 STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/callback
@@ -168,6 +170,20 @@ The resulting access token is a signed JWT containing `sub` plus any claims from
 from `login_hint`), alongside standard OAuth claims (`scope`, `client_id`, `iss`, `aud`, `exp`, `iat`, `jti`).
 
 <Aside type="tip">
-  ID token claims are controlled separately by `--scopes` / `--claims`. Access token claims always include the full
-  identity claim set regardless of requested scope, since it mirrors what a real resource server would expect.
+  Access token claims always include the full identity claim set regardless of requested scope, since it mirrors what a
+  real resource server would expect. ID token claims are controlled separately — see below.
 </Aside>
+
+## ID token claims
+
+By default (spec-compliant), the ID token only carries `sub` — claims requested via non-`openid` scopes (`email`,
+`profile`, etc.) are only returned via the [UserInfo endpoint](/reference/endpoints#userinfo). Real IdPs behave this
+way too: an RP using `response_type=code` is expected to call UserInfo for profile data. Set
+`--id-token-includes-userinfo-claims` (or `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true`) if your client reads
+claims straight off the ID token and you don't want to implement a UserInfo call.
+
+```bash
+STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true \
+STUBIDP_DEFAULT_USER='{"sub":"alice","email":"alice@example.com","email_verified":true}' \
+stubidp --redirect-uri http://localhost:3000/callback
+```
