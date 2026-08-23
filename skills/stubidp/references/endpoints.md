@@ -35,7 +35,8 @@ POST {base}/token
 ```
 
 Form-encoded body: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret`. Returns
-`access_token`, `id_token`, and `refresh_token` when `offline_access` was requested.
+`access_token`, `id_token`, and `refresh_token` when `offline_access` was requested. `access_token` is opaque by
+default; set `--access-token-format jwt` to issue it as a signed JWT carrying identity claims.
 
 ## UserInfo
 

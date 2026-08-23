@@ -17,13 +17,14 @@ export interface Env {
   STUBIDP_SKIP_PROMPT?: string
   STUBIDP_SCOPES?: string
   STUBIDP_CLAIMS?: string
+  STUBIDP_ACCESS_TOKEN_FORMAT?: string
 }
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -42,6 +43,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     skipPrompt: currentEnv.STUBIDP_SKIP_PROMPT === 'true',
     scopes: currentEnv.STUBIDP_SCOPES ? currentEnv.STUBIDP_SCOPES.split(',').map((s) => s.trim()) : undefined,
     claims: currentEnv.STUBIDP_CLAIMS ? JSON.parse(currentEnv.STUBIDP_CLAIMS) : undefined,
+    accessTokenFormat: currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined,
   })
 
   cachedEntry = { key, app }

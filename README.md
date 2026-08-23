@@ -104,6 +104,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                                       |
 | `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                 |
 | `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`) |
+| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)        |
 
 ## Dynamic Client Registration
 
@@ -194,6 +195,14 @@ stubidp --redirect-uri http://localhost:3000/callback
 ```
 
 This lets E2E tests drive different user identities per-request without restarting stubIdP or changing server configuration.
+
+### JWT access tokens
+
+By default access tokens are opaque; identity claims are only available via the ID token or `GET /me`. Pass `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to instead issue access tokens as signed JWTs carrying `sub` and the configured identity claims (`email`, `profile`, etc.) directly, so resource servers can validate them locally.
+
+```bash
+STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/callback
+```
 
 ### Headless endpoint (selective use)
 

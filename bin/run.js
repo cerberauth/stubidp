@@ -114,6 +114,7 @@ const app = await createApp({
   claims: argv['claims'] ? JSON.parse(argv['claims']) : undefined,
   skipPrompt: argv['skip-prompt'],
   defaultUser,
+  accessTokenFormat: argv['access-token-format'],
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],
   securityHeaders: argv['security-headers'],
