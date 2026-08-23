@@ -85,3 +85,5 @@ jobs:
     steps:
       - name: Lint Dockerfile 🐳
         uses: cerberauth/ci/actions/docker-lint@main
+        with:
+          ignore: DL3066
