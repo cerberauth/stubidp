@@ -45,6 +45,7 @@ export interface ProviderOptions {
   skipPrompt?: boolean
   accessTokenFormat?: 'opaque' | 'jwt'
   idTokenIncludesUserInfoClaims?: boolean
+  interactionPath?: string
 }
 
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
@@ -87,6 +88,11 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   const idTokenIncludesUserInfoClaims =
     options.idTokenIncludesUserInfoClaims ?? process.env.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true'
+
+  const interactionPath = (options.interactionPath ?? process.env.STUBIDP_INTERACTION_PATH ?? '/interaction').replace(
+    /\/$/,
+    '',
+  )
 
   const resolvedScopes = options.scopes ??
     process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
@@ -224,7 +230,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
           : { enabled: false },
     },
     interactions: {
-      url: async (_ctx, interaction) => `/interaction/${interaction.uid}`,
+      url: async (_ctx, interaction) => `${interactionPath}/${interaction.uid}`,
     },
     findAccount: async (_ctx, sub) => ({
       accountId: sub,

@@ -8,6 +8,7 @@ import { loginPage, consentPage } from './views/index.js'
 export interface InteractionRouterOptions {
   skipPrompt?: boolean
   defaultUser?: DefaultUser
+  interactionPath?: string
 }
 
 async function autoCompleteInteraction(
@@ -83,6 +84,7 @@ async function autoCompleteInteraction(
 
 export function createInteractionRouter(provider: Provider, options: InteractionRouterOptions = {}): Router {
   const router = Router()
+  const basePath = options.interactionPath ?? '/interaction'
 
   router.use((_req, res, next) => {
     res.setHeader('Cache-Control', 'no-store')
@@ -112,11 +114,11 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
       switch (prompt.name) {
         case 'login':
-          res.type('html').send(loginPage({ uid: req.params.uid, clientId }))
+          res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath }))
           break
         case 'consent': {
           const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
-          res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes }))
+          res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes, basePath }))
           break
         }
         default:

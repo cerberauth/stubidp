@@ -115,6 +115,7 @@ const app = await createApp({
   skipPrompt: argv['skip-prompt'],
   defaultUser,
   accessTokenFormat: argv['access-token-format'],
+  interactionPath: argv['interaction-path'],
   idTokenIncludesUserInfoClaims: argv['id-token-includes-userinfo-claims'],
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],

@@ -131,6 +131,13 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Access token format: opaque (default) or jwt. JWT access tokens include identity claims (sub, email, etc.) [env: STUBIDP_ACCESS_TOKEN_FORMAT]',
     },
+    'interaction-path': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_INTERACTION_PATH',
+      description:
+        'Base path for the login/consent interaction UI (default: /interaction) [env: STUBIDP_INTERACTION_PATH]',
+    },
     'id-token-includes-userinfo-claims': {
       type: 'boolean',
       demandOption: false,
