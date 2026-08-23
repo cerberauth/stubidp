@@ -10,13 +10,18 @@ on:
         description: 'Existing tag to publish from (e.g. v1.2.3)'
         required: true
       skip:
-        description: 'Comma-separated publishers to skip (aur,brew,chocolatey,docker,scoop,snapcraft,winget)'
+        description: 'Comma-separated publishers to skip (aur,chocolatey,docker,homebrew,scoop,snapcraft,winget)'
         required: false
         default: ''
       only:
-        description: 'Publish only to this publisher — skips all others (aur,brew,chocolatey,docker,scoop,snapcraft,winget)'
+        description: 'Publish only to this publisher — skips all others (aur,chocolatey,docker,homebrew,scoop,snapcraft,winget)'
         required: false
         default: ''
+      dry-run:
+        description: 'Run GoReleaser in snapshot mode (builds and packages, incl. local Docker images, without publishing anywhere) and skip npm publish'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -62,6 +67,7 @@ jobs:
           package-name: stubidp
           skip: ${{ inputs.skip }}
           only: ${{ inputs.only }}
+          dry-run: ${{ inputs.dry-run || false }}
           goreleaser-current-tag: ${{ inputs.tag }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -72,6 +78,7 @@ jobs:
 
   npm-publish:
     needs: [release]
+    if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
 
     permissions:
