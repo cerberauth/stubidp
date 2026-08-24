@@ -6,6 +6,8 @@ import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
 
+process.env.STUBIDP_SERVE_STATIC ??= '../public'
+
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
 const preset = argv['preset'] ? getPreset(argv['preset']) : null
