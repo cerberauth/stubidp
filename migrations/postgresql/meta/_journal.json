@@ -8,6 +8,13 @@
       "when": 1770744917008,
       "tag": "0000_abnormal_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787557478952,
+      "tag": "0001_add_client_credentials",
+      "breakpoints": true
     }
   ]
 }

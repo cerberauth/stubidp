@@ -59,6 +59,23 @@ The response includes `access_token`, `id_token`, and optionally `refresh_token`
 `access_token` is opaque by default; set [`--access-token-format jwt`](/configuration#access-token-format) to issue it as a signed JWT carrying identity claims.
 `id_token` only carries `sub` by default (spec-compliant); set [`--id-token-includes-userinfo-claims`](/configuration#id-token-claims) to include `email`/`profile`/etc. claims directly in it.
 
+### Client Credentials Grant
+
+```
+POST {base}/token
+```
+
+Machine-to-machine token issuance, no end-user interaction. Request body (form-encoded):
+
+| Field           | Description             |
+| --------------- | ----------------------- |
+| `grant_type`    | `client_credentials`    |
+| `client_id`     | Client ID               |
+| `client_secret` | Client secret           |
+| `resource`      | Optional token audience |
+
+Returns an `access_token` scoped to the client (no `id_token` or `refresh_token`).
+
 ## UserInfo
 
 ```

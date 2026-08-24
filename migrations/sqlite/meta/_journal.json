@@ -8,6 +8,13 @@
       "when": 1770744908040,
       "tag": "0000_tired_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787557475756,
+      "tag": "0001_add_client_credentials",
+      "breakpoints": true
     }
   ]
 }
