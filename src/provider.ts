@@ -67,6 +67,13 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     jwks = { keys: [{ ...privateJwk, use: 'sig', alg: 'RS256' }] }
   }
 
+  const grantTypes = options.grantTypes ?? [
+    'authorization_code',
+    'refresh_token',
+    'client_credentials',
+    'urn:ietf:params:oauth:grant-type:device_code',
+  ]
+
   const staticClient =
     options.clientId && options.redirectUri
       ? [
@@ -78,7 +85,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             redirect_uris: [options.redirectUri],
             ...(options.postLogoutRedirectUri ? { post_logout_redirect_uris: [options.postLogoutRedirectUri] } : {}),
             response_types: ['code'] as ['code'],
-            grant_types: options.grantTypes ?? ['authorization_code', 'refresh_token'],
+            grant_types: grantTypes,
           },
         ]
       : []
@@ -226,9 +233,17 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
                   sign: { alg: 'RS256' },
                 },
               }),
-            }
-          : { enabled: false },
+            },
+      deviceFlow: {
+enabled: true,
+},
       clientCredentials: {
+        enabled: true,
+      },
+      revocation: {
+        enabled: true,
+      },
+      introspection: {
         enabled: true,
       },
     },
