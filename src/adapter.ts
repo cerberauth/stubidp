@@ -31,6 +31,7 @@ export type ModelName =
   | 'RefreshToken'
   | 'DeviceCode'
   | 'BackchannelAuthenticationRequest'
+  | 'ClientCredentials'
   | 'Client'
   | 'Grant'
 
@@ -77,6 +78,7 @@ const models: Record<ModelName, (typeof schema)[keyof typeof schema]> = {
   RefreshToken: schema.refreshTokens,
   DeviceCode: schema.deviceCodes,
   BackchannelAuthenticationRequest: schema.backchannelAuthenticationRequests,
+  ClientCredentials: schema.clientCredentials,
   Client: schema.clients,
   Grant: schema.grants,
 }

@@ -228,6 +228,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
               }),
             }
           : { enabled: false },
+      clientCredentials: {
+        enabled: true,
+      },
     },
     interactions: {
       url: async (_ctx, interaction) => `${interactionPath}/${interaction.uid}`,

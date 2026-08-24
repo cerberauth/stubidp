@@ -31,6 +31,7 @@ vi.mock('../src/db/schema.js', () => ({
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
 }))
@@ -42,6 +43,7 @@ vi.mock('../src/db/schema.postgres.js', () => ({
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
 }))
@@ -53,6 +55,7 @@ vi.mock('../src/db/schema.sqlite.js', () => ({
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
 }))
@@ -415,6 +418,7 @@ describe('DrizzleAdapter', () => {
       'RefreshToken',
       'DeviceCode',
       'BackchannelAuthenticationRequest',
+      'ClientCredentials',
       'Client',
       'Grant',
     ]

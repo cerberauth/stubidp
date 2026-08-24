@@ -76,6 +76,20 @@ export const deviceCodes = sqliteTable(
   (t) => [index('device_codes_grant_id_idx').on(t.grantId), index('device_codes_expires_at_idx').on(t.expiresAt)],
 )
 
+export const clientCredentials = sqliteTable(
+  'client_credentials',
+  {
+    id: text('id').primaryKey(),
+    grantId: text('grant_id'),
+    expiresAt: integer('expires_at'),
+    payload: text('payload', { mode: 'json' }).$type<Record<string, unknown>>(),
+  },
+  (t) => [
+    index('client_credentials_grant_id_idx').on(t.grantId),
+    index('client_credentials_expires_at_idx').on(t.expiresAt),
+  ],
+)
+
 export const backchannelAuthenticationRequests = sqliteTable(
   'backchannel_authentication_requests',
   {

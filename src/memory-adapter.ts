@@ -10,6 +10,7 @@ const grantable = new Set([
   'RefreshToken',
   'DeviceCode',
   'BackchannelAuthenticationRequest',
+  'ClientCredentials',
 ])
 
 function grantKeyFor(id: string) {
