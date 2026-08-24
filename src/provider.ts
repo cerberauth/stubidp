@@ -216,25 +216,22 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             rotateRegistrationAccessToken: false,
           }
         : { enabled: false },
-      resourceIndicators:
-        accessTokenFormat === 'jwt'
-          ? {
-              enabled: true,
-              // no explicit `resource` param needed: every request is treated as
-              // targeting this single stub resource so access tokens are always JWTs
-              defaultResource: () => issuer,
-              // oidc-provider otherwise skips attaching the resource at token exchange
-              // when the `openid` scope is present (favoring the UserInfo endpoint)
-              useGrantedResource: () => true,
-              getResourceServerInfo: async () => ({
-                scope: resolvedScopes.join(' '),
-                accessTokenFormat: 'jwt' as const,
-                jwt: {
-                  sign: { alg: 'RS256' },
-                },
-              }),
-            }
-          : { enabled: false },
+      resourceIndicators: {
+        enabled: true,
+        // no explicit `resource` param needed: every request defaults to this
+        // stub issuer as its audience
+        defaultResource: () => issuer,
+        // oidc-provider otherwise skips attaching the resource at token exchange
+        // when the `openid` scope is present (favoring the UserInfo endpoint)
+        useGrantedResource: () => true,
+        // audience is echoed back as whatever `resource` was requested (or configured)
+        getResourceServerInfo: async (_ctx, resourceIndicator) => ({
+          scope: resolvedScopes.join(' '),
+          audience: resourceIndicator,
+          accessTokenFormat,
+          ...(accessTokenFormat === 'jwt' ? { jwt: { sign: { alg: 'RS256' as const } } } : {}),
+        }),
+      },
       deviceFlow: {
         enabled: true,
       },
