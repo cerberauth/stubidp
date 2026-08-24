@@ -43,9 +43,9 @@ Initiates the authorization code flow. Standard OIDC query parameters:
 POST {base}/token
 ```
 
-Exchanges an authorization code for tokens. Supports the `authorization_code` grant type.
+Exchanges a grant for tokens. Supports the `authorization_code`, `refresh_token`, `client_credentials`, and `urn:ietf:params:oauth:grant-type:device_code` grant types.
 
-Request body (form-encoded):
+Request body (form-encoded), for `authorization_code`:
 
 | Field           | Description                                   |
 | --------------- | --------------------------------------------- |
@@ -58,6 +58,8 @@ Request body (form-encoded):
 The response includes `access_token`, `id_token`, and optionally `refresh_token` when `offline_access` is requested.
 `access_token` is opaque by default; set [`--access-token-format jwt`](/configuration#access-token-format) to issue it as a signed JWT carrying identity claims.
 `id_token` only carries `sub` by default (spec-compliant); set [`--id-token-includes-userinfo-claims`](/configuration#id-token-claims) to include `email`/`profile`/etc. claims directly in it.
+
+Any grant may include a `resource` parameter (a URI) to request a token audience. The value is echoed back as the `aud` claim of the issued access token (visible via [Token Introspection](#token-introspection) or when decoding a JWT access token). Defaults to the issuer URL when omitted.
 
 ### Client Credentials Grant
 
@@ -75,6 +77,53 @@ Machine-to-machine token issuance, no end-user interaction. Request body (form-e
 | `resource`      | Optional token audience |
 
 Returns an `access_token` scoped to the client (no `id_token` or `refresh_token`).
+
+## Device Authorization
+
+```
+POST {base}/device/auth
+```
+
+Starts the OAuth 2.0 Device Authorization Grant ([RFC 8628](https://www.rfc-editor.org/rfc/rfc8628)) for input-constrained devices. Request body (form-encoded):
+
+| Field       | Description            |
+| ----------- | ---------------------- |
+| `client_id` | Client ID              |
+| `scope`     | Space-separated scopes |
+
+Returns `device_code`, `user_code`, `verification_uri`, `verification_uri_complete`, and `expires_in`. The end user visits `verification_uri` (or `verification_uri_complete`) to approve the request using stubIdP's login/consent screens, while the device polls `POST {base}/token` with `grant_type=urn:ietf:params:oauth:grant-type:device_code` and the `device_code` until it receives tokens.
+
+## Token Revocation
+
+```
+POST {base}/token/revocation
+```
+
+Revokes an access or refresh token ([RFC 7009](https://www.rfc-editor.org/rfc/rfc7009)). Request body (form-encoded):
+
+| Field           | Description         |
+| --------------- | ------------------- |
+| `token`         | The token to revoke |
+| `client_id`     | Client ID           |
+| `client_secret` | Client secret       |
+
+Always returns `200 OK`, whether or not the token existed.
+
+## Token Introspection
+
+```
+POST {base}/token/introspection
+```
+
+Returns metadata about a token ([RFC 7662](https://www.rfc-editor.org/rfc/rfc7662)). Request body (form-encoded):
+
+| Field           | Description          |
+| --------------- | -------------------- |
+| `token`         | The token to inspect |
+| `client_id`     | Client ID            |
+| `client_secret` | Client secret        |
+
+Response includes `active: true` with claims such as `client_id`, `exp`, `iat`, `aud`, and `scope` when the token is valid, or `{ "active": false }` otherwise.
 
 ## UserInfo
 
