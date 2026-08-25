@@ -132,6 +132,11 @@ export function homePage(issuer: string): string {
           <h3 class="font-semibold mb-2">Deploy Anywhere</h3>
           <p class="text-muted-fg text-sm leading-relaxed">Local, Docker, or Cloudflare Workers. One-click deployment.</p>
         </div>
+        <div class="bg-card text-card-fg border border-border rounded-xl p-6 hover:border-outline-variant transition-colors">
+          <div class="text-3xl mb-4">🪪</div>
+          <h3 class="font-semibold mb-2">Client ID Metadata Documents</h3>
+          <p class="text-muted-fg text-sm leading-relaxed">Register-free clients via the <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html" target="_blank" class="text-primary hover:text-primary/80 transition-colors">CIMD draft</a> — <code class="text-xs bg-muted px-1 py-0.5 rounded">--enable-cimd</code>.</p>
+        </div>
       </div>
     </section>
 

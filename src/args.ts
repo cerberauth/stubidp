@@ -145,6 +145,20 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Include email/profile/etc. claims directly in the ID token instead of requiring a separate UserInfo call (default: false, spec-compliant) [env: STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS]',
     },
+    'enable-cimd': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_ENABLE_CIMD',
+      description:
+        'Enable OAuth Client ID Metadata Document support (draft-02) — client_id is a URL pointing to a JSON metadata document [env: STUBIDP_ENABLE_CIMD]',
+    },
+    'cimd-trusted-origins': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_CIMD_TRUSTED_ORIGINS',
+      description:
+        'Comma-separated list of trusted origins for client_id metadata documents — a value ending in "/" matches as a URL prefix, otherwise it must match the client_id exactly (default: https://cimd.cerberauth.com/t/) [env: STUBIDP_CIMD_TRUSTED_ORIGINS]',
+    },
   })
   .env('STUBIDP')
   .parseSync()
