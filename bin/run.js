@@ -119,6 +119,10 @@ const app = await createApp({
   accessTokenFormat: argv['access-token-format'],
   interactionPath: argv['interaction-path'],
   idTokenIncludesUserInfoClaims: argv['id-token-includes-userinfo-claims'],
+  enableCimd: argv['enable-cimd'],
+  cimdTrustedOrigins: argv['cimd-trusted-origins']
+    ? argv['cimd-trusted-origins'].split(',').map((s) => s.trim())
+    : undefined,
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],
   securityHeaders: argv['security-headers'],

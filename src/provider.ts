@@ -46,7 +46,11 @@ export interface ProviderOptions {
   accessTokenFormat?: 'opaque' | 'jwt'
   idTokenIncludesUserInfoClaims?: boolean
   interactionPath?: string
+  enableCimd?: boolean
+  cimdTrustedOrigins?: string[]
 }
+
+const DEFAULT_CIMD_TRUSTED_ORIGINS = ['https://cimd.cerberauth.com/t/']
 
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
   return {
@@ -100,6 +104,15 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     /\/$/,
     '',
   )
+
+  const enableCimd = options.enableCimd ?? process.env.STUBIDP_ENABLE_CIMD === 'true'
+
+  const cimdTrustedOrigins =
+    options.cimdTrustedOrigins ??
+    process.env.STUBIDP_CIMD_TRUSTED_ORIGINS?.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean) ??
+    DEFAULT_CIMD_TRUSTED_ORIGINS
 
   const resolvedScopes = options.scopes ??
     process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
@@ -244,6 +257,17 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       introspection: {
         enabled: true,
       },
+      clientIdMetadataDocument: enableCimd
+        ? {
+            enabled: true,
+            ack: 'draft-02',
+            async allowFetch(_ctx, clientId) {
+              return cimdTrustedOrigins.some((origin) =>
+                origin.endsWith('/') ? clientId.startsWith(origin) : clientId === origin,
+              )
+            },
+          }
+        : { enabled: false },
     },
     interactions: {
       url: async (_ctx, interaction) => `${interactionPath}/${interaction.uid}`,
