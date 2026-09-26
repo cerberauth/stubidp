@@ -164,7 +164,7 @@ These endpoints are only available when stubIdP is started with `--enable-regist
 ### Register a client (RFC 7591)
 
 ```
-POST {base}/register
+POST {base}/reg
 ```
 
 Registers a new client. When `--registration-initial-access-token` is set, the request must include `Authorization: Bearer <token>`.
@@ -183,7 +183,7 @@ The response includes `client_id`, `client_secret`, `registration_client_uri`, a
 ### Read client configuration (RFC 7592)
 
 ```
-GET {base}/register/{client_id}
+GET {base}/reg/{client_id}
 ```
 
 Returns the current registration metadata for the client. Requires `Authorization: Bearer <registration_access_token>`.
@@ -191,7 +191,7 @@ Returns the current registration metadata for the client. Requires `Authorizatio
 ### Update client configuration (RFC 7592)
 
 ```
-PUT {base}/register/{client_id}
+PUT {base}/reg/{client_id}
 ```
 
 Replaces the client's registration metadata. The full client object must be supplied (not a partial patch). Requires `Authorization: Bearer <registration_access_token>`.
@@ -199,7 +199,7 @@ Replaces the client's registration metadata. The full client object must be supp
 ### Delete a client (RFC 7592)
 
 ```
-DELETE {base}/register/{client_id}
+DELETE {base}/reg/{client_id}
 ```
 
 Removes the client registration. Requires `Authorization: Bearer <registration_access_token>`.

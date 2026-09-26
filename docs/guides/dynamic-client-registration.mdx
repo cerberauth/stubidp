@@ -11,8 +11,8 @@ Dynamic client registration lets any service register its own OAuth 2.0 client a
 
 stubIdP implements:
 
-- **[RFC 7591](https://www.rfc-editor.org/rfc/rfc7591)** — OAuth 2.0 Dynamic Client Registration Protocol (`POST /register`)
-- **[RFC 7592](https://www.rfc-editor.org/rfc/rfc7592)** — OAuth 2.0 Dynamic Client Registration Management Protocol (`GET/PUT/DELETE /register/:id`)
+- **[RFC 7591](https://www.rfc-editor.org/rfc/rfc7591)** — OAuth 2.0 Dynamic Client Registration Protocol (`POST /reg`)
+- **[RFC 7592](https://www.rfc-editor.org/rfc/rfc7592)** — OAuth 2.0 Dynamic Client Registration Management Protocol (`GET/PUT/DELETE /reg/:id`)
 
 ## Start with registration enabled
 
@@ -27,7 +27,7 @@ npx @cerberauth/stubidp --enable-registration --registration-initial-access-toke
 The startup table will show the registration endpoint:
 
 ```
-| Registration URL | http://localhost:8484/register |
+| Registration URL | http://localhost:8484/reg |
 ```
 
 <Aside type="tip">
@@ -42,7 +42,7 @@ The startup table will show the registration endpoint:
 1. **Send a registration request**
 
    ```bash
-   curl -X POST http://localhost:8484/register \
+   curl -X POST http://localhost:8484/reg \
      -H 'Content-Type: application/json' \
      -d '{
        "client_name": "my-service",
@@ -65,7 +65,7 @@ The startup table will show the registration endpoint:
      "client_id": "abc123",
      "client_secret": "s3cr3t",
      "registration_access_token": "rat_xyz...",
-     "registration_client_uri": "http://localhost:8484/register/abc123",
+     "registration_client_uri": "http://localhost:8484/reg/abc123",
      "redirect_uris": ["http://localhost:3000/callback"],
      ...
    }
@@ -93,7 +93,7 @@ Use the `registration_access_token` from the registration response to read, upda
 ### Read
 
 ```bash
-curl http://localhost:8484/register/<client_id> \
+curl http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>'
 ```
 
@@ -102,7 +102,7 @@ curl http://localhost:8484/register/<client_id> \
 `PUT` replaces the full client object — supply all fields, not just the ones that changed.
 
 ```bash
-curl -X PUT http://localhost:8484/register/<client_id> \
+curl -X PUT http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -116,7 +116,7 @@ curl -X PUT http://localhost:8484/register/<client_id> \
 ### Delete
 
 ```bash
-curl -X DELETE http://localhost:8484/register/<client_id> \
+curl -X DELETE http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>'
 ```
 
@@ -126,7 +126,7 @@ Each service in your stack can register its own client at startup and tear it do
 
 ```bash
 # service-a bootstrap
-CLIENT=$(curl -sX POST http://stubidp:8484/register \
+CLIENT=$(curl -sX POST http://stubidp:8484/reg \
   -H 'Content-Type: application/json' \
   -d '{"redirect_uris":["http://service-a/cb"],"grant_types":["authorization_code"]}')
 
@@ -137,7 +137,7 @@ RAT=$(echo $CLIENT | jq -r .registration_access_token)
 # ... run tests ...
 
 # cleanup
-curl -sX DELETE http://stubidp:8484/register/$CLIENT_ID \
+curl -sX DELETE http://stubidp:8484/reg/$CLIENT_ID \
   -H "Authorization: Bearer $RAT"
 ```
 
