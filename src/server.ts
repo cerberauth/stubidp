@@ -1,3 +1,4 @@
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import express, { Express, Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
@@ -7,10 +8,15 @@ import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { DatabaseInstance } from './db/db.js'
+import { accessLog } from './access-log.js'
 import { livenessHandler, pingDb, readinessHandler } from './health.js'
 import { createInteractionRouter } from './interactions.js'
+import { createChildLogger, withRequestId } from './logger.js'
 import { createProvider, ProviderOptions } from './provider.js'
+import { requestContext } from './request-context.js'
 import { homePage } from './views/index.js'
+
+const log = createChildLogger({ component: 'http' })
 
 function cacheControl(
   options: {
@@ -47,6 +53,14 @@ function cacheControl(
   }
 }
 
+interface ExposedError extends Error {
+  status?: number
+  statusCode?: number
+  expose?: boolean
+  error?: string
+  error_description?: string
+}
+
 export interface RateLimitOptions {
   windowMs?: number
   max?: number
@@ -63,6 +77,9 @@ export interface AppOptions extends ProviderOptions {
 
 export async function createApp(options: AppOptions): Promise<Express> {
   const app: Express = express()
+  app.use(requestContext())
+  app.use(accessLog())
+
   const oidc: Provider = await createProvider(options)
 
   let resolvedDb: DatabaseInstance | null = options.db ?? null
@@ -181,6 +198,39 @@ export async function createApp(options: AppOptions): Promise<Express> {
     }),
     oidc.callback(),
   )
+
+  // Express only recognizes an error-handling middleware if the callback
+  // declares exactly 4 parameters (err, req, res, next) - fewer than that and
+  // it's treated as regular middleware and never invoked for errors at all.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: ExposedError, req: Request, res: Response, _next: NextFunction) => {
+    const status = err.statusCode ?? err.status ?? 500
+    const fields = withRequestId({ err, path: req.path, method: req.method })
+
+    if (status >= 500) {
+      log.error(fields, 'unhandled request error')
+    } else {
+      log.warn(fields, 'request error')
+    }
+
+    const span = trace.getActiveSpan()
+    span?.recordException(err)
+    span?.setStatus({ code: SpanStatusCode.ERROR, message: err.message })
+
+    if (res.headersSent) {
+      res.end()
+      return
+    }
+
+    if (err.expose && status >= 400 && status < 500) {
+      res
+        .status(status)
+        .json({ error: err.error ?? 'invalid_request', error_description: err.error_description ?? err.message })
+      return
+    }
+
+    res.status(500).json({ error: 'server_error', error_description: 'oops! something went wrong' })
+  })
 
   return app
 }

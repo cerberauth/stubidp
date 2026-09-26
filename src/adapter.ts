@@ -2,7 +2,8 @@ import { eq } from 'drizzle-orm'
 
 import * as schema from './db/schema.js'
 import type { DatabaseInstance } from './db/db.js'
-import { createChildLogger } from './logger.js'
+import { createChildLogger, withRequestId } from './logger.js'
+import { withSpan } from './telemetry.js'
 
 /**
  * Custom error class for adapter-related errors
@@ -116,258 +117,272 @@ export class DrizzleAdapter {
   }
 
   async upsert(id: string, payload: AdapterPayload, expiresIn: number): Promise<void> {
-    if (!id) {
-      throw new AdapterError('ID is required for upsert operation', {
-        model: this.model,
-        operation: 'upsert',
-      })
-    }
+    return withSpan('adapter.upsert', { model: this.model, id }, async () => {
+      if (!id) {
+        throw new AdapterError('ID is required for upsert operation', {
+          model: this.model,
+          operation: 'upsert',
+        })
+      }
 
-    this.log.debug({ id, expiresIn }, 'upserting record')
+      this.log.debug(withRequestId({ id, expiresIn }), 'upserting record')
 
-    try {
-      const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null
+      try {
+        const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null
 
-      if (this.model === 'Client') {
-        const clientPayload = payload as ClientPayload
-        const {
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uris: redirectUris,
-          response_types: responseTypes,
-          grant_types: grantTypes,
-          token_endpoint_auth_method: tokenEndpointAuthMethod,
-          client_name: clientName,
-          logo_uri: logoUri,
-          policy_uri: policyUri,
-          tos_uri: tosUri,
-          initiate_login_uri: initiateLoginUri,
-          post_logout_redirect_uris: postLogoutRedirectUris,
-          id_token_signed_response_alg: idTokenSignedResponseAlg,
-          userinfo_signed_response_alg: userinfoSignedResponseAlg,
-          ...rest
-        } = clientPayload
+        if (this.model === 'Client') {
+          const clientPayload = payload as ClientPayload
+          const {
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uris: redirectUris,
+            response_types: responseTypes,
+            grant_types: grantTypes,
+            token_endpoint_auth_method: tokenEndpointAuthMethod,
+            client_name: clientName,
+            logo_uri: logoUri,
+            policy_uri: policyUri,
+            tos_uri: tosUri,
+            initiate_login_uri: initiateLoginUri,
+            post_logout_redirect_uris: postLogoutRedirectUris,
+            id_token_signed_response_alg: idTokenSignedResponseAlg,
+            userinfo_signed_response_alg: userinfoSignedResponseAlg,
+            ...rest
+          } = clientPayload
 
-        const values = {
-          clientId,
-          clientSecret,
-          redirectUris,
-          responseTypes,
-          grantTypes,
-          tokenEndpointAuthMethod,
-          clientName,
-          logoUri,
-          policyUri,
-          tosUri,
-          initiateLoginUri,
-          postLogoutRedirectUris,
-          idTokenSignedResponseAlg,
-          userinfoSignedResponseAlg,
-          payload: rest,
+          const values = {
+            clientId,
+            clientSecret,
+            redirectUris,
+            responseTypes,
+            grantTypes,
+            tokenEndpointAuthMethod,
+            clientName,
+            logoUri,
+            policyUri,
+            tosUri,
+            initiateLoginUri,
+            postLogoutRedirectUris,
+            idTokenSignedResponseAlg,
+            userinfoSignedResponseAlg,
+            payload: rest,
+          }
+
+          await this.db.insert(this.table).values(values).onConflictDoUpdate({
+            target: this.table.clientId,
+            set: values,
+          })
+        } else {
+          await this.db.insert(this.table).values({ id, payload, expiresAt }).onConflictDoUpdate({
+            target: this.table.id,
+            set: { payload, expiresAt },
+          })
         }
-
-        await this.db.insert(this.table).values(values).onConflictDoUpdate({
-          target: this.table.clientId,
-          set: values,
-        })
-      } else {
-        await this.db.insert(this.table).values({ id, payload, expiresAt }).onConflictDoUpdate({
-          target: this.table.id,
-          set: { payload, expiresAt },
+      } catch (error) {
+        if (error instanceof AdapterError) {
+          throw error
+        }
+        this.log.error(withRequestId({ err: error, id }), 'failed to upsert record')
+        throw new AdapterError(`Failed to upsert ${this.model} with id: ${id}`, {
+          model: this.model,
+          operation: 'upsert',
+          cause: error,
         })
       }
-    } catch (error) {
-      if (error instanceof AdapterError) {
-        throw error
-      }
-      this.log.error({ err: error, id }, 'failed to upsert record')
-      throw new AdapterError(`Failed to upsert ${this.model} with id: ${id}`, {
-        model: this.model,
-        operation: 'upsert',
-        cause: error,
-      })
-    }
+    })
   }
 
   async find(id: string): Promise<AdapterPayload | undefined> {
-    if (!id) {
-      return undefined
-    }
-
-    this.log.debug({ id }, 'finding record')
-
-    try {
-      const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
-
-      if (!result || result.length === 0) {
+    return withSpan('adapter.find', { model: this.model, id }, async () => {
+      if (!id) {
         return undefined
       }
 
-      const record = result[0]
+      this.log.debug(withRequestId({ id }), 'finding record')
 
-      if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
-        await this.destroy(id).catch(() => {
-          // Ignore cleanup errors
+      try {
+        const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
+
+        if (!result || result.length === 0) {
+          return undefined
+        }
+
+        const record = result[0]
+
+        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+          await this.destroy(id).catch(() => {
+            // Ignore cleanup errors
+          })
+          return undefined
+        }
+
+        return record.payload
+      } catch (error) {
+        this.log.error(withRequestId({ err: error, id }), 'failed to find record')
+        throw new AdapterError(`Failed to find ${this.model} with id: ${id}`, {
+          model: this.model,
+          operation: 'find',
+          cause: error,
         })
-        return undefined
       }
-
-      return record.payload
-    } catch (error) {
-      this.log.error({ err: error, id }, 'failed to find record')
-      throw new AdapterError(`Failed to find ${this.model} with id: ${id}`, {
-        model: this.model,
-        operation: 'find',
-        cause: error,
-      })
-    }
+    })
   }
 
   async findByUserCode(userCode: string): Promise<AdapterPayload | undefined> {
-    if (!userCode) {
-      return undefined
-    }
-
-    this.log.debug({ userCode }, 'finding record by userCode')
-
-    try {
-      const result = (await this.db
-        .select()
-        .from(this.table)
-        .where(eq(this.table.payload.userCode, userCode))) as DatabaseRecord[]
-
-      if (!result || result.length === 0) {
+    return withSpan('adapter.findByUserCode', { model: this.model }, async () => {
+      if (!userCode) {
         return undefined
       }
 
-      const record = result[0]
+      this.log.debug(withRequestId({ userCode }), 'finding record by userCode')
 
-      if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
-        await this.destroy(record.id).catch(() => {
-          // Ignore cleanup errors
+      try {
+        const result = (await this.db
+          .select()
+          .from(this.table)
+          .where(eq(this.table.payload.userCode, userCode))) as DatabaseRecord[]
+
+        if (!result || result.length === 0) {
+          return undefined
+        }
+
+        const record = result[0]
+
+        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+          await this.destroy(record.id).catch(() => {
+            // Ignore cleanup errors
+          })
+          return undefined
+        }
+
+        return record.payload
+      } catch (error) {
+        this.log.error(withRequestId({ err: error, userCode }), 'failed to find record by userCode')
+        throw new AdapterError(`Failed to find ${this.model} by userCode`, {
+          model: this.model,
+          operation: 'findByUserCode',
+          cause: error,
         })
-        return undefined
       }
-
-      return record.payload
-    } catch (error) {
-      this.log.error({ err: error, userCode }, 'failed to find record by userCode')
-      throw new AdapterError(`Failed to find ${this.model} by userCode`, {
-        model: this.model,
-        operation: 'findByUserCode',
-        cause: error,
-      })
-    }
+    })
   }
 
   async findByUid(uid: string): Promise<AdapterPayload | undefined> {
-    if (!uid) {
-      return undefined
-    }
-
-    this.log.debug({ uid }, 'finding record by uid')
-
-    try {
-      const result = (await this.db
-        .select()
-        .from(this.table)
-        .where(eq(this.table.payload.uid, uid))) as DatabaseRecord[]
-
-      if (!result || result.length === 0) {
+    return withSpan('adapter.findByUid', { model: this.model }, async () => {
+      if (!uid) {
         return undefined
       }
 
-      const record = result[0]
+      this.log.debug(withRequestId({ uid }), 'finding record by uid')
 
-      if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
-        await this.destroy(record.id).catch(() => {
-          // Ignore cleanup errors
+      try {
+        const result = (await this.db
+          .select()
+          .from(this.table)
+          .where(eq(this.table.payload.uid, uid))) as DatabaseRecord[]
+
+        if (!result || result.length === 0) {
+          return undefined
+        }
+
+        const record = result[0]
+
+        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+          await this.destroy(record.id).catch(() => {
+            // Ignore cleanup errors
+          })
+          return undefined
+        }
+
+        return record.payload
+      } catch (error) {
+        this.log.error(withRequestId({ err: error, uid }), 'failed to find record by uid')
+        throw new AdapterError(`Failed to find ${this.model} by uid`, {
+          model: this.model,
+          operation: 'findByUid',
+          cause: error,
         })
-        return undefined
       }
-
-      return record.payload
-    } catch (error) {
-      this.log.error({ err: error, uid }, 'failed to find record by uid')
-      throw new AdapterError(`Failed to find ${this.model} by uid`, {
-        model: this.model,
-        operation: 'findByUid',
-        cause: error,
-      })
-    }
+    })
   }
 
   async destroy(id: string): Promise<void> {
-    if (!id) {
-      return
-    }
+    return withSpan('adapter.destroy', { model: this.model, id }, async () => {
+      if (!id) {
+        return
+      }
 
-    this.log.debug({ id }, 'destroying record')
+      this.log.debug(withRequestId({ id }), 'destroying record')
 
-    try {
-      await this.db.delete(this.table).where(eq(this.table.id, id))
-    } catch (error) {
-      this.log.error({ err: error, id }, 'failed to destroy record')
-      throw new AdapterError(`Failed to destroy ${this.model} with id: ${id}`, {
-        model: this.model,
-        operation: 'destroy',
-        cause: error,
-      })
-    }
+      try {
+        await this.db.delete(this.table).where(eq(this.table.id, id))
+      } catch (error) {
+        this.log.error(withRequestId({ err: error, id }), 'failed to destroy record')
+        throw new AdapterError(`Failed to destroy ${this.model} with id: ${id}`, {
+          model: this.model,
+          operation: 'destroy',
+          cause: error,
+        })
+      }
+    })
   }
 
   async consume(id: string): Promise<void> {
-    if (!id) {
-      throw new AdapterError('ID is required for consume operation', {
-        model: this.model,
-        operation: 'consume',
-      })
-    }
-
-    this.log.debug({ id }, 'consuming record')
-
-    try {
-      const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
-
-      if (!result || result.length === 0) {
-        throw new AdapterError(`${this.model} with id ${id} not found`, {
+    return withSpan('adapter.consume', { model: this.model, id }, async () => {
+      if (!id) {
+        throw new AdapterError('ID is required for consume operation', {
           model: this.model,
           operation: 'consume',
         })
       }
 
-      const payload = { ...result[0].payload, consumed: Math.floor(Date.now() / 1000) }
+      this.log.debug(withRequestId({ id }), 'consuming record')
 
-      await this.db.update(this.table).set({ payload }).where(eq(this.table.id, id))
-    } catch (error) {
-      if (error instanceof AdapterError) {
-        throw error
+      try {
+        const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
+
+        if (!result || result.length === 0) {
+          throw new AdapterError(`${this.model} with id ${id} not found`, {
+            model: this.model,
+            operation: 'consume',
+          })
+        }
+
+        const payload = { ...result[0].payload, consumed: Math.floor(Date.now() / 1000) }
+
+        await this.db.update(this.table).set({ payload }).where(eq(this.table.id, id))
+      } catch (error) {
+        if (error instanceof AdapterError) {
+          throw error
+        }
+        this.log.error(withRequestId({ err: error, id }), 'failed to consume record')
+        throw new AdapterError(`Failed to consume ${this.model} with id: ${id}`, {
+          model: this.model,
+          operation: 'consume',
+          cause: error,
+        })
       }
-      this.log.error({ err: error, id }, 'failed to consume record')
-      throw new AdapterError(`Failed to consume ${this.model} with id: ${id}`, {
-        model: this.model,
-        operation: 'consume',
-        cause: error,
-      })
-    }
+    })
   }
 
   async revokeByGrantId(grantId: string): Promise<void> {
-    if (!grantId) {
-      return
-    }
+    return withSpan('adapter.revokeByGrantId', { model: this.model, grantId }, async () => {
+      if (!grantId) {
+        return
+      }
 
-    this.log.debug({ grantId }, 'revoking records by grantId')
+      this.log.debug(withRequestId({ grantId }), 'revoking records by grantId')
 
-    try {
-      await this.db.delete(this.table).where(eq(this.table.grantId, grantId))
-    } catch (error) {
-      this.log.error({ err: error, grantId }, 'failed to revoke records by grantId')
-      throw new AdapterError(`Failed to revoke ${this.model} by grantId: ${grantId}`, {
-        model: this.model,
-        operation: 'revokeByGrantId',
-        cause: error,
-      })
-    }
+      try {
+        await this.db.delete(this.table).where(eq(this.table.grantId, grantId))
+      } catch (error) {
+        this.log.error(withRequestId({ err: error, grantId }), 'failed to revoke records by grantId')
+        throw new AdapterError(`Failed to revoke ${this.model} by grantId: ${grantId}`, {
+          model: this.model,
+          operation: 'revokeByGrantId',
+          cause: error,
+        })
+      }
+    })
   }
 }

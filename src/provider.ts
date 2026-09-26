@@ -1,8 +1,10 @@
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import { generateKeyPair, exportJWK } from 'jose'
 import { isEmail, isPhone } from './hint.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
 import { Provider, Configuration } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
+import logger, { withRequestId } from './logger.js'
 
 export interface DefaultUser {
   sub?: string
@@ -317,5 +319,15 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     configuration.adapter = (name: string) => new MemoryAdapter(name)
   }
 
-  return new Provider(issuer, configuration)
+  const provider = new Provider(issuer, configuration)
+
+  provider.on('server_error', (ctx, err) => {
+    logger.error(withRequestId({ err, path: ctx.path, method: ctx.method }), 'oidc-provider server error')
+
+    const span = trace.getActiveSpan()
+    span?.recordException(err)
+    span?.setStatus({ code: SpanStatusCode.ERROR, message: err.message })
+  })
+
+  return provider
 }

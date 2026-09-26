@@ -3,6 +3,7 @@ import type { Provider, Interaction, Grant } from 'oidc-provider'
 
 import type { DefaultUser } from './provider.js'
 import { isEmail, isPhone } from './hint.js'
+import { withSpan } from './telemetry.js'
 import { loginPage, consentPage } from './views/index.js'
 
 export interface InteractionRouterOptions {
@@ -95,7 +96,9 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
   router.get('/:uid/auto', async (req, res, next) => {
     try {
-      await autoCompleteInteraction(provider, options.defaultUser, req, res, next)
+      await withSpan('interaction.auto', { uid: req.params.uid }, () =>
+        autoCompleteInteraction(provider, options.defaultUser, req, res, next),
+      )
     } catch (err) {
       next(err)
     }
@@ -103,27 +106,29 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
   router.get('/:uid', async (req, res, next) => {
     try {
-      if (options.skipPrompt) {
-        await autoCompleteInteraction(provider, options.defaultUser, req, res, next)
-        return
-      }
-
-      const details: Interaction = await provider.interactionDetails(req, res)
-      const { prompt, params } = details
-      const clientId = String(params.client_id ?? 'unknown')
-
-      switch (prompt.name) {
-        case 'login':
-          res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath }))
-          break
-        case 'consent': {
-          const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
-          res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes, basePath }))
-          break
+      await withSpan('interaction.prompt', { uid: req.params.uid }, async () => {
+        if (options.skipPrompt) {
+          await autoCompleteInteraction(provider, options.defaultUser, req, res, next)
+          return
         }
-        default:
-          next(new Error(`Unsupported prompt: ${prompt.name}`))
-      }
+
+        const details: Interaction = await provider.interactionDetails(req, res)
+        const { prompt, params } = details
+        const clientId = String(params.client_id ?? 'unknown')
+
+        switch (prompt.name) {
+          case 'login':
+            res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath }))
+            break
+          case 'consent': {
+            const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
+            res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes, basePath }))
+            break
+          }
+          default:
+            next(new Error(`Unsupported prompt: ${prompt.name}`))
+        }
+      })
     } catch (err) {
       next(err)
     }
@@ -131,13 +136,15 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
   router.post('/:uid/login', async (req, res, next) => {
     try {
-      const { username } = req.body as { username?: string }
-      await provider.interactionFinished(
-        req,
-        res,
-        { login: { accountId: username?.trim() || 'stub-user' } },
-        { mergeWithLastSubmission: false },
-      )
+      await withSpan('interaction.login', { uid: req.params.uid }, async () => {
+        const { username } = req.body as { username?: string }
+        await provider.interactionFinished(
+          req,
+          res,
+          { login: { accountId: username?.trim() || 'stub-user' } },
+          { mergeWithLastSubmission: false },
+        )
+      })
     } catch (err) {
       next(err)
     }
@@ -145,46 +152,48 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
   router.post('/:uid/confirm', async (req, res, next) => {
     try {
-      const details: Interaction = await provider.interactionDetails(req, res)
-      const {
-        prompt: { details: promptDetails },
-        params,
-        grantId,
-      } = details
+      await withSpan('interaction.confirm', { uid: req.params.uid }, async () => {
+        const details: Interaction = await provider.interactionDetails(req, res)
+        const {
+          prompt: { details: promptDetails },
+          params,
+          grantId,
+        } = details
 
-      const Grant = provider.Grant
-      const session = details.session
+        const Grant = provider.Grant
+        const session = details.session
 
-      let grant: Grant | undefined
-      if (grantId) {
-        grant = await Grant.find(grantId)
-      }
-      if (!grant) {
-        grant = new Grant({
-          accountId: session?.accountId,
-          clientId: params.client_id as string,
-        })
-      }
-
-      if (promptDetails.missingOIDCScope) {
-        grant.addOIDCScope((promptDetails.missingOIDCScope as string[]).join(' '))
-      }
-      if (promptDetails.missingOIDCClaims) {
-        grant.addOIDCClaims(promptDetails.missingOIDCClaims as string[])
-      }
-      if (promptDetails.missingResourceScopes) {
-        for (const [indicator, scopes] of Object.entries(promptDetails.missingResourceScopes)) {
-          grant.addResourceScope(indicator, (scopes as string[]).join(' '))
+        let grant: Grant | undefined
+        if (grantId) {
+          grant = await Grant.find(grantId)
         }
-      }
+        if (!grant) {
+          grant = new Grant({
+            accountId: session?.accountId,
+            clientId: params.client_id as string,
+          })
+        }
 
-      const savedGrantId = await grant.save()
-      await provider.interactionFinished(
-        req,
-        res,
-        { consent: { grantId: savedGrantId } },
-        { mergeWithLastSubmission: true },
-      )
+        if (promptDetails.missingOIDCScope) {
+          grant.addOIDCScope((promptDetails.missingOIDCScope as string[]).join(' '))
+        }
+        if (promptDetails.missingOIDCClaims) {
+          grant.addOIDCClaims(promptDetails.missingOIDCClaims as string[])
+        }
+        if (promptDetails.missingResourceScopes) {
+          for (const [indicator, scopes] of Object.entries(promptDetails.missingResourceScopes)) {
+            grant.addResourceScope(indicator, (scopes as string[]).join(' '))
+          }
+        }
+
+        const savedGrantId = await grant.save()
+        await provider.interactionFinished(
+          req,
+          res,
+          { consent: { grantId: savedGrantId } },
+          { mergeWithLastSubmission: true },
+        )
+      })
     } catch (err) {
       next(err)
     }
@@ -192,12 +201,14 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
   router.post('/:uid/abort', async (req, res, next) => {
     try {
-      await provider.interactionFinished(
-        req,
-        res,
-        { error: 'access_denied', error_description: 'End-User aborted interaction' },
-        { mergeWithLastSubmission: false },
-      )
+      await withSpan('interaction.abort', { uid: req.params.uid }, async () => {
+        await provider.interactionFinished(
+          req,
+          res,
+          { error: 'access_denied', error_description: 'End-User aborted interaction' },
+          { mergeWithLastSubmission: false },
+        )
+      })
     } catch (err) {
       next(err)
     }
