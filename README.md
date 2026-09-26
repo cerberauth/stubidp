@@ -26,7 +26,7 @@ npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
 npx @cerberauth/stubidp --enable-registration
 ```
 
-Any service can register its own client via `POST /register` without restarting the server.
+Any service can register its own client via `POST /reg` without restarting the server.
 
 Your OIDC provider is now live at `http://localhost:8484`
 
@@ -98,8 +98,8 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_RATE_LIMIT_WINDOW_MS`              | `900000`                          | Rate limit time window in milliseconds (15 min)                                                                |
 | `STUBIDP_RATE_LIMIT_MAX`                    | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)                                              |
 | `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                                 |
-| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /register`, `GET/PUT/DELETE /register/:id`)            |
-| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /register` (open registration when omitted)                                |
+| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /reg`, `GET/PUT/DELETE /reg/:id`)                      |
+| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /reg` (open registration when omitted)                                     |
 | `STUBIDP_TRUST_PROXY`                       | `false`                           | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a proxy                              |
 | `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                                        |
 | `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                  |
@@ -127,7 +127,7 @@ npx @cerberauth/stubidp --enable-registration --registration-initial-access-toke
 ### Register a client
 
 ```bash
-curl -X POST http://localhost:8484/register \
+curl -X POST http://localhost:8484/reg \
   -H 'Content-Type: application/json' \
   -d '{
     "client_name": "my-service",
@@ -143,17 +143,17 @@ The response includes `client_id`, `client_secret`, and a `registration_access_t
 
 ```bash
 # Read
-curl http://localhost:8484/register/<client_id> \
+curl http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>'
 
 # Update
-curl -X PUT http://localhost:8484/register/<client_id> \
+curl -X PUT http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>' \
   -H 'Content-Type: application/json' \
   -d '{ "redirect_uris": ["http://localhost:3001/callback"], ... }'
 
 # Delete
-curl -X DELETE http://localhost:8484/register/<client_id> \
+curl -X DELETE http://localhost:8484/reg/<client_id> \
   -H 'Authorization: Bearer <registration_access_token>'
 ```
 

@@ -72,7 +72,7 @@ Either way, each skill assumes `npx @cerberauth/stubidp` can run (Node.js on `PA
 | "Set up better-auth / NextAuth against a fake IdP"                  | `local-oidc-provider` | Runs the matching `--preset`, returns the client config snippet                                          |
 | "Run stubIdP headless in my Playwright/Cypress suite"               | `stubidp`             | Configures skip-prompt auto-approval so the login redirect completes without UI interaction              |
 | "Add stubIdP to my GitHub Actions workflow"                         | `stubidp`             | Adds a background-process step that starts stubIdP before the test job and tears it down after           |
-| "I need one shared test IdP multiple services can register against" | `stubidp`             | Enables dynamic client registration (RFC 7591/7592) so services `POST /register` at runtime              |
+| "I need one shared test IdP multiple services can register against" | `stubidp`             | Enables dynamic client registration (RFC 7591/7592) so services `POST /reg` at runtime                   |
 
 <Aside type="tip">
   Start with `local-oidc-provider` for first-run/first-wiring questions, and `stubidp` once the work moves to
