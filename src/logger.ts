@@ -1,4 +1,5 @@
 import { pino, type Logger } from 'pino'
+import { errWithCause } from 'pino-std-serializers'
 
 /**
  * Log levels supported by the logger
@@ -23,6 +24,13 @@ function createLogger(options: LoggerOptions = {}): Logger {
     level,
     base: {
       service: 'stubidp',
+    },
+    serializers: {
+      err: errWithCause,
+    },
+    browser: {
+      serialize: true,
+      asObject: false,
     },
   })
 }
