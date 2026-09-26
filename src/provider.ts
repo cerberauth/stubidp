@@ -1,3 +1,4 @@
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import { generateKeyPair, exportJWK } from 'jose'
 import { isEmail, isPhone } from './hint.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
@@ -322,6 +323,10 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   provider.on('server_error', (ctx, err) => {
     logger.error(withRequestId({ err, path: ctx.path, method: ctx.method }), 'oidc-provider server error')
+
+    const span = trace.getActiveSpan()
+    span?.recordException(err)
+    span?.setStatus({ code: SpanStatusCode.ERROR, message: err.message })
   })
 
   return provider

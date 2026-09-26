@@ -1,5 +1,8 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { context, trace, SpanKind, SpanStatusCode } from '@opentelemetry/api'
 import type { Request, Response, NextFunction } from 'express'
+
+import { tracer } from './telemetry.js'
 
 interface RequestContext {
   requestId: string
@@ -24,13 +27,29 @@ export function getRequestId(): string | undefined {
 
 /**
  * Express middleware that assigns a request ID (reusing `cf-ray` on Cloudflare
- * or `x-request-id` if a caller already supplied one) and makes it available
- * to the rest of the request's async call graph via AsyncLocalStorage.
+ * or `x-request-id` if a caller already supplied one), makes it available to
+ * the rest of the request's async call graph via AsyncLocalStorage, and opens
+ * a root span for the request (a no-op span when tracing isn't initialized -
+ * see telemetry.ts).
  */
 export function requestContext() {
   return (req: Request, res: Response, next: NextFunction): void => {
     const requestId = (req.get('cf-ray') || req.get('x-request-id') || globalThis.crypto.randomUUID()).trim()
     res.setHeader('x-request-id', requestId)
-    storage.run({ requestId }, next)
+
+    const span = tracer.startSpan(
+      `${req.method} ${req.path}`,
+      { kind: SpanKind.SERVER, attributes: { 'http.request.method': req.method, 'url.path': req.path, requestId } },
+      context.active(),
+    )
+    res.on('finish', () => {
+      span.setAttribute('http.response.status_code', res.statusCode)
+      if (res.statusCode >= 500) {
+        span.setStatus({ code: SpanStatusCode.ERROR })
+      }
+      span.end()
+    })
+
+    storage.run({ requestId }, () => context.with(trace.setSpan(context.active(), span), next))
   }
 }

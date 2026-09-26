@@ -1,8 +1,15 @@
 import type { Request, Response, NextFunction } from 'express'
 
 import { createChildLogger, withRequestId } from './logger.js'
+import { lazyHistogram } from './telemetry.js'
 
 const log = createChildLogger({ component: 'http' })
+
+/** Follows the OTel HTTP semantic conventions name/unit for this metric. */
+const getRequestDurationHistogram = lazyHistogram('http.server.request.duration', {
+  description: 'Duration of HTTP requests',
+  unit: 's',
+})
 
 /**
  * Paths that are typically hit by uptime monitors / orchestrators on a tight
@@ -26,6 +33,11 @@ export function accessLog() {
         path: req.path,
         status: res.statusCode,
         durationMs,
+      })
+
+      getRequestDurationHistogram().record(durationMs / 1000, {
+        'http.request.method': req.method,
+        'http.response.status_code': res.statusCode,
       })
 
       if (res.statusCode >= 500) {

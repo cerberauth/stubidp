@@ -1,3 +1,4 @@
+import { trace, SpanStatusCode } from '@opentelemetry/api'
 import express, { Express, Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
@@ -198,7 +199,11 @@ export async function createApp(options: AppOptions): Promise<Express> {
     oidc.callback(),
   )
 
-  app.use((err: ExposedError, req: Request, res: Response) => {
+  // Express only recognizes an error-handling middleware if the callback
+  // declares exactly 4 parameters (err, req, res, next) - fewer than that and
+  // it's treated as regular middleware and never invoked for errors at all.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: ExposedError, req: Request, res: Response, _next: NextFunction) => {
     const status = err.statusCode ?? err.status ?? 500
     const fields = withRequestId({ err, path: req.path, method: req.method })
 
@@ -207,6 +212,10 @@ export async function createApp(options: AppOptions): Promise<Express> {
     } else {
       log.warn(fields, 'request error')
     }
+
+    const span = trace.getActiveSpan()
+    span?.recordException(err)
+    span?.setStatus({ code: SpanStatusCode.ERROR, message: err.message })
 
     if (res.headersSent) {
       res.end()

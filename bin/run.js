@@ -5,8 +5,11 @@ import { readFile } from 'fs/promises'
 import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
+import { initNodeTelemetry, shutdownNodeTelemetry } from '../build/telemetry.js'
 
 process.env.STUBIDP_SERVE_STATIC ??= '../public'
+
+initNodeTelemetry()
 
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
@@ -164,3 +167,10 @@ app.listen(port, () => {
     preset.printInstructions({ issuer, clientId, clientSecret })
   }
 })
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, async () => {
+    await shutdownNodeTelemetry()
+    process.exit(0)
+  })
+}
