@@ -1,6 +1,9 @@
 import type { Request, Response } from 'express'
 
 import type { DatabaseInstance } from './db/db.js'
+import { createChildLogger, withRequestId } from './logger.js'
+
+const log = createChildLogger({ component: 'health' })
 
 export async function pingDb(db: DatabaseInstance): Promise<void> {
   const { sql } = await import('drizzle-orm')
@@ -23,8 +26,9 @@ export function readinessHandler(checks: Record<string, () => Promise<void>>) {
       try {
         await check()
         results[name] = { status: 'ok' }
-      } catch (e) {
-        results[name] = { status: 'error', error: String(e) }
+      } catch (err) {
+        log.warn(withRequestId({ err, check: name }), 'readiness check failed')
+        results[name] = { status: 'error', error: err instanceof Error ? err.message : String(err) }
       }
     }
 

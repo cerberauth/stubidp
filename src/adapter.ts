@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 
 import * as schema from './db/schema.js'
 import type { DatabaseInstance } from './db/db.js'
-import { createChildLogger } from './logger.js'
+import { createChildLogger, withRequestId } from './logger.js'
 
 /**
  * Custom error class for adapter-related errors
@@ -123,7 +123,7 @@ export class DrizzleAdapter {
       })
     }
 
-    this.log.debug({ id, expiresIn }, 'upserting record')
+    this.log.debug(withRequestId({ id, expiresIn }), 'upserting record')
 
     try {
       const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null
@@ -180,7 +180,7 @@ export class DrizzleAdapter {
       if (error instanceof AdapterError) {
         throw error
       }
-      this.log.error({ err: error, id }, 'failed to upsert record')
+      this.log.error(withRequestId({ err: error, id }), 'failed to upsert record')
       throw new AdapterError(`Failed to upsert ${this.model} with id: ${id}`, {
         model: this.model,
         operation: 'upsert',
@@ -194,7 +194,7 @@ export class DrizzleAdapter {
       return undefined
     }
 
-    this.log.debug({ id }, 'finding record')
+    this.log.debug(withRequestId({ id }), 'finding record')
 
     try {
       const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
@@ -214,7 +214,7 @@ export class DrizzleAdapter {
 
       return record.payload
     } catch (error) {
-      this.log.error({ err: error, id }, 'failed to find record')
+      this.log.error(withRequestId({ err: error, id }), 'failed to find record')
       throw new AdapterError(`Failed to find ${this.model} with id: ${id}`, {
         model: this.model,
         operation: 'find',
@@ -228,7 +228,7 @@ export class DrizzleAdapter {
       return undefined
     }
 
-    this.log.debug({ userCode }, 'finding record by userCode')
+    this.log.debug(withRequestId({ userCode }), 'finding record by userCode')
 
     try {
       const result = (await this.db
@@ -251,7 +251,7 @@ export class DrizzleAdapter {
 
       return record.payload
     } catch (error) {
-      this.log.error({ err: error, userCode }, 'failed to find record by userCode')
+      this.log.error(withRequestId({ err: error, userCode }), 'failed to find record by userCode')
       throw new AdapterError(`Failed to find ${this.model} by userCode`, {
         model: this.model,
         operation: 'findByUserCode',
@@ -265,7 +265,7 @@ export class DrizzleAdapter {
       return undefined
     }
 
-    this.log.debug({ uid }, 'finding record by uid')
+    this.log.debug(withRequestId({ uid }), 'finding record by uid')
 
     try {
       const result = (await this.db
@@ -288,7 +288,7 @@ export class DrizzleAdapter {
 
       return record.payload
     } catch (error) {
-      this.log.error({ err: error, uid }, 'failed to find record by uid')
+      this.log.error(withRequestId({ err: error, uid }), 'failed to find record by uid')
       throw new AdapterError(`Failed to find ${this.model} by uid`, {
         model: this.model,
         operation: 'findByUid',
@@ -302,12 +302,12 @@ export class DrizzleAdapter {
       return
     }
 
-    this.log.debug({ id }, 'destroying record')
+    this.log.debug(withRequestId({ id }), 'destroying record')
 
     try {
       await this.db.delete(this.table).where(eq(this.table.id, id))
     } catch (error) {
-      this.log.error({ err: error, id }, 'failed to destroy record')
+      this.log.error(withRequestId({ err: error, id }), 'failed to destroy record')
       throw new AdapterError(`Failed to destroy ${this.model} with id: ${id}`, {
         model: this.model,
         operation: 'destroy',
@@ -324,7 +324,7 @@ export class DrizzleAdapter {
       })
     }
 
-    this.log.debug({ id }, 'consuming record')
+    this.log.debug(withRequestId({ id }), 'consuming record')
 
     try {
       const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
@@ -343,7 +343,7 @@ export class DrizzleAdapter {
       if (error instanceof AdapterError) {
         throw error
       }
-      this.log.error({ err: error, id }, 'failed to consume record')
+      this.log.error(withRequestId({ err: error, id }), 'failed to consume record')
       throw new AdapterError(`Failed to consume ${this.model} with id: ${id}`, {
         model: this.model,
         operation: 'consume',
@@ -357,12 +357,12 @@ export class DrizzleAdapter {
       return
     }
 
-    this.log.debug({ grantId }, 'revoking records by grantId')
+    this.log.debug(withRequestId({ grantId }), 'revoking records by grantId')
 
     try {
       await this.db.delete(this.table).where(eq(this.table.grantId, grantId))
     } catch (error) {
-      this.log.error({ err: error, grantId }, 'failed to revoke records by grantId')
+      this.log.error(withRequestId({ err: error, grantId }), 'failed to revoke records by grantId')
       throw new AdapterError(`Failed to revoke ${this.model} by grantId: ${grantId}`, {
         model: this.model,
         operation: 'revokeByGrantId',

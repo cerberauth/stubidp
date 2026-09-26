@@ -21,6 +21,7 @@ vi.mock('../src/logger.js', () => ({
     error: vi.fn(),
     warn: vi.fn(),
   }),
+  withRequestId: vi.fn((obj) => obj),
 }))
 
 // Mock schema tables

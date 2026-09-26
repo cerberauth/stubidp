@@ -7,10 +7,15 @@ import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { DatabaseInstance } from './db/db.js'
+import { accessLog } from './access-log.js'
 import { livenessHandler, pingDb, readinessHandler } from './health.js'
 import { createInteractionRouter } from './interactions.js'
+import { createChildLogger, withRequestId } from './logger.js'
 import { createProvider, ProviderOptions } from './provider.js'
+import { requestContext } from './request-context.js'
 import { homePage } from './views/index.js'
+
+const log = createChildLogger({ component: 'http' })
 
 function cacheControl(
   options: {
@@ -47,6 +52,14 @@ function cacheControl(
   }
 }
 
+interface ExposedError extends Error {
+  status?: number
+  statusCode?: number
+  expose?: boolean
+  error?: string
+  error_description?: string
+}
+
 export interface RateLimitOptions {
   windowMs?: number
   max?: number
@@ -63,6 +76,9 @@ export interface AppOptions extends ProviderOptions {
 
 export async function createApp(options: AppOptions): Promise<Express> {
   const app: Express = express()
+  app.use(requestContext())
+  app.use(accessLog())
+
   const oidc: Provider = await createProvider(options)
 
   let resolvedDb: DatabaseInstance | null = options.db ?? null
@@ -181,6 +197,31 @@ export async function createApp(options: AppOptions): Promise<Express> {
     }),
     oidc.callback(),
   )
+
+  app.use((err: ExposedError, req: Request, res: Response) => {
+    const status = err.statusCode ?? err.status ?? 500
+    const fields = withRequestId({ err, path: req.path, method: req.method })
+
+    if (status >= 500) {
+      log.error(fields, 'unhandled request error')
+    } else {
+      log.warn(fields, 'request error')
+    }
+
+    if (res.headersSent) {
+      res.end()
+      return
+    }
+
+    if (err.expose && status >= 400 && status < 500) {
+      res
+        .status(status)
+        .json({ error: err.error ?? 'invalid_request', error_description: err.error_description ?? err.message })
+      return
+    }
+
+    res.status(500).json({ error: 'server_error', error_description: 'oops! something went wrong' })
+  })
 
   return app
 }
