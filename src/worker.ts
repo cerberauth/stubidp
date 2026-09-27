@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers'
 import { httpServerHandler } from 'cloudflare:node'
 import express, { type Express } from 'express'
 import { drizzle } from 'drizzle-orm/d1'
+import type { SigningAlgorithmWithNone } from 'oidc-provider'
 
 import { createApp } from './server.js'
 
@@ -22,13 +23,15 @@ export interface Env {
   STUBIDP_INTERACTION_PATH?: string
   STUBIDP_ENABLE_CIMD?: string
   STUBIDP_CIMD_TRUSTED_ORIGINS?: string
+  STUBIDP_ENABLE_JWT_INTROSPECTION?: string
+  STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG?: string
 }
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -54,6 +57,9 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     cimdTrustedOrigins: currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS
       ? currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS.split(',').map((s) => s.trim())
       : undefined,
+    enableJwtIntrospection: currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true',
+    introspectionSignedResponseAlg: currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as
+      SigningAlgorithmWithNone | undefined,
   })
 
   cachedEntry = { key, app }

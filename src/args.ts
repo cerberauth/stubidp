@@ -159,6 +159,20 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Comma-separated list of trusted origins for client_id metadata documents — a value ending in "/" matches as a URL prefix, otherwise it must match the client_id exactly (default: https://cimd.cerberauth.com/t/) [env: STUBIDP_CIMD_TRUSTED_ORIGINS]',
     },
+    'enable-jwt-introspection': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_ENABLE_JWT_INTROSPECTION',
+      description:
+        'Enable JWT Response for OAuth Token Introspection (RFC 9701) — /token/introspection returns a signed JWT instead of plain JSON for clients configured with introspection_signed_response_alg [env: STUBIDP_ENABLE_JWT_INTROSPECTION]',
+    },
+    'introspection-signed-response-alg': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG',
+      description:
+        'Signing algorithm used for JWT introspection responses on the static client (e.g. RS256). Requires --enable-jwt-introspection [env: STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

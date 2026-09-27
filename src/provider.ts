@@ -2,7 +2,7 @@ import { trace, SpanStatusCode } from '@opentelemetry/api'
 import { generateKeyPair, exportJWK } from 'jose'
 import { isEmail, isPhone } from './hint.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
-import { Provider, Configuration } from 'oidc-provider'
+import { Provider, Configuration, SigningAlgorithmWithNone } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 import logger, { withRequestId } from './logger.js'
 
@@ -50,6 +50,8 @@ export interface ProviderOptions {
   interactionPath?: string
   enableCimd?: boolean
   cimdTrustedOrigins?: string[]
+  enableJwtIntrospection?: boolean
+  introspectionSignedResponseAlg?: SigningAlgorithmWithNone
 }
 
 const DEFAULT_CIMD_TRUSTED_ORIGINS = ['https://cimd.cerberauth.com/t/']
@@ -80,6 +82,10 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     'urn:ietf:params:oauth:grant-type:device_code',
   ]
 
+  const introspectionSignedResponseAlg =
+    options.introspectionSignedResponseAlg ??
+    (process.env.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
+
   const staticClient =
     options.clientId && options.redirectUri
       ? [
@@ -92,6 +98,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             ...(options.postLogoutRedirectUri ? { post_logout_redirect_uris: [options.postLogoutRedirectUri] } : {}),
             response_types: ['code'] as ['code'],
             grant_types: grantTypes,
+            ...(introspectionSignedResponseAlg
+              ? { introspection_signed_response_alg: introspectionSignedResponseAlg }
+              : {}),
           },
         ]
       : []
@@ -106,6 +115,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     /\/$/,
     '',
   )
+
+  const enableJwtIntrospection =
+    options.enableJwtIntrospection ?? process.env.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true'
 
   const enableCimd = options.enableCimd ?? process.env.STUBIDP_ENABLE_CIMD === 'true'
 
@@ -258,6 +270,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       },
       introspection: {
         enabled: true,
+      },
+      jwtIntrospection: {
+        enabled: enableJwtIntrospection,
       },
       clientIdMetadataDocument: enableCimd
         ? {
