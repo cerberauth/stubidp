@@ -70,10 +70,15 @@ export const deviceCodes = pgTable(
   {
     id: text('id').primaryKey(),
     grantId: text('grant_id'),
+    userCode: text('user_code'),
     expiresAt: integer('expires_at'),
     payload: jsonb('payload').$type<Record<string, unknown>>(),
   },
-  (t) => [index('device_codes_grant_id_idx').on(t.grantId), index('device_codes_expires_at_idx').on(t.expiresAt)],
+  (t) => [
+    index('device_codes_grant_id_idx').on(t.grantId),
+    index('device_codes_user_code_idx').on(t.userCode),
+    index('device_codes_expires_at_idx').on(t.expiresAt),
+  ],
 )
 
 export const clientCredentials = pgTable(
@@ -102,6 +107,40 @@ export const backchannelAuthenticationRequests = pgTable(
     index('backchannel_auth_grant_id_idx').on(t.grantId),
     index('backchannel_auth_expires_at_idx').on(t.expiresAt),
   ],
+)
+
+export const interactions = pgTable(
+  'interactions',
+  {
+    id: text('id').primaryKey(),
+    expiresAt: integer('expires_at'),
+    payload: jsonb('payload').$type<Record<string, unknown>>(),
+  },
+  (t) => [index('interactions_expires_at_idx').on(t.expiresAt)],
+)
+
+export const registrationAccessTokens = pgTable(
+  'registration_access_tokens',
+  {
+    id: text('id').primaryKey(),
+    grantId: text('grant_id'),
+    expiresAt: integer('expires_at'),
+    payload: jsonb('payload').$type<Record<string, unknown>>(),
+  },
+  (t) => [
+    index('registration_access_tokens_grant_id_idx').on(t.grantId),
+    index('registration_access_tokens_expires_at_idx').on(t.expiresAt),
+  ],
+)
+
+export const initialAccessTokens = pgTable(
+  'initial_access_tokens',
+  {
+    id: text('id').primaryKey(),
+    expiresAt: integer('expires_at'),
+    payload: jsonb('payload').$type<Record<string, unknown>>(),
+  },
+  (t) => [index('initial_access_tokens_expires_at_idx').on(t.expiresAt)],
 )
 
 export const grants = pgTable(

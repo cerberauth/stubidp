@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { DrizzleAdapter, AdapterError } from '../src/adapter.js'
+import { DrizzleAdapter, AdapterError, MODEL_NAMES } from '../src/adapter.js'
 
 // Mock logger
 vi.mock('../src/logger.js', () => ({
@@ -26,39 +26,48 @@ vi.mock('../src/logger.js', () => ({
 
 // Mock schema tables
 vi.mock('../src/db/schema.js', () => ({
-  sessions: { id: 'id', payload: { uid: 'uid', userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  sessions: { id: 'id', uid: 'uid', payload: {}, expiresAt: 'expiresAt' },
   accessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   authorizationCodes: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
-  deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  deviceCodes: { id: 'id', grantId: 'grantId', userCode: 'userCode', payload: {}, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  interactions: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
+  registrationAccessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  initialAccessTokens: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
 }))
 
 vi.mock('../src/db/schema.postgres.js', () => ({
-  sessions: { id: 'id', payload: { uid: 'uid', userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  sessions: { id: 'id', uid: 'uid', payload: {}, expiresAt: 'expiresAt' },
   accessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   authorizationCodes: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
-  deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  deviceCodes: { id: 'id', grantId: 'grantId', userCode: 'userCode', payload: {}, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  interactions: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
+  registrationAccessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  initialAccessTokens: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
 }))
 
 vi.mock('../src/db/schema.sqlite.js', () => ({
-  sessions: { id: 'id', payload: { uid: 'uid', userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  sessions: { id: 'id', uid: 'uid', payload: {}, expiresAt: 'expiresAt' },
   accessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   authorizationCodes: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   refreshTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
-  deviceCodes: { id: 'id', grantId: 'grantId', payload: { userCode: 'userCode' }, expiresAt: 'expiresAt' },
+  deviceCodes: { id: 'id', grantId: 'grantId', userCode: 'userCode', payload: {}, expiresAt: 'expiresAt' },
   backchannelAuthenticationRequests: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clientCredentials: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
   clients: { clientId: 'clientId', payload: {} },
   grants: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  interactions: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
+  registrationAccessTokens: { id: 'id', grantId: 'grantId', payload: {}, expiresAt: 'expiresAt' },
+  initialAccessTokens: { id: 'id', payload: {}, expiresAt: 'expiresAt' },
 }))
 
 interface MockRecord {
@@ -240,10 +249,10 @@ describe('DrizzleAdapter', () => {
     })
 
     it('should return undefined and destroy expired record', async () => {
-      const expiredDate = new Date(Date.now() - 1000)
+      const expiredAt = Math.floor(Date.now() / 1000) - 1
       mockDb.select.mockReturnValue({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{ id: 'test-id', payload: { data: 'test' }, expiresAt: expiredDate }]),
+          where: vi.fn().mockResolvedValue([{ id: 'test-id', payload: { data: 'test' }, expiresAt: expiredAt }]),
         }),
       })
 
@@ -412,19 +421,28 @@ describe('DrizzleAdapter', () => {
   })
 
   describe('model coverage', () => {
-    const models = [
-      'Session',
-      'AccessToken',
-      'AuthorizationCode',
-      'RefreshToken',
-      'DeviceCode',
-      'BackchannelAuthenticationRequest',
-      'ClientCredentials',
-      'Client',
-      'Grant',
-    ]
+    // Pinned so a model silently dropped from the registry fails loudly,
+    // rather than only being caught if something happens to exercise it.
+    it('should keep every oidc-provider model this app relies on registered', () => {
+      expect([...MODEL_NAMES].sort()).toEqual(
+        [
+          'Session',
+          'AccessToken',
+          'AuthorizationCode',
+          'RefreshToken',
+          'DeviceCode',
+          'BackchannelAuthenticationRequest',
+          'ClientCredentials',
+          'Client',
+          'Grant',
+          'Interaction',
+          'RegistrationAccessToken',
+          'InitialAccessToken',
+        ].sort(),
+      )
+    })
 
-    it.each(models)('should create adapter for %s model', (model) => {
+    it.each(MODEL_NAMES)('should create adapter for %s model', (model) => {
       const adapter = new DrizzleAdapter(mockDb, model)
       expect(adapter).toBeInstanceOf(DrizzleAdapter)
     })

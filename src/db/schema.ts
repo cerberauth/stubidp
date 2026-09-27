@@ -24,4 +24,7 @@ export const {
   backchannelAuthenticationRequests,
   clientCredentials,
   grants,
+  interactions,
+  registrationAccessTokens,
+  initialAccessTokens,
 } = dialect === 'sqlite' ? await import('./schema/sqlite.js') : await import('./schema/postgresql.js')

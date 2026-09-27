@@ -35,6 +35,9 @@ export type ModelName =
   | 'ClientCredentials'
   | 'Client'
   | 'Grant'
+  | 'Interaction'
+  | 'RegistrationAccessToken'
+  | 'InitialAccessToken'
 
 /**
  * Payload type for adapter operations
@@ -68,7 +71,7 @@ export interface ClientPayload {
 interface DatabaseRecord {
   id: string
   payload: AdapterPayload
-  expiresAt?: Date | number | null
+  expiresAt?: number | null
   grantId?: string
 }
 
@@ -82,13 +85,54 @@ const models: Record<ModelName, (typeof schema)[keyof typeof schema]> = {
   ClientCredentials: schema.clientCredentials,
   Client: schema.clients,
   Grant: schema.grants,
+  Interaction: schema.interactions,
+  RegistrationAccessToken: schema.registrationAccessTokens,
+  InitialAccessToken: schema.initialAccessTokens,
 }
+
+/**
+ * All model names the adapter supports, sourced from `models` so tests
+ * assert against the actual registry instead of a hand-kept duplicate list
+ */
+export const MODEL_NAMES = Object.keys(models) as ModelName[]
 
 /**
  * Type guard to check if a string is a valid model name
  */
 function isValidModel(model: string): model is ModelName {
   return model in models
+}
+
+/**
+ * Reassembles a Client row's dedicated columns back into the flat
+ * client metadata shape oidc-provider expects from `Adapter#find`
+ */
+function clientRecordToPayload(record: Record<string, unknown>): AdapterPayload {
+  const payload: AdapterPayload = {
+    client_id: record.clientId,
+    client_secret: record.clientSecret,
+    redirect_uris: record.redirectUris,
+    response_types: record.responseTypes,
+    grant_types: record.grantTypes,
+    token_endpoint_auth_method: record.tokenEndpointAuthMethod,
+    client_name: record.clientName,
+    logo_uri: record.logoUri,
+    policy_uri: record.policyUri,
+    tos_uri: record.tosUri,
+    initiate_login_uri: record.initiateLoginUri,
+    post_logout_redirect_uris: record.postLogoutRedirectUris,
+    id_token_signed_response_alg: record.idTokenSignedResponseAlg,
+    userinfo_signed_response_alg: record.userinfoSignedResponseAlg,
+    ...(record.payload as AdapterPayload),
+  }
+
+  for (const key of Object.keys(payload)) {
+    if (payload[key] === null || payload[key] === undefined) {
+      delete payload[key]
+    }
+  }
+
+  return payload
 }
 
 /**
@@ -128,7 +172,7 @@ export class DrizzleAdapter {
       this.log.debug(withRequestId({ id, expiresIn }), 'upserting record')
 
       try {
-        const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null
+        const expiresAt = expiresIn ? Math.floor(Date.now() / 1000) + expiresIn : null
 
         if (this.model === 'Client') {
           const clientPayload = payload as ClientPayload
@@ -173,10 +217,27 @@ export class DrizzleAdapter {
             set: values,
           })
         } else {
-          await this.db.insert(this.table).values({ id, payload, expiresAt }).onConflictDoUpdate({
-            target: this.table.id,
-            set: { payload, expiresAt },
-          })
+          // Dedicated, indexed columns (grantId, uid, userCode) are derived from the
+          // payload so lookups like findByUid/findByUserCode/revokeByGrantId can query
+          // them directly instead of reaching into the opaque JSON payload column
+          const indexedColumns: Record<string, unknown> = {}
+          if (this.table.grantId !== undefined) {
+            indexedColumns.grantId = (payload as { grantId?: string }).grantId ?? null
+          }
+          if (this.table.uid !== undefined) {
+            indexedColumns.uid = (payload as { uid?: string }).uid ?? null
+          }
+          if (this.table.userCode !== undefined) {
+            indexedColumns.userCode = (payload as { userCode?: string }).userCode ?? null
+          }
+
+          await this.db
+            .insert(this.table)
+            .values({ id, payload, expiresAt, ...indexedColumns })
+            .onConflictDoUpdate({
+              target: this.table.id,
+              set: { payload, expiresAt, ...indexedColumns },
+            })
         }
       } catch (error) {
         if (error instanceof AdapterError) {
@@ -201,6 +262,19 @@ export class DrizzleAdapter {
       this.log.debug(withRequestId({ id }), 'finding record')
 
       try {
+        if (this.model === 'Client') {
+          const result = (await this.db.select().from(this.table).where(eq(this.table.clientId, id))) as Record<
+            string,
+            unknown
+          >[]
+
+          if (!result || result.length === 0) {
+            return undefined
+          }
+
+          return clientRecordToPayload(result[0])
+        }
+
         const result = (await this.db.select().from(this.table).where(eq(this.table.id, id))) as DatabaseRecord[]
 
         if (!result || result.length === 0) {
@@ -209,7 +283,7 @@ export class DrizzleAdapter {
 
         const record = result[0]
 
-        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+        if (record.expiresAt && record.expiresAt < Math.floor(Date.now() / 1000)) {
           await this.destroy(id).catch(() => {
             // Ignore cleanup errors
           })
@@ -240,7 +314,7 @@ export class DrizzleAdapter {
         const result = (await this.db
           .select()
           .from(this.table)
-          .where(eq(this.table.payload.userCode, userCode))) as DatabaseRecord[]
+          .where(eq(this.table.userCode, userCode))) as DatabaseRecord[]
 
         if (!result || result.length === 0) {
           return undefined
@@ -248,7 +322,7 @@ export class DrizzleAdapter {
 
         const record = result[0]
 
-        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+        if (record.expiresAt && record.expiresAt < Math.floor(Date.now() / 1000)) {
           await this.destroy(record.id).catch(() => {
             // Ignore cleanup errors
           })
@@ -276,10 +350,7 @@ export class DrizzleAdapter {
       this.log.debug(withRequestId({ uid }), 'finding record by uid')
 
       try {
-        const result = (await this.db
-          .select()
-          .from(this.table)
-          .where(eq(this.table.payload.uid, uid))) as DatabaseRecord[]
+        const result = (await this.db.select().from(this.table).where(eq(this.table.uid, uid))) as DatabaseRecord[]
 
         if (!result || result.length === 0) {
           return undefined
@@ -287,7 +358,7 @@ export class DrizzleAdapter {
 
         const record = result[0]
 
-        if (record.expiresAt && new Date(record.expiresAt) < new Date()) {
+        if (record.expiresAt && record.expiresAt < Math.floor(Date.now() / 1000)) {
           await this.destroy(record.id).catch(() => {
             // Ignore cleanup errors
           })
@@ -315,7 +386,8 @@ export class DrizzleAdapter {
       this.log.debug(withRequestId({ id }), 'destroying record')
 
       try {
-        await this.db.delete(this.table).where(eq(this.table.id, id))
+        const idColumn = this.model === 'Client' ? this.table.clientId : this.table.id
+        await this.db.delete(this.table).where(eq(idColumn, id))
       } catch (error) {
         this.log.error(withRequestId({ err: error, id }), 'failed to destroy record')
         throw new AdapterError(`Failed to destroy ${this.model} with id: ${id}`, {
