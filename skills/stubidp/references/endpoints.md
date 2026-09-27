@@ -40,6 +40,17 @@ default; set `--access-token-format jwt` to issue it as a signed JWT carrying id
 carries `sub` by default (spec-compliant); set `--id-token-includes-userinfo-claims` to include `email`/`profile`/etc.
 claims directly in it.
 
+## Introspection
+
+```
+POST {base}/token/introspection
+```
+
+Form-encoded body: `token`, `token_type_hint` (optional). Requires client authentication (same as `/token`). Returns
+`{"active": true|false, ...}` JSON by default. Set `--enable-jwt-introspection` (plus `--introspection-signed-response-alg`
+for the static client, or `introspection_signed_response_alg` at registration for DCR clients) and send
+`Accept: application/token-introspection+jwt` to receive a signed JWT response instead (RFC 9701).
+
 ## UserInfo
 
 ```

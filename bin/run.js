@@ -126,6 +126,8 @@ const app = await createApp({
   cimdTrustedOrigins: argv['cimd-trusted-origins']
     ? argv['cimd-trusted-origins'].split(',').map((s) => s.trim())
     : undefined,
+  enableJwtIntrospection: argv['enable-jwt-introspection'],
+  introspectionSignedResponseAlg: argv['introspection-signed-response-alg'],
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],
   securityHeaders: argv['security-headers'],

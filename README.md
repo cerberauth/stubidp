@@ -109,6 +109,8 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                        |
 | `STUBIDP_ENABLE_CIMD`                       | `false`                           | Enable OAuth Client ID Metadata Document support (draft-02)                                                    |
 | `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents |
+| `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                   |
+| `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                          |
 
 ## Dynamic Client Registration
 
@@ -188,6 +190,29 @@ npx @cerberauth/stubidp \
   --cimd-trusted-origins https://cimd.cerberauth.com/t/,https://example.com/oauth-clients/,https://example.com/clients/acme.json \
   --redirect-uri http://localhost:3000/callback
 ```
+
+## JWT Token Introspection Responses
+
+stubIdP supports [RFC 9701](https://www.rfc-editor.org/rfc/rfc9701) — instead of a plain JSON body, the
+`/token/introspection` endpoint returns a signed JWT (`application/token-introspection+jwt`) for clients configured
+with `introspection_signed_response_alg`.
+
+### Enable JWT introspection
+
+For the static client, pass `--introspection-signed-response-alg` along with `--enable-jwt-introspection`:
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jwt-introspection \
+  --introspection-signed-response-alg RS256 \
+  --redirect-uri http://localhost:3000/callback
+```
+
+Dynamically registered clients (see [Dynamic Client Registration](#dynamic-client-registration)) can instead set
+`introspection_signed_response_alg` themselves as part of their registration metadata.
+
+Call the introspection endpoint with `Accept: application/token-introspection+jwt` to receive the signed response;
+requests with `Accept: application/json` keep getting the plain JSON body.
 
 ## E2E Testing and Automation
 
