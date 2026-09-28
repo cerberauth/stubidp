@@ -52,9 +52,27 @@ export interface ProviderOptions {
   cimdTrustedOrigins?: string[]
   enableJwtIntrospection?: boolean
   introspectionSignedResponseAlg?: SigningAlgorithmWithNone
+  accessTokenTtl?: number
+  idTokenTtl?: number
+  refreshTokenTtl?: number
+  sessionTtl?: number
 }
 
 const DEFAULT_CIMD_TRUSTED_ORIGINS = ['https://cimd.cerberauth.com/t/']
+
+// seconds, same as oidc-provider's own defaults
+const DEFAULT_ACCESS_TOKEN_TTL = 60 * 60
+const DEFAULT_ID_TOKEN_TTL = 60 * 60
+const DEFAULT_REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60
+const DEFAULT_SESSION_TTL = 14 * 24 * 60 * 60
+
+function resolveTtl(name: string, option: number | undefined, envValue: string | undefined, fallback: number) {
+  const value = option ?? (envValue ? Number(envValue) : fallback)
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive integer number of seconds, got: ${option ?? envValue}`)
+  }
+  return value
+}
 
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
   return {
@@ -127,6 +145,31 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       .map((s) => s.trim())
       .filter(Boolean) ??
     DEFAULT_CIMD_TRUSTED_ORIGINS
+
+  const accessTokenTtl = resolveTtl(
+    'STUBIDP_ACCESS_TOKEN_TTL',
+    options.accessTokenTtl,
+    process.env.STUBIDP_ACCESS_TOKEN_TTL,
+    DEFAULT_ACCESS_TOKEN_TTL,
+  )
+  const idTokenTtl = resolveTtl(
+    'STUBIDP_ID_TOKEN_TTL',
+    options.idTokenTtl,
+    process.env.STUBIDP_ID_TOKEN_TTL,
+    DEFAULT_ID_TOKEN_TTL,
+  )
+  const refreshTokenTtl = resolveTtl(
+    'STUBIDP_REFRESH_TOKEN_TTL',
+    options.refreshTokenTtl,
+    process.env.STUBIDP_REFRESH_TOKEN_TTL,
+    DEFAULT_REFRESH_TOKEN_TTL,
+  )
+  const sessionTtl = resolveTtl(
+    'STUBIDP_SESSION_TTL',
+    options.sessionTtl,
+    process.env.STUBIDP_SESSION_TTL,
+    DEFAULT_SESSION_TTL,
+  )
 
   const resolvedScopes = options.scopes ??
     process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
@@ -283,6 +326,15 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             },
           }
         : { enabled: false },
+    },
+    ttl: {
+      AccessToken: accessTokenTtl,
+      ClientCredentials: accessTokenTtl,
+      IdToken: idTokenTtl,
+      RefreshToken: refreshTokenTtl,
+      Session: sessionTtl,
+      Grant: Math.max(sessionTtl, refreshTokenTtl),
+      Interaction: 60 * 60,
     },
     interactions: {
       url: async (_ctx, interaction) => `${interactionPath}/${interaction.uid}`,

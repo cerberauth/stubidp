@@ -81,36 +81,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 All CLI flags can be set via environment variables instead:
 
-| Variable                                    | Default                           | Description                                                                                                    |
-| ------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `STUBIDP_CLIENT_ID`                         | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                                                              |
-| `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                      |
-| `STUBIDP_PUBLIC_CLIENT`                     | `false`                           | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps   |
-| `STUBIDP_REDIRECT_URI`                      | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                                                  |
-| `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                                                           |
-| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                                                  |
-| `STUBIDP_PORT`                              | `8484`                            | HTTP server port                                                                                               |
-| `STUBIDP_LOG_LEVEL`                         | `info`                            | Logging verbosity                                                                                              |
-| `STUBIDP_DATABASE_DIALECT`                  | -                                 | Database type: `postgresql` or `sqlite`                                                                        |
-| `STUBIDP_DATABASE_URL`                      | -                                 | Connection string or file path                                                                                 |
-| `STUBIDP_SKIP_PROMPT`                       | `false`                           | Set to `true` to skip login/consent UI and auto-approve every interaction                                      |
-| `STUBIDP_DEFAULT_USER`                      | —                                 | JSON object of OIDC claims returned for every authenticated user                                               |
-| `STUBIDP_RATE_LIMIT_WINDOW_MS`              | `900000`                          | Rate limit time window in milliseconds (15 min)                                                                |
-| `STUBIDP_RATE_LIMIT_MAX`                    | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)                                              |
-| `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                                 |
-| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /reg`, `GET/PUT/DELETE /reg/:id`)                      |
-| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /reg` (open registration when omitted)                                     |
-| `STUBIDP_TRUST_PROXY`                       | `false`                           | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a proxy                              |
-| `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                                        |
-| `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                  |
-| `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`)  |
-| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)         |
-| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                   |
-| `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                        |
-| `STUBIDP_ENABLE_CIMD`                       | `false`                           | Enable OAuth Client ID Metadata Document support (draft-02)                                                    |
-| `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents |
-| `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                   |
-| `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                          |
+| Variable                                    | Default                           | Description                                                                                                          |
+| ------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `STUBIDP_CLIENT_ID`                         | auto-generated                    | OAuth 2.0 client ID (equivalent to `--client-id`)                                                                    |
+| `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                            |
+| `STUBIDP_PUBLIC_CLIENT`                     | `false`                           | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps         |
+| `STUBIDP_REDIRECT_URI`                      | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                                                        |
+| `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                                                                 |
+| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                                                        |
+| `STUBIDP_PORT`                              | `8484`                            | HTTP server port                                                                                                     |
+| `STUBIDP_LOG_LEVEL`                         | `info`                            | Logging verbosity                                                                                                    |
+| `STUBIDP_DATABASE_DIALECT`                  | -                                 | Database type: `postgresql` or `sqlite`                                                                              |
+| `STUBIDP_DATABASE_URL`                      | -                                 | Connection string or file path                                                                                       |
+| `STUBIDP_SKIP_PROMPT`                       | `false`                           | Set to `true` to skip login/consent UI and auto-approve every interaction                                            |
+| `STUBIDP_DEFAULT_USER`                      | —                                 | JSON object of OIDC claims returned for every authenticated user                                                     |
+| `STUBIDP_RATE_LIMIT_WINDOW_MS`              | `900000`                          | Rate limit time window in milliseconds (15 min)                                                                      |
+| `STUBIDP_RATE_LIMIT_MAX`                    | `100`                             | Max requests per IP per window (equivalent to `--rate-limit-max`)                                                    |
+| `STUBIDP_RATE_LIMIT_DISABLED`               | `false`                           | Set to `true` to disable rate limiting (equivalent to `--rate-limit-disabled`)                                       |
+| `STUBIDP_ENABLE_REGISTRATION`               | `false`                           | Enable dynamic client registration RFC 7591/7592 (`POST /reg`, `GET/PUT/DELETE /reg/:id`)                            |
+| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                 | Bearer token required to call `POST /reg` (open registration when omitted)                                           |
+| `STUBIDP_TRUST_PROXY`                       | `false`                           | Trust reverse proxy headers (`X-Forwarded-*`). Enable when running behind a proxy                                    |
+| `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                                              |
+| `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                        |
+| `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`)        |
+| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)               |
+| `STUBIDP_ACCESS_TOKEN_TTL`                  | `3600`                            | Access token lifetime in seconds (also applies to client credentials tokens). Useful to test expiry/refresh handling |
+| `STUBIDP_ID_TOKEN_TTL`                      | `3600`                            | ID token lifetime in seconds. Useful to test expiry/refresh handling                                                 |
+| `STUBIDP_REFRESH_TOKEN_TTL`                 | `1209600`                         | Refresh token lifetime in seconds (14 days). Useful to test expiry/refresh handling                                  |
+| `STUBIDP_SESSION_TTL`                       | `1209600`                         | Login session lifetime in seconds (14 days). Useful to test expiry/refresh handling                                  |
+| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                         |
+| `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                              |
+| `STUBIDP_ENABLE_CIMD`                       | `false`                           | Enable OAuth Client ID Metadata Document support (draft-02)                                                          |
+| `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents       |
+| `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                         |
+| `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                                |
 
 ## Dynamic Client Registration
 
@@ -263,6 +267,14 @@ By default access tokens are opaque; identity claims are only available via `GET
 
 ```bash
 STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/callback
+```
+
+### Token and session lifetimes
+
+StubIdP is a dev stub, so lifetimes default to long-ish values and exist mainly so you can exercise expiry handling. Set `--access-token-ttl`, `--id-token-ttl`, `--refresh-token-ttl` or `--session-ttl` (env: `STUBIDP_ACCESS_TOKEN_TTL`, `STUBIDP_ID_TOKEN_TTL`, `STUBIDP_REFRESH_TOKEN_TTL`, `STUBIDP_SESSION_TTL`) to a number of seconds. For example, short-lived access tokens to test silent refresh:
+
+```bash
+STUBIDP_ACCESS_TOKEN_TTL=30 stubidp --redirect-uri http://localhost:3000/callback
 ```
 
 ### Identity claims in the ID token

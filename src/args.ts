@@ -131,6 +131,31 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Access token format: opaque (default) or jwt. JWT access tokens include identity claims (sub, email, etc.) [env: STUBIDP_ACCESS_TOKEN_FORMAT]',
     },
+    'access-token-ttl': {
+      type: 'number',
+      demandOption: false,
+      env: 'STUBIDP_ACCESS_TOKEN_TTL',
+      description:
+        'Access token lifetime in seconds, including client credentials tokens (default: 3600) [env: STUBIDP_ACCESS_TOKEN_TTL]',
+    },
+    'id-token-ttl': {
+      type: 'number',
+      demandOption: false,
+      env: 'STUBIDP_ID_TOKEN_TTL',
+      description: 'ID token lifetime in seconds (default: 3600) [env: STUBIDP_ID_TOKEN_TTL]',
+    },
+    'refresh-token-ttl': {
+      type: 'number',
+      demandOption: false,
+      env: 'STUBIDP_REFRESH_TOKEN_TTL',
+      description: 'Refresh token lifetime in seconds (default: 1209600 = 14 days) [env: STUBIDP_REFRESH_TOKEN_TTL]',
+    },
+    'session-ttl': {
+      type: 'number',
+      demandOption: false,
+      env: 'STUBIDP_SESSION_TTL',
+      description: 'Login session lifetime in seconds (default: 1209600 = 14 days) [env: STUBIDP_SESSION_TTL]',
+    },
     'interaction-path': {
       type: 'string',
       demandOption: false,
