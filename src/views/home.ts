@@ -115,7 +115,7 @@ export function homePage(issuer: string): string {
     </section>
 
     <section class="max-w-4xl mx-auto px-6 pb-16">
-      <h2 class="text-2xl font-bold mb-5">Why stubIDP?</h2>
+      <h2 class="text-2xl font-bold mb-5">Why StubIdP?</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-card text-card-fg border border-border rounded-xl p-6 hover:border-outline-variant transition-colors">
           <div class="text-3xl mb-4">⚡</div>
@@ -145,7 +145,7 @@ export function homePage(issuer: string): string {
         <span class="text-warning-fixed-fg text-lg shrink-0">⚠</span>
         <div>
           <p class="font-medium text-warning-fixed-fg text-sm">Development use only</p>
-          <p class="text-warning-fixed-fg/70 text-sm mt-0.5">stubIDP is not suitable for production. Do not use it to protect real user data or credentials.</p>
+          <p class="text-warning-fixed-fg/70 text-sm mt-0.5">StubIdP is not suitable for production. Do not use it to protect real user data or credentials.</p>
         </div>
       </div>
     </section>

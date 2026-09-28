@@ -9,7 +9,7 @@ import { Steps, Aside } from '@/components/docs'
 
 <Steps>
 
-1. **Start stubIdP**
+1. **Start StubIdP**
 
    ```bash
    npx @cerberauth/stubidp --redirect-uri http://localhost:8080/callback
@@ -29,7 +29,7 @@ import { Steps, Aside } from '@/components/docs'
 
 3. **Configure your application**
 
-   Point your OAuth 2.0 / OIDC client library at stubIdP:
+   Point your OAuth 2.0 / OIDC client library at StubIdP:
 
    | Setting                | Value                         |
    | ---------------------- | ----------------------------- |
@@ -42,23 +42,23 @@ import { Steps, Aside } from '@/components/docs'
 
 4. **Log in**
 
-   When your app redirects to the authorization endpoint, stubIdP shows a login form. Enter **any** username and password — all credentials are accepted.
+   When your app redirects to the authorization endpoint, StubIdP shows a login form. Enter **any** username and password — all credentials are accepted.
 
 5. **Approve scopes**
 
-   After login, stubIdP shows a consent screen listing the requested scopes. Click **Allow** to complete the flow and receive tokens.
+   After login, StubIdP shows a consent screen listing the requested scopes. Click **Allow** to complete the flow and receive tokens.
 
 </Steps>
 
 <Aside type="caution">
-  stubIdP accepts **any** username and password. It is not a real identity provider — use it only in development and
+  StubIdP accepts **any** username and password. It is not a real identity provider — use it only in development and
   testing environments.
 </Aside>
 
 ## Next steps
 
-- [Dynamic Client Registration](./guides/dynamic-client-registration/) — use stubIdP as a shared OIDC server for teams or multi-service environments
-- [GitHub Actions](./guides/github-actions/) — run stubIdP in CI pipelines
+- [Dynamic Client Registration](./guides/dynamic-client-registration/) — use StubIdP as a shared OIDC server for teams or multi-service environments
+- [GitHub Actions](./guides/github-actions/) — run StubIdP in CI pipelines
 - [Cloudflare Workers](./deployment/cloudflare-workers/) — deploy a globally distributed OIDC server
-- [Docker](./deployment/docker/) — run stubIdP as a container
+- [Docker](./deployment/docker/) — run StubIdP as a container
 - [Configuration](./configuration/) — CLI flags, environment variables, and database options

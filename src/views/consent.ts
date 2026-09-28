@@ -65,7 +65,7 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
           </div>
 
           <p class="text-center text-xs text-muted-fg mt-6">
-            Powered by stubIDP · Development use only
+            Powered by StubIdP · Development use only
           </p>
         </div>
       </div>

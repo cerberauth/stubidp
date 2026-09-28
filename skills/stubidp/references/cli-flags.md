@@ -1,4 +1,4 @@
-# stubIdP CLI flags / environment variables
+# StubIdP CLI flags / environment variables
 
 Every flag has an equivalent `STUBIDP_*` environment variable — use whichever fits the context (flags for
 one-off local runs, env vars when values come from CI secrets or a `.env` file).

@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure stubIdP with CLI flags and environment variables.
+description: Configure StubIdP with CLI flags and environment variables.
 sidebar:
   order: 3
 ---
@@ -75,7 +75,7 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 
 ## Database
 
-stubIdP supports two database backends for persisting OIDC session state.
+StubIdP supports two database backends for persisting OIDC session state.
 
 ### In-memory (default)
 
@@ -111,7 +111,7 @@ The `STUBIDP_ISSUER` value is embedded in issued tokens as the `iss` claim and m
 
 ## Automation and E2E testing
 
-stubIdP has two mechanisms for running auth flows without any human interaction.
+StubIdP has two mechanisms for running auth flows without any human interaction.
 
 ### `--skip-prompt` / `STUBIDP_SKIP_PROMPT`
 
@@ -129,7 +129,7 @@ If `--interaction-path` / `STUBIDP_INTERACTION_PATH` is set, this endpoint moves
 
 ### `--default-user` / `STUBIDP_DEFAULT_USER`
 
-Provide a JSON object of standard OIDC claims that stubIdP will include in the ID token and UserInfo response for every authenticated session. The `sub` field controls the subject identifier used during `--skip-prompt` auto-login; all other fields are returned as-is.
+Provide a JSON object of standard OIDC claims that StubIdP will include in the ID token and UserInfo response for every authenticated session. The `sub` field controls the subject identifier used during `--skip-prompt` auto-login; all other fields are returned as-is.
 
 ```bash
 STUBIDP_DEFAULT_USER='{"sub":"alice","name":"Alice Example","email":"alice@example.com","email_verified":true}' \
@@ -146,7 +146,7 @@ Supported fields: any standard [OIDC claims](https://openid.net/specs/openid-con
 
 ### `login_hint` as subject
 
-When `--skip-prompt` is active and no `--default-user` is set, stubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number. It is used as the subject identifier (`sub`) and automatically populates the `email` or `phone_number` claim to match.
+When `--skip-prompt` is active and no `--default-user` is set, StubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number. It is used as the subject identifier (`sub`) and automatically populates the `email` or `phone_number` claim to match.
 
 ```bash
 # Authorization request includes: login_hint=alice@example.com
@@ -161,7 +161,7 @@ STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
 
 ## Access token format
 
-By default, access tokens issued by stubIdP are opaque strings — identity claims (`email`, `profile`, etc.) are only
+By default, access tokens issued by StubIdP are opaque strings — identity claims (`email`, `profile`, etc.) are only
 available via the [UserInfo endpoint](/reference/endpoints#userinfo). Some providers instead issue access tokens as
 JWTs carrying identity claims directly, which resource servers can validate locally without an extra UserInfo call.
 Set `--access-token-format jwt` (or `STUBIDP_ACCESS_TOKEN_FORMAT=jwt`) to match that behavior.

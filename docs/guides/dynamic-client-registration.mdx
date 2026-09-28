@@ -1,15 +1,15 @@
 ---
 title: Dynamic Client Registration
-description: Use stubIdP as a shared OIDC server for teams or multi-service test environments via RFC 7591/7592.
+description: Use StubIdP as a shared OIDC server for teams or multi-service test environments via RFC 7591/7592.
 sidebar:
   order: 2
 ---
 
 import { Steps, Aside } from '@/components/docs'
 
-Dynamic client registration lets any service register its own OAuth 2.0 client at runtime — no server restart, no shared config file. This makes stubIdP suitable as a single, shared OIDC server for a team or a multi-service test environment.
+Dynamic client registration lets any service register its own OAuth 2.0 client at runtime — no server restart, no shared config file. This makes StubIdP suitable as a single, shared OIDC server for a team or a multi-service test environment.
 
-stubIdP implements:
+StubIdP implements:
 
 - **[RFC 7591](https://www.rfc-editor.org/rfc/rfc7591)** — OAuth 2.0 Dynamic Client Registration Protocol (`POST /reg`)
 - **[RFC 7592](https://www.rfc-editor.org/rfc/rfc7592)** — OAuth 2.0 Dynamic Client Registration Management Protocol (`GET/PUT/DELETE /reg/:id`)
@@ -142,6 +142,6 @@ curl -sX DELETE http://stubidp:8484/reg/$CLIENT_ID \
 ```
 
 <Aside type="caution">
-  stubIdP accepts any username and password during login. It is designed for development and testing only — do not
+  StubIdP accepts any username and password during login. It is designed for development and testing only — do not
   expose it publicly or use it to protect real resources.
 </Aside>

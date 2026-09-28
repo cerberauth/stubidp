@@ -13,7 +13,7 @@ export const PRESETS: Record<PresetName, Preset> = {
     defaultRedirectUri: 'http://localhost:3000/api/auth/callback/stubidp',
     grantTypes: ['authorization_code', 'refresh_token'],
     printInstructions({ issuer, clientId, clientSecret }) {
-      console.log('To use stubIdP with better-auth, add to your auth.ts:\n')
+      console.log('To use StubIdP with better-auth, add to your auth.ts:\n')
       console.log(`  import { betterAuth } from 'better-auth'
   import { genericOAuth } from 'better-auth/plugins'
 
@@ -43,7 +43,7 @@ export const PRESETS: Record<PresetName, Preset> = {
     defaultRedirectUri: 'http://localhost:3000/api/auth/callback/stubidp',
     grantTypes: ['authorization_code', 'refresh_token'],
     printInstructions({ issuer, clientId, clientSecret }) {
-      console.log('To use stubIdP with NextAuth (Auth.js v5), add to your auth.ts:\n')
+      console.log('To use StubIdP with NextAuth (Auth.js v5), add to your auth.ts:\n')
       console.log(`  import NextAuth from 'next-auth'
 
   export const { handlers, signIn, signOut, auth } = NextAuth({
