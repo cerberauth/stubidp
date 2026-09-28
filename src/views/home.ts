@@ -152,7 +152,7 @@ export function homePage(issuer: string): string {
           <p class="text-muted-fg text-sm leading-relaxed">Built on <code class="text-xs bg-muted px-1 py-0.5 rounded">oidc-provider</code>, a certified OpenID Connect implementation.</p>
         </div>
         <div class="bg-card text-card-fg border border-border rounded-xl p-6 hover:border-outline-variant transition-colors">
-          <div class="text-3xl mb-4">🌩</div>
+          <div class="text-3xl mb-4">🚀</div>
           <h3 class="font-semibold mb-2">Deploy Anywhere</h3>
           <p class="text-muted-fg text-sm leading-relaxed">Local, Docker, or Cloudflare Workers. One-click deployment.</p>
         </div>
