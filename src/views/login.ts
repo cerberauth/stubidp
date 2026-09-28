@@ -10,7 +10,7 @@ export function loginPage(opts: { uid: string; clientId: string; basePath?: stri
         <div class="mb-5 flex gap-3 items-start bg-warning-fixed border border-warning/25 rounded-xl px-5 py-4">
           <span class="text-warning-fixed-fg text-base shrink-0 mt-0.5">⚠</span>
           <p class="text-warning-fixed-fg/80 text-sm leading-relaxed">
-            <strong class="text-warning-fixed-fg">Stub IDP:</strong> Any username will be accepted. This is not a real authentication system.
+            Any username will be accepted. This is not a real authentication system.
           </p>
         </div>
 

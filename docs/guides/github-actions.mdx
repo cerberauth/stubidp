@@ -1,18 +1,18 @@
 ---
 title: GitHub Actions
-description: Run stubIdP in a GitHub Actions workflow to test OIDC flows in CI.
+description: Run StubIdP in a GitHub Actions workflow to test OIDC flows in CI.
 sidebar:
   order: 1
 ---
 
 import { Aside } from '@/components/docs'
 
-Start stubIdP as a background process before your integration tests, then shut it down automatically when the job ends.
+Start StubIdP as a background process before your integration tests, then shut it down automatically when the job ends.
 
 ## Basic workflow
 
 ```yaml
-- name: Start stubIdP
+- name: Start StubIdP
   run: |
     npx @cerberauth/stubidp \
       --client-id web-app \
@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Start stubIdP
+      - name: Start StubIdP
         run: |
           npx @cerberauth/stubidp &
           npx wait-on http://localhost:8484/.well-known/openid-configuration
@@ -80,7 +80,7 @@ strategy:
       - http://localhost:9090/auth/callback
 
 steps:
-  - name: Start stubIdP
+  - name: Start StubIdP
     run: |
       npx @cerberauth/stubidp \
         --client-id web-app \

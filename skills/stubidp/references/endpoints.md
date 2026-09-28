@@ -1,4 +1,4 @@
-# stubIdP OIDC endpoints
+# StubIdP OIDC endpoints
 
 Base URL is `http://localhost:8484` for the Node CLI (or wherever `--port`/`STUBIDP_PORT` points it), and
 `https://<worker>.workers.dev` for a Cloudflare Workers deployment (OIDC mounted at root there).
@@ -110,6 +110,6 @@ GET {base}/interaction/:uid/auto
 
 Auto-completes the in-flight login/consent/logout step for one interaction without setting `--skip-prompt`
 globally — useful when most tests need the real UI but one test wants headless completion. Grab `:uid` from the
-redirect stubIdP issues after the `/auth` request.
+redirect StubIdP issues after the `/auth` request.
 
 `/interaction` is the default base path; override with `--interaction-path` / `STUBIDP_INTERACTION_PATH`.

@@ -1,16 +1,16 @@
 ---
 title: Docker
-description: Run stubIdP as a Docker container for local development or self-hosted deployments.
+description: Run StubIdP as a Docker container for local development or self-hosted deployments.
 sidebar:
   order: 2
 ---
 
 import { Steps, Aside, Tabs, TabItem } from '@/components/docs'
 
-Run stubIdP as a container using the provided `Dockerfile` or a pre-built image. The server listens on port `8484`.
+Run StubIdP as a container using the provided `Dockerfile` or a pre-built image. The server listens on port `8484`.
 
 <Aside type="caution">
-  stubIdP is intended for development and testing only. Do not expose it publicly or use it as a production identity
+  StubIdP is intended for development and testing only. Do not expose it publicly or use it as a production identity
   provider.
 </Aside>
 
@@ -54,7 +54,7 @@ Discovery URL: `http://localhost:8484/.well-known/openid-configuration`
 
 ## Docker Compose
 
-Add stubIdP as a service alongside your application:
+Add StubIdP as a service alongside your application:
 
 ```yaml
 services:
@@ -95,7 +95,7 @@ All [configuration](../configuration/) options are available as environment vari
 
 ## Persistent storage
 
-By default stubIdP uses an in-memory store that is wiped on restart. To persist sessions and tokens across restarts, mount a volume and use SQLite:
+By default StubIdP uses an in-memory store that is wiped on restart. To persist sessions and tokens across restarts, mount a volume and use SQLite:
 
 ```bash
 docker run --rm \

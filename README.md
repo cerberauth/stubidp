@@ -1,4 +1,4 @@
-# stubIdP
+# StubIdP
 
 A mock OpenID Connect server for developers.
 
@@ -6,9 +6,9 @@ Stop waiting for identity providers. Start building.
 
 ---
 
-## Why stubIdP?
+## Why StubIdP?
 
-Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustrating process. stubIdP is a lightweight, fully-compliant OpenID Connect provider that runs locally or in your CI pipeline so you can stay focused on building your application.
+Building apps with OAuth 2.0 / OpenID Connect authentication can be a frustrating process. StubIdP is a lightweight, fully-compliant OpenID Connect provider that runs locally or in your CI pipeline so you can stay focused on building your application.
 
 ## Quick Start
 
@@ -114,7 +114,7 @@ All CLI flags can be set via environment variables instead:
 
 ## Dynamic Client Registration
 
-stubIdP supports [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (Dynamic Client Registration) and [RFC 7592](https://www.rfc-editor.org/rfc/rfc7592) (Client Registration Management), making it suitable as a shared OIDC server for teams or multi-service test environments.
+StubIdP supports [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) (Dynamic Client Registration) and [RFC 7592](https://www.rfc-editor.org/rfc/rfc7592) (Client Registration Management), making it suitable as a shared OIDC server for teams or multi-service test environments.
 
 ### Enable DCR
 
@@ -161,10 +161,10 @@ curl -X DELETE http://localhost:8484/reg/<client_id> \
 
 ## Client ID Metadata Documents (CIMD)
 
-stubIdP supports the [OAuth Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html)
+StubIdP supports the [OAuth Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html)
 draft — instead of pre-registering a client, the `client_id` sent in the authorization/token requests is itself an
 HTTPS URL that resolves to a JSON document describing the client (`redirect_uris`, `client_name`, etc.), fetched by
-stubIdP at request time.
+StubIdP at request time.
 
 ### Enable CIMD
 
@@ -193,7 +193,7 @@ npx @cerberauth/stubidp \
 
 ## JWT Token Introspection Responses
 
-stubIdP supports [RFC 9701](https://www.rfc-editor.org/rfc/rfc9701) — instead of a plain JSON body, the
+StubIdP supports [RFC 9701](https://www.rfc-editor.org/rfc/rfc9701) — instead of a plain JSON body, the
 `/token/introspection` endpoint returns a signed JWT (`application/token-introspection+jwt`) for clients configured
 with `introspection_signed_response_alg`.
 
@@ -216,11 +216,11 @@ requests with `Accept: application/json` keep getting the plain JSON body.
 
 ## E2E Testing and Automation
 
-stubIdP supports fully headless authentication for use in E2E test suites, CI pipelines, and other automation scenarios.
+StubIdP supports fully headless authentication for use in E2E test suites, CI pipelines, and other automation scenarios.
 
 ### Skip login, consent, and logout UI
 
-Pass `--skip-prompt` (or set `STUBIDP_SKIP_PROMPT=true`) to make stubIdP auto-approve every login, consent, and logout interaction. The OIDC redirect chain completes transparently — your test runner receives the authorization code or post-logout redirect without any browser interaction.
+Pass `--skip-prompt` (or set `STUBIDP_SKIP_PROMPT=true`) to make StubIdP auto-approve every login, consent, and logout interaction. The OIDC redirect chain completes transparently — your test runner receives the authorization code or post-logout redirect without any browser interaction.
 
 ```bash
 STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
@@ -246,7 +246,7 @@ stubidp --redirect-uri http://localhost:3000/callback
 
 ### Use `login_hint` as subject
 
-When `--skip-prompt` is set but no `--default-user` is configured, stubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number — it becomes the subject (`sub`) and also auto-populates the matching claim (`email` or `phone_number`).
+When `--skip-prompt` is set but no `--default-user` is configured, StubIdP requires a `login_hint` parameter in the authorization request. The value must be a valid email address or E.164 phone number — it becomes the subject (`sub`) and also auto-populates the matching claim (`email` or `phone_number`).
 
 ```bash
 # Client sends: ?login_hint=alice@example.com
@@ -255,7 +255,7 @@ stubidp --redirect-uri http://localhost:3000/callback
 # → sub: "alice@example.com", email: "alice@example.com"
 ```
 
-This lets E2E tests drive different user identities per-request without restarting stubIdP or changing server configuration.
+This lets E2E tests drive different user identities per-request without restarting StubIdP or changing server configuration.
 
 ### JWT access tokens
 
@@ -267,7 +267,7 @@ STUBIDP_ACCESS_TOKEN_FORMAT=jwt stubidp --redirect-uri http://localhost:3000/cal
 
 ### Identity claims in the ID token
 
-By default (spec-compliant), the ID token only carries `sub` — claims like `email` and `profile` are only returned via `GET /me`. Pass `--id-token-includes-userinfo-claims` (or `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true`) to have stubIdP put those claims directly in the ID token as well, for clients that don't call UserInfo.
+By default (spec-compliant), the ID token only carries `sub` — claims like `email` and `profile` are only returned via `GET /me`. Pass `--id-token-includes-userinfo-claims` (or `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true`) to have StubIdP put those claims directly in the ID token as well, for clients that don't call UserInfo.
 
 ```bash
 STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS=true \
@@ -302,12 +302,12 @@ services:
 
 ## Important Notes
 
-- **For development and testing only** - stubIdP is not hardened for production identity management
-- **No user management** - stubIdP handles OAuth/OIDC flows; your app handles user authentication
+- **For development and testing only** - StubIdP is not hardened for production identity management
+- **No user management** - StubIdP handles OAuth/OIDC flows; your app handles user authentication
 
 ## Cloudflare Workers
 
-Deploy stubIdP as a globally distributed OIDC server on Cloudflare Workers with D1 persistent storage.
+Deploy StubIdP as a globally distributed OIDC server on Cloudflare Workers with D1 persistent storage.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cerberauth/stubidp)
 
@@ -369,7 +369,7 @@ npm run worker:dev             # runs at http://localhost:8787
 ## Agent Skills
 
 This repo ships two Agent Skills under [`skills/`](skills/) — portable `SKILL.md` packages that teach a coding agent
-how to set up and drive stubIdP without re-deriving CLI flags, env vars, or endpoint shapes from scratch. The format
+how to set up and drive StubIdP without re-deriving CLI flags, env vars, or endpoint shapes from scratch. The format
 is open and not tied to any one tool — Claude Code, Cursor, OpenCode, Codex, and other agents that support
 `SKILL.md` packages can all use them.
 
@@ -403,9 +403,9 @@ cp -r skills/local-oidc-provider skills/stubidp ~/.claude/skills/
 ```
 
 **Manual install, other agents** — consult your tool's docs for where it looks for `SKILL.md` packages; the files
-here follow the same open format, no stubIdP-specific conventions.
+here follow the same open format, no StubIdP-specific conventions.
 
-Then ask your agent things like "I need a local OIDC provider for testing" or "set up stubIdP in my GitHub Actions
+Then ask your agent things like "I need a local OIDC provider for testing" or "set up StubIdP in my GitHub Actions
 workflow" — the matching skill triggers automatically. Each `SKILL.md` includes a decision table for which recipe to
 use; `stubidp/references/cli-flags.md` and `stubidp/references/endpoints.md` cover the full CLI flag and OIDC
 endpoint reference.

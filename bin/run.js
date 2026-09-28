@@ -158,7 +158,7 @@ app.listen(port, () => {
   const col1 = Math.max(...rows.map(([k]) => k.length))
   const col2 = Math.max(...rows.map(([, v]) => v.length))
   const line = `+-${'-'.repeat(col1)}-+-${'-'.repeat(col2)}-+`
-  console.log('\nstubIdP started\n')
+  console.log('\nStubIdP started\n')
   console.log(line)
   for (const [key, val] of rows) {
     console.log(`| ${key.padEnd(col1)} | ${val.padEnd(col2)} |`)

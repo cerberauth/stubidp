@@ -1,13 +1,13 @@
 ---
 title: Agent Skills
-description: Drive stubIdP from a coding agent with plain-language requests — set up a local OIDC provider and wire it into E2E, CI, or app config without typing every flag.
+description: Drive StubIdP from a coding agent with plain-language requests — set up a local OIDC provider and wire it into E2E, CI, or app config without typing every flag.
 sidebar:
   order: 3
 ---
 
 import { Card, CardGrid, Aside, Tabs, TabItem } from '@/components/docs'
 
-stubIdP ships two [Agent Skills](https://agentskills.dev) in [`skills/`](https://github.com/cerberauth/stubidp/tree/main/skills) — portable `SKILL.md` packages that teach a coding agent how to set up and drive stubIdP for OIDC/OAuth work: first-time local setup, headless E2E login, CI, Docker, dynamic client registration, and Cloudflare Workers, from a plain-language request instead of a typed command. The format is open, not tied to any single tool — Claude Code, Cursor, OpenCode, Codex, and other agents that load `SKILL.md` packages can all use them.
+StubIdP ships two [Agent Skills](https://agentskills.dev) in [`skills/`](https://github.com/cerberauth/stubidp/tree/main/skills) — portable `SKILL.md` packages that teach a coding agent how to set up and drive StubIdP for OIDC/OAuth work: first-time local setup, headless E2E login, CI, Docker, dynamic client registration, and Cloudflare Workers, from a plain-language request instead of a typed command. The format is open, not tied to any single tool — Claude Code, Cursor, OpenCode, Codex, and other agents that load `SKILL.md` packages can all use them.
 
 <CardGrid>
   <Card title="local-oidc-provider" icon="rocket">
@@ -57,7 +57,7 @@ cp -r /tmp/stubidp/skills/local-oidc-provider \
   </TabItem>
   <TabItem label="Other agents (manual)">
 
-The skills are plain `SKILL.md` packages with no stubIdP-specific conventions — a `name`/`description` frontmatter header plus Markdown instructions, with a `references/` subfolder the agent reads on demand. Check your agent's docs for where it discovers `SKILL.md` files (often a configurable skills directory or a plugin/marketplace mechanism) and point it at the folders under `skills/`.
+The skills are plain `SKILL.md` packages with no StubIdP-specific conventions — a `name`/`description` frontmatter header plus Markdown instructions, with a `references/` subfolder the agent reads on demand. Check your agent's docs for where it discovers `SKILL.md` files (often a configurable skills directory or a plugin/marketplace mechanism) and point it at the folders under `skills/`.
 
   </TabItem>
 </Tabs>
@@ -68,10 +68,10 @@ Either way, each skill assumes `npx @cerberauth/stubidp` can run (Node.js on `PA
 
 | You say                                                             | Skill that fires      | What happens                                                                                             |
 | ------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------- |
-| "I need a local OIDC provider to test login, no real IdP yet"       | `local-oidc-provider` | Starts stubIdP with a redirect URI, wires up client ID/secret, points the app's OIDC client config at it |
+| "I need a local OIDC provider to test login, no real IdP yet"       | `local-oidc-provider` | Starts StubIdP with a redirect URI, wires up client ID/secret, points the app's OIDC client config at it |
 | "Set up better-auth / NextAuth against a fake IdP"                  | `local-oidc-provider` | Runs the matching `--preset`, returns the client config snippet                                          |
-| "Run stubIdP headless in my Playwright/Cypress suite"               | `stubidp`             | Configures skip-prompt auto-approval so the login redirect completes without UI interaction              |
-| "Add stubIdP to my GitHub Actions workflow"                         | `stubidp`             | Adds a background-process step that starts stubIdP before the test job and tears it down after           |
+| "Run StubIdP headless in my Playwright/Cypress suite"               | `stubidp`             | Configures skip-prompt auto-approval so the login redirect completes without UI interaction              |
+| "Add StubIdP to my GitHub Actions workflow"                         | `stubidp`             | Adds a background-process step that starts StubIdP before the test job and tears it down after           |
 | "I need one shared test IdP multiple services can register against" | `stubidp`             | Enables dynamic client registration (RFC 7591/7592) so services `POST /reg` at runtime                   |
 
 <Aside type="tip">

@@ -150,10 +150,10 @@ nfpms:
 
 snapcrafts:
   - name_template: "{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    title: stubIdP
+    title: StubIdP
     publish: true
     summary: *description
-    description: "A mock OpenID Connect server for developers. Zero config, instant OIDC. Use stubIdP to test your OAuth2 and OpenID Connect integrations without setting up a real identity provider."
+    description: "A mock OpenID Connect server for developers. Zero config, instant OIDC. Use StubIdP to test your OAuth2 and OpenID Connect integrations without setting up a real identity provider."
     license: *license
     confinement: strict
     grade: stable
@@ -208,7 +208,7 @@ winget:
 
 chocolateys:
   - name: stubidp
-    title: stubIdP
+    title: StubIdP
     owners: CerberAuth
     authors: CerberAuth
     description: *description

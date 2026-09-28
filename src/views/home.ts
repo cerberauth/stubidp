@@ -34,9 +34,33 @@ export function homePage(issuer: string): string {
   const description =
     'Mock OpenID Connect server for developers. Free, open-source testing environment for OAuth 2.0 and OIDC flows.'
 
+  const head = `
+  <meta name="description" content="${escapeHtml(description)}" />
+  <meta name="keywords" content="OpenID Connect, OAuth 2.0, OIDC, identity provider, mock, testing, development" />
+  <meta property="og:title" content="Mock OpenID Connect Server — StubIdP" />
+  <meta property="og:description" content="${escapeHtml(description)}" />
+  <meta property="og:url" content="${escapeHtml(issuer)}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mock OpenID Connect Server — StubIdP" />
+  <meta name="twitter:description" content="${escapeHtml(description)}" />
+  <link rel="canonical" href="${escapeHtml(issuer)}" />`
+
+  const header = `
+  <header class="border-b border-border shrink-0">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold tracking-tight text-on-surface hover:text-on-surface hover:no-underline">
+        stub<span class="text-primary">IDP</span>
+      </a>
+      <span class="inline-flex items-center justify-center rounded-full border border-transparent bg-warning text-warning-fg px-2.5 py-1 text-xs font-medium">
+        DEV ONLY
+      </span>
+    </div>
+  </header>`
+
   return layout(
     'Mock OpenID Connect Server',
-    `
+    `${header}
     <section class="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
       <div class="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full border border-primary/20 mb-8 font-medium uppercase tracking-wider">
         OpenID Connect &amp; OAuth 2.0
@@ -115,7 +139,7 @@ export function homePage(issuer: string): string {
     </section>
 
     <section class="max-w-4xl mx-auto px-6 pb-16">
-      <h2 class="text-2xl font-bold mb-5">Why stubIDP?</h2>
+      <h2 class="text-2xl font-bold mb-5">Why StubIdP?</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-card text-card-fg border border-border rounded-xl p-6 hover:border-outline-variant transition-colors">
           <div class="text-3xl mb-4">⚡</div>
@@ -128,7 +152,7 @@ export function homePage(issuer: string): string {
           <p class="text-muted-fg text-sm leading-relaxed">Built on <code class="text-xs bg-muted px-1 py-0.5 rounded">oidc-provider</code>, a certified OpenID Connect implementation.</p>
         </div>
         <div class="bg-card text-card-fg border border-border rounded-xl p-6 hover:border-outline-variant transition-colors">
-          <div class="text-3xl mb-4">🌩</div>
+          <div class="text-3xl mb-4">🚀</div>
           <h3 class="font-semibold mb-2">Deploy Anywhere</h3>
           <p class="text-muted-fg text-sm leading-relaxed">Local, Docker, or Cloudflare Workers. One-click deployment.</p>
         </div>
@@ -145,12 +169,11 @@ export function homePage(issuer: string): string {
         <span class="text-warning-fixed-fg text-lg shrink-0">⚠</span>
         <div>
           <p class="font-medium text-warning-fixed-fg text-sm">Development use only</p>
-          <p class="text-warning-fixed-fg/70 text-sm mt-0.5">stubIDP is not suitable for production. Do not use it to protect real user data or credentials.</p>
+          <p class="text-warning-fixed-fg/70 text-sm mt-0.5">StubIdP is not suitable for production. Do not use it to protect real user data or credentials.</p>
         </div>
       </div>
     </section>
   `,
-    description,
-    issuer,
+    head,
   )
 }
