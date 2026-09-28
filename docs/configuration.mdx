@@ -29,6 +29,10 @@ import { Aside } from '@/components/docs'
 | `--scopes`                            | No       | Comma-separated list of supported OIDC scopes. Default: `openid,offline_access,email,profile,phone,address`.                              |
 | `--claims`                            | No       | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (e.g. `'{"openid":["sub"],"email":["email"]}'`).           |
 | `--access-token-format`               | No       | Access token format: `opaque` (default) or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.).                         |
+| `--access-token-ttl`                  | No       | Access token lifetime in seconds (also applies to client credentials tokens). Default: `3600`.                                            |
+| `--id-token-ttl`                      | No       | ID token lifetime in seconds. Default: `3600`.                                                                                            |
+| `--refresh-token-ttl`                 | No       | Refresh token lifetime in seconds (14 days). Default: `1209600`.                                                                          |
+| `--session-ttl`                       | No       | Login session lifetime in seconds (14 days). Default: `1209600`.                                                                          |
 | `--id-token-includes-userinfo-claims` | No       | Include email/profile/etc. claims directly in the ID token instead of requiring a separate `/me` call. Default: `false` (spec-compliant). |
 | `--interaction-path`                  | No       | Base path for the login/consent UI. Default: `/interaction`.                                                                              |
 
@@ -53,6 +57,10 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_SCOPES`                            | `openid,offline_access,email,profile,phone,address` | Comma-separated list of supported OIDC scopes (equivalent to `--scopes`)                                                                       |
 | `STUBIDP_CLAIMS`                            | auto-derived from scopes                            | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (equivalent to `--claims`)                                      |
 | `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                                            | Access token format: `opaque` or `jwt` (equivalent to `--access-token-format`)                                                                 |
+| `STUBIDP_ACCESS_TOKEN_TTL`                  | `3600`                                              | Access token lifetime in seconds (also applies to client credentials tokens) (equivalent to `--access-token-ttl`)                              |
+| `STUBIDP_ID_TOKEN_TTL`                      | `3600`                                              | ID token lifetime in seconds (equivalent to `--id-token-ttl`)                                                                                  |
+| `STUBIDP_REFRESH_TOKEN_TTL`                 | `1209600`                                           | Refresh token lifetime in seconds (14 days) (equivalent to `--refresh-token-ttl`)                                                              |
+| `STUBIDP_SESSION_TTL`                       | `1209600`                                           | Login session lifetime in seconds (14 days) (equivalent to `--session-ttl`)                                                                    |
 | `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                                             | Include email/profile/etc. claims directly in the ID token (equivalent to `--id-token-includes-userinfo-claims`)                               |
 
 ### Server
@@ -177,6 +185,18 @@ from `login_hint`), alongside standard OAuth claims (`scope`, `client_id`, `iss`
   Access token claims always include the full identity claim set regardless of requested scope, since it mirrors what a
   real resource server would expect. ID token claims are controlled separately — see below.
 </Aside>
+
+## Token and session lifetimes
+
+StubIdP is a dev stub, so the defaults are long-lived (1 hour for access and ID tokens, 14 days for refresh tokens and
+sessions). Override them in seconds with `--access-token-ttl`, `--id-token-ttl`, `--refresh-token-ttl` and
+`--session-ttl` (or the matching `STUBIDP_*_TTL` variables) to exercise expiry and refresh handling in your app.
+
+```bash
+STUBIDP_ACCESS_TOKEN_TTL=30 stubidp --redirect-uri http://localhost:3000/callback
+```
+
+Values must be positive integers; StubIdP fails to start otherwise.
 
 ## ID token claims
 
