@@ -15,7 +15,7 @@ import { Aside } from '@/components/docs'
 | `--client-secret`                     | No       | OAuth 2.0 client secret your application will use. Auto-generated (43-char random secret) when omitted.                                   |
 | `--public-client`                     | No       | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps.                             |
 | `--redirect-uri`                      | No\*     | Redirect URI registered for your client. Required unless `STUBIDP_REDIRECT_URI` is set.                                                   |
-| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted.                                                                      |
+| `--jwks-file`                         | No       | Path to a JWKS JSON file. A key pair is auto-generated when omitted. See [Signing keys](#signing-keys).                                   |
 | `--skip-prompt`                       | No       | Skip login and consent UI and auto-approve every interaction. Intended for E2E tests and automation.                                      |
 | `--default-user`                      | No       | JSON object of OIDC claims returned for every authenticated user (e.g. `'{"sub":"alice","email":"alice@example.com"}'`).                  |
 | `--rate-limit-window-ms`              | No       | Rate limit time window in milliseconds. Default: `900000` (15 min).                                                                       |
@@ -44,24 +44,25 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 
 ### OIDC
 
-| Variable                                    | Default                                             | Description                                                                                                                                    |
-| ------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `STUBIDP_CLIENT_ID`                         | auto-generated                                      | OAuth 2.0 client ID (equivalent to `--client-id`)                                                                                              |
-| `STUBIDP_CLIENT_SECRET`                     | auto-generated                                      | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                                                      |
-| `STUBIDP_PUBLIC_CLIENT`                     | `false`                                             | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps (equivalent to `--public-client`) |
-| `STUBIDP_REDIRECT_URI`                      | —                                                   | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted)                                                                     |
-| `STUBIDP_JWKS_FILE`                         | —                                                   | Path to a JWKS JSON file (equivalent to `--jwks-file`)                                                                                         |
-| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}`                   | Issuer URL embedded in issued tokens                                                                                                           |
-| `STUBIDP_ENABLE_REGISTRATION`               | `false`                                             | Enable dynamic client registration RFC 7591/7592 (`POST /reg`, `GET/PUT/DELETE /reg/:id`)                                                      |
-| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                                   | Bearer token required to call `POST /reg` (open registration when omitted)                                                                     |
-| `STUBIDP_SCOPES`                            | `openid,offline_access,email,profile,phone,address` | Comma-separated list of supported OIDC scopes (equivalent to `--scopes`)                                                                       |
-| `STUBIDP_CLAIMS`                            | auto-derived from scopes                            | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (equivalent to `--claims`)                                      |
-| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                                            | Access token format: `opaque` or `jwt` (equivalent to `--access-token-format`)                                                                 |
-| `STUBIDP_ACCESS_TOKEN_TTL`                  | `3600`                                              | Access token lifetime in seconds (also applies to client credentials tokens) (equivalent to `--access-token-ttl`)                              |
-| `STUBIDP_ID_TOKEN_TTL`                      | `3600`                                              | ID token lifetime in seconds (equivalent to `--id-token-ttl`)                                                                                  |
-| `STUBIDP_REFRESH_TOKEN_TTL`                 | `1209600`                                           | Refresh token lifetime in seconds (14 days) (equivalent to `--refresh-token-ttl`)                                                              |
-| `STUBIDP_SESSION_TTL`                       | `1209600`                                           | Login session lifetime in seconds (14 days) (equivalent to `--session-ttl`)                                                                    |
-| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                                             | Include email/profile/etc. claims directly in the ID token (equivalent to `--id-token-includes-userinfo-claims`)                               |
+| Variable                                    | Default                                             | Description                                                                                                                                                       |
+| ------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STUBIDP_CLIENT_ID`                         | auto-generated                                      | OAuth 2.0 client ID (equivalent to `--client-id`)                                                                                                                 |
+| `STUBIDP_CLIENT_SECRET`                     | auto-generated                                      | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                                                                         |
+| `STUBIDP_PUBLIC_CLIENT`                     | `false`                                             | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps (equivalent to `--public-client`)                    |
+| `STUBIDP_REDIRECT_URI`                      | —                                                   | Redirect URI (equivalent to `--redirect-uri`; required if flag is omitted)                                                                                        |
+| `STUBIDP_JWKS_FILE`                         | —                                                   | Path to a JWKS JSON file (equivalent to `--jwks-file`)                                                                                                            |
+| `STUBIDP_JWKS`                              | —                                                   | Inline JWKS JSON document (private keys), for when a file is impractical (containers, Workers). `--jwks-file` takes precedence. See [Signing keys](#signing-keys) |
+| `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}`                   | Issuer URL embedded in issued tokens                                                                                                                              |
+| `STUBIDP_ENABLE_REGISTRATION`               | `false`                                             | Enable dynamic client registration RFC 7591/7592 (`POST /reg`, `GET/PUT/DELETE /reg/:id`)                                                                         |
+| `STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN` | —                                                   | Bearer token required to call `POST /reg` (open registration when omitted)                                                                                        |
+| `STUBIDP_SCOPES`                            | `openid,offline_access,email,profile,phone,address` | Comma-separated list of supported OIDC scopes (equivalent to `--scopes`)                                                                                          |
+| `STUBIDP_CLAIMS`                            | auto-derived from scopes                            | JSON object mapping scope names to claim arrays. Overrides auto-derived claims (equivalent to `--claims`)                                                         |
+| `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                                            | Access token format: `opaque` or `jwt` (equivalent to `--access-token-format`)                                                                                    |
+| `STUBIDP_ACCESS_TOKEN_TTL`                  | `3600`                                              | Access token lifetime in seconds (also applies to client credentials tokens) (equivalent to `--access-token-ttl`)                                                 |
+| `STUBIDP_ID_TOKEN_TTL`                      | `3600`                                              | ID token lifetime in seconds (equivalent to `--id-token-ttl`)                                                                                                     |
+| `STUBIDP_REFRESH_TOKEN_TTL`                 | `1209600`                                           | Refresh token lifetime in seconds (14 days) (equivalent to `--refresh-token-ttl`)                                                                                 |
+| `STUBIDP_SESSION_TTL`                       | `1209600`                                           | Login session lifetime in seconds (14 days) (equivalent to `--session-ttl`)                                                                                       |
+| `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                                             | Include email/profile/etc. claims directly in the ID token (equivalent to `--id-token-includes-userinfo-claims`)                                                  |
 
 ### Server
 
@@ -185,6 +186,26 @@ from `login_hint`), alongside standard OAuth claims (`scope`, `client_id`, `iss`
   Access token claims always include the full identity claim set regardless of requested scope, since it mirrors what a
   real resource server would expect. ID token claims are controlled separately — see below.
 </Aside>
+
+## Signing keys
+
+By default StubIdP generates a new RS256 key pair on every start, so ID tokens issued before a restart no longer validate (for example, `/session/end` fails with `could not validate id_token_hint`). To keep the key stable, generate a JWKS document once:
+
+```bash
+stubidp-jwks --out jwks.json          # or: npm run jwks:generate -- --out jwks.json
+```
+
+`stubidp-jwks` accepts `--kid <id>` to set the key ID and prints to stdout when `--out` is omitted. The file contains a private key, so do not commit it.
+
+Then provide it either as a file or inline, whichever suits your environment:
+
+```bash
+stubidp --jwks-file jwks.json --redirect-uri http://localhost:3000/callback
+# or
+STUBIDP_JWKS="$(cat jwks.json)" stubidp --redirect-uri http://localhost:3000/callback
+```
+
+`--jwks-file` takes precedence over `STUBIDP_JWKS`. On Cloudflare Workers, store the JSON as the `STUBIDP_JWKS` secret; see [Cloudflare Workers](./deployment/cloudflare-workers/#persistent-signing-key).
 
 ## Token and session lifetimes
 

@@ -87,7 +87,8 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_CLIENT_SECRET`                     | auto-generated                    | OAuth 2.0 client secret (equivalent to `--client-secret`)                                                            |
 | `STUBIDP_PUBLIC_CLIENT`                     | `false`                           | Configure as public client (no `client_secret`, `token_endpoint_auth_method=none`). For SPAs and native apps         |
 | `STUBIDP_REDIRECT_URI`                      | -                                 | Redirect URI (equivalent to `--redirect-uri`)                                                                        |
-| `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`)                                                                 |
+| `STUBIDP_JWKS_FILE`                         | -                                 | Path to JWKS JSON file (equivalent to `--jwks-file`). Generate one with `stubidp-jwks`                               |
+| `STUBIDP_JWKS`                              | -                                 | Inline JWKS JSON (private keys), an alternative to `--jwks-file`. Generate with `stubidp-jwks`                       |
 | `STUBIDP_ISSUER`                            | `http://localhost:{STUBIDP_PORT}` | Issuer URL embedded in tokens                                                                                        |
 | `STUBIDP_PORT`                              | `8484`                            | HTTP server port                                                                                                     |
 | `STUBIDP_LOG_LEVEL`                         | `info`                            | Logging verbosity                                                                                                    |
@@ -336,7 +337,7 @@ Click the button above. Cloudflare will:
 2. Prompt you to create a new D1 database.
 3. Deploy the Worker — the issuer URL is detected at runtime.
 
-After deployment you can override the default client credentials (`STUBIDP_CLIENT_ID`, `STUBIDP_CLIENT_SECRET`, `STUBIDP_REDIRECT_URI`) in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**.
+After deployment you can override the default client credentials (`STUBIDP_CLIENT_ID`, `STUBIDP_CLIENT_SECRET`, `STUBIDP_REDIRECT_URI`, `STUBIDP_POST_LOGOUT_REDIRECT_URI`) in the Cloudflare dashboard under **Workers & Pages → stubidp → Settings → Variables**.
 
 ### Automatic deploy via GitHub Actions
 
@@ -366,6 +367,17 @@ npx wrangler d1 migrations apply stubidp-db --remote
 # 3. Deploy (issuer is detected from the worker URL automatically)
 npm run worker:deploy
 ```
+
+### Persistent signing key
+
+Without a configured key (`STUBIDP_JWKS`, or `--jwks-file` on the CLI) StubIdP generates a random signing key per isolate, and the Worker gets a new one whenever an isolate restarts, so tokens issued before a restart or redeploy stop validating (`/session/end` fails with `could not validate id_token_hint`). Generate a key once and store it as a secret:
+
+```bash
+npm run jwks:generate -- --out jwks.json
+npx wrangler secret put STUBIDP_JWKS < jwks.json
+```
+
+The file contains a private key, do not commit it. For the Node CLI, run `stubidp-jwks --out jwks.json` and pass `--jwks-file jwks.json`.
 
 ### Local Development
 

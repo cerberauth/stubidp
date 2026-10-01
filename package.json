@@ -5,7 +5,8 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "bin": {
-    "stubidp": "bin/run.js"
+    "stubidp": "bin/run.js",
+    "stubidp-jwks": "bin/generate-jwks.js"
   },
   "files": [
     "build/",
@@ -20,6 +21,7 @@
   },
   "scripts": {
     "start": "node bin/run.js",
+    "jwks:generate": "node bin/generate-jwks.js",
     "dev": "npm run build:css && tsc && concurrently -n tsc,css,server -k -c blue,magenta,green \"tsc --watch --preserveWatchOutput\" \"npm:dev:css\" \"npm:dev:server\"",
     "dev:css": "tailwindcss -i ./src/styles/input.css -o ./public/output.css --watch=always",
     "dev:server": "node --watch bin/run.js",
