@@ -1,7 +1,9 @@
-import { layout, escapeHtml } from './layout.js'
+import { layout, escapeHtml, trackEvent, type PageOptions } from './layout.js'
 
-export function consentPage(opts: { uid: string; clientId: string; scopes: string[]; basePath?: string }): string {
-  const { uid, clientId, scopes, basePath = '/interaction' } = opts
+export function consentPage(
+  opts: { uid: string; clientId: string; scopes: string[]; basePath?: string } & PageOptions,
+): string {
+  const { uid, clientId, scopes, basePath = '/interaction', telemetry } = opts
 
   const scopeItems = scopes
     .map(
@@ -46,7 +48,7 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
           }
 
           <div class="space-y-3">
-            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/confirm" method="POST">
+            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/confirm" method="POST" class="${trackEvent('Consent Allow')}">
               <button
                 type="submit"
                 class="w-full bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 py-3 rounded-lg transition-all text-sm"
@@ -54,7 +56,7 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
                 Allow access
               </button>
             </form>
-            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/abort" method="POST">
+            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/abort" method="POST" class="${trackEvent('Consent Deny')}">
               <button
                 type="submit"
                 class="w-full border border-border bg-surface hover:bg-accent hover:text-accent-fg text-on-surface-variant font-semibold py-3 rounded-lg transition-colors text-sm"
@@ -71,5 +73,7 @@ export function consentPage(opts: { uid: string; clientId: string; scopes: strin
       </div>
     </div>
   `,
+    '',
+    { telemetry },
   )
 }

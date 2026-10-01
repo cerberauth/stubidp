@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: ['build/**', 'coverage/**', 'dist/**', 'bins/**', 'public/output.css'],
+    ignores: ['build/**', 'coverage/**', 'dist/**', 'bins/**', 'public/output.css', 'public/telemetry.js'],
   },
   ...compat.extends('prettier'),
   ...compat.extends('plugin:@typescript-eslint/recommended'),

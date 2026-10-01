@@ -1,7 +1,7 @@
-import { layout, escapeHtml } from './layout.js'
+import { layout, escapeHtml, trackEvent, type PageOptions } from './layout.js'
 
-export function logoutPage(opts: { clientId?: string; form: string }): string {
-  const { clientId, form } = opts
+export function logoutPage(opts: { clientId?: string; form: string } & PageOptions): string {
+  const { clientId, form, telemetry } = opts
   return layout(
     'Sign out',
     `
@@ -21,14 +21,14 @@ export function logoutPage(opts: { clientId?: string; form: string }): string {
               form="op.logoutForm"
               name="logout"
               value="yes"
-              class="w-full bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 py-3 rounded-lg transition-all text-sm"
+              class="${trackEvent('Logout Confirm')} w-full bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 py-3 rounded-lg transition-all text-sm"
             >
               Yes, sign me out
             </button>
             <button
               type="submit"
               form="op.logoutForm"
-              class="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-medium py-3 rounded-lg transition-colors text-sm"
+              class="${trackEvent('Logout Cancel')} w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-medium py-3 rounded-lg transition-colors text-sm"
             >
               No, stay signed in
             </button>
@@ -37,11 +37,13 @@ export function logoutPage(opts: { clientId?: string; form: string }): string {
       </div>
     </div>
   `,
+    '',
+    { telemetry },
   )
 }
 
-export function logoutSuccessPage(opts: { clientId?: string } = {}): string {
-  const { clientId } = opts
+export function logoutSuccessPage(opts: { clientId?: string } & PageOptions = {}): string {
+  const { clientId, telemetry } = opts
   return layout(
     'Signed out',
     `
@@ -57,5 +59,7 @@ export function logoutSuccessPage(opts: { clientId?: string } = {}): string {
       </div>
     </div>
   `,
+    '',
+    { telemetry },
   )
 }

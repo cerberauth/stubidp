@@ -1,7 +1,7 @@
-import { layout, escapeHtml } from './layout.js'
+import { layout, escapeHtml, trackEvent, type PageOptions } from './layout.js'
 
-export function loginPage(opts: { uid: string; clientId: string; basePath?: string }): string {
-  const { uid, clientId, basePath = '/interaction' } = opts
+export function loginPage(opts: { uid: string; clientId: string; basePath?: string } & PageOptions): string {
+  const { uid, clientId, basePath = '/interaction', telemetry } = opts
   return layout(
     'Sign in',
     `
@@ -22,7 +22,7 @@ export function loginPage(opts: { uid: string; clientId: string; basePath?: stri
             </p>
           </div>
 
-          <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/login" method="POST" class="space-y-4">
+          <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/login" method="POST" class="space-y-4 ${trackEvent('Login Submit')}">
             <div>
               <label for="username" class="block text-sm font-medium text-on-surface-variant mb-1.5">
                 Username
@@ -63,7 +63,7 @@ export function loginPage(opts: { uid: string; clientId: string; basePath?: stri
           </form>
 
           <div class="mt-6 pt-5 border-t border-border text-center">
-            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/abort" method="POST">
+            <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/abort" method="POST" class="${trackEvent('Login Cancel')}">
               <button type="submit" class="text-sm text-muted-fg hover:text-on-surface-variant transition-colors">
                 Cancel and go back
               </button>
@@ -73,5 +73,7 @@ export function loginPage(opts: { uid: string; clientId: string; basePath?: stri
       </div>
     </div>
   `,
+    '',
+    { telemetry },
   )
 }

@@ -1,6 +1,6 @@
-import { layout, escapeHtml } from './layout.js'
+import { layout, escapeHtml, trackEvent, type PageOptions } from './layout.js'
 
-export function homePage(issuer: string): string {
+export function homePage(issuer: string, { telemetry }: PageOptions = {}): string {
   const discoveryUrl = `${issuer}/.well-known/openid-configuration`
 
   const endpoints: Array<{ name: string; url: string; link?: boolean }> = [
@@ -23,7 +23,7 @@ export function homePage(issuer: string): string {
       <td class="px-6 py-3.5">
         ${
           link
-            ? `<a href="${escapeHtml(url)}" target="_blank" class="font-mono text-xs text-primary hover:text-primary/80 transition-colors break-all">${escapeHtml(url)}</a>`
+            ? `<a href="${escapeHtml(url)}" target="_blank" class="${trackEvent('Discovery Click', { location: 'endpoints' })} font-mono text-xs text-primary hover:text-primary/80 transition-colors break-all">${escapeHtml(url)}</a>`
             : `<span class="font-mono text-xs text-muted-fg break-all">${escapeHtml(url)}</span>`
         }
       </td>
@@ -74,12 +74,12 @@ export function homePage(issuer: string): string {
       <div class="flex items-center justify-center gap-3 flex-wrap">
         <a href="https://nacho.cerberauth.com/clients/create"
            target="_blank"
-           class="inline-flex items-center gap-2 bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 px-6 py-3 rounded-lg transition-all text-sm">
+           class="${trackEvent('Create Client', { location: 'hero' })} inline-flex items-center gap-2 bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 px-6 py-3 rounded-lg transition-all text-sm">
           Create a client →
         </a>
         <a href="${escapeHtml(discoveryUrl)}"
            target="_blank"
-           class="inline-flex items-center gap-2 border border-border bg-surface hover:bg-accent text-on-surface-variant hover:text-accent-fg px-6 py-3 rounded-lg transition-colors text-sm">
+           class="${trackEvent('Discovery Click', { location: 'hero' })} inline-flex items-center gap-2 border border-border bg-surface hover:bg-accent text-on-surface-variant hover:text-accent-fg px-6 py-3 rounded-lg transition-colors text-sm">
           OIDC Discovery
         </a>
       </div>
@@ -95,7 +95,7 @@ export function homePage(issuer: string): string {
         </p>
         <a href="https://nacho.cerberauth.com/clients/create"
            target="_blank"
-           class="inline-flex items-center gap-2 bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 px-8 py-3.5 rounded-xl transition-all">
+           class="${trackEvent('Create Client', { location: 'banner' })} inline-flex items-center gap-2 bg-primary text-primary-fg font-semibold hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 px-8 py-3.5 rounded-xl transition-all">
           Create a client at nacho.cerberauth.com →
         </a>
       </div>
@@ -175,5 +175,6 @@ export function homePage(issuer: string): string {
     </section>
   `,
     head,
+    { telemetry },
   )
 }

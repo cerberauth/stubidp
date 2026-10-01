@@ -1,3 +1,5 @@
+import { TELEMETRY_SCRIPT_PATH } from '../telemetry-settings.js'
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -7,7 +9,25 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
-export function layout(title: string, body: string, head = ''): string {
+export interface PageOptions {
+  /** Include the Plausible tracker; see src/telemetry-settings.ts. */
+  telemetry?: boolean
+}
+
+/**
+ * Class names that make Plausible's tracker record a custom event when the
+ * element is clicked (or, on a <form>, submitted). Inert when the tracker
+ * isn't loaded. https://plausible.io/docs/custom-event-goals
+ */
+export function trackEvent(name: string, props: Record<string, string> = {}): string {
+  const encode = (value: string) => value.replace(/ /g, '+')
+  return [
+    `plausible-event-name=${encode(name)}`,
+    ...Object.entries(props).map(([key, value]) => `plausible-event-${key}=${encode(value)}`),
+  ].join(' ')
+}
+
+export function layout(title: string, body: string, head = '', { telemetry = false }: PageOptions = {}): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,7 +47,7 @@ export function layout(title: string, body: string, head = ''): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)} — StubIdP</title>
   ${head || '<meta name="robots" content="noindex, nofollow" />'}
-  <link rel="stylesheet" href="/output.css" />
+  <link rel="stylesheet" href="/output.css" />${telemetry ? `\n  <script type="module" src="${TELEMETRY_SCRIPT_PATH}"></script>` : ''}
 </head>
 <body class="min-h-screen flex flex-col antialiased">
   <div class="flex-1">

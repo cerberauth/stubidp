@@ -8,6 +8,7 @@ import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { DatabaseInstance } from './db/db.js'
+import { PLAUSIBLE_ORIGIN, isTelemetryEnabled } from './telemetry-settings.js'
 import { accessLog } from './access-log.js'
 import { livenessHandler, pingDb, readinessHandler } from './health.js'
 import { createInteractionRouter } from './interactions.js'
@@ -80,6 +81,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
   app.use(requestContext())
   app.use(accessLog())
 
+  const telemetry = isTelemetryEnabled(options.disableTelemetry)
   const oidc: Provider = await createProvider(options)
 
   let resolvedDb: DatabaseInstance | null = options.db ?? null
@@ -105,6 +107,9 @@ export async function createApp(options: AppOptions): Promise<Express> {
     const directives = helmet.contentSecurityPolicy.getDefaultDirectives()
     delete directives['form-action']
     delete directives['upgrade-insecure-requests']
+    if (telemetry) {
+      directives['connect-src'] = ["'self'", PLAUSIBLE_ORIGIN]
+    }
     if (options.httpsRedirect) {
       directives['upgrade-insecure-requests'] = []
     }
@@ -177,7 +182,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
   )
 
   app.get('/', cacheControl({ maxAge: 86400 }), (_req, res) => {
-    res.type('html').send(homePage(oidc.issuer))
+    res.type('html').send(homePage(oidc.issuer, { telemetry }))
   })
   app.use(
     interactionPath,
@@ -186,6 +191,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
       skipPrompt: options.skipPrompt,
       defaultUser: options.defaultUser,
       interactionPath,
+      telemetry,
     }),
   )
   app.use(
