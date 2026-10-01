@@ -10,6 +10,7 @@ export interface InteractionRouterOptions {
   skipPrompt?: boolean
   defaultUser?: DefaultUser
   interactionPath?: string
+  telemetry?: boolean
 }
 
 async function autoCompleteInteraction(
@@ -118,11 +119,19 @@ export function createInteractionRouter(provider: Provider, options: Interaction
 
         switch (prompt.name) {
           case 'login':
-            res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath }))
+            res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath, telemetry: options.telemetry }))
             break
           case 'consent': {
             const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
-            res.type('html').send(consentPage({ uid: req.params.uid, clientId, scopes: missingScopes, basePath }))
+            res.type('html').send(
+              consentPage({
+                uid: req.params.uid,
+                clientId,
+                scopes: missingScopes,
+                basePath,
+                telemetry: options.telemetry,
+              }),
+            )
             break
           }
           default:

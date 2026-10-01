@@ -26,6 +26,7 @@ export interface Env {
   STUBIDP_ID_TOKEN_TTL?: string
   STUBIDP_REFRESH_TOKEN_TTL?: string
   STUBIDP_SESSION_TTL?: string
+  STUBIDP_DISABLE_TELEMETRY?: string
   STUBIDP_INTERACTION_PATH?: string
   STUBIDP_ENABLE_CIMD?: string
   STUBIDP_CIMD_TRUSTED_ORIGINS?: string
@@ -39,7 +40,7 @@ const toSeconds = (value?: string) => (value ? Number(value) : undefined)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -66,6 +67,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     idTokenTtl: toSeconds(currentEnv.STUBIDP_ID_TOKEN_TTL),
     refreshTokenTtl: toSeconds(currentEnv.STUBIDP_REFRESH_TOKEN_TTL),
     sessionTtl: toSeconds(currentEnv.STUBIDP_SESSION_TTL),
+    disableTelemetry: currentEnv.STUBIDP_DISABLE_TELEMETRY === 'true',
     interactionPath: currentEnv.STUBIDP_INTERACTION_PATH,
     enableCimd: currentEnv.STUBIDP_ENABLE_CIMD === 'true',
     cimdTrustedOrigins: currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS

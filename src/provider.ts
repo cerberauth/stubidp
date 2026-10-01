@@ -1,6 +1,7 @@
 import { trace, SpanStatusCode } from '@opentelemetry/api'
 import { generateKeyPair, exportJWK } from 'jose'
 import { isEmail, isPhone } from './hint.js'
+import { isTelemetryEnabled } from './telemetry-settings.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
 import { Provider, Configuration, SigningAlgorithmWithNone } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
@@ -56,6 +57,8 @@ export interface ProviderOptions {
   idTokenTtl?: number
   refreshTokenTtl?: number
   sessionTtl?: number
+  /** Don't load the Plausible tracker on the HTML pages. See src/telemetry-settings.ts. */
+  disableTelemetry?: boolean
 }
 
 const DEFAULT_CIMD_TRUSTED_ORIGINS = ['https://cimd.cerberauth.com/t/']
@@ -94,6 +97,7 @@ function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
   const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:8484'
+  const telemetry = isTelemetryEnabled(options.disableTelemetry)
 
   let jwks = options.jwks ?? parseJwksEnv(process.env.STUBIDP_JWKS)
   if (!jwks) {
@@ -237,7 +241,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
           if (options.skipPrompt) {
             const { session, provider } = ctx.oidc
             if (!session) {
-              ctx.body = logoutPage({ clientId, form })
+              ctx.body = logoutPage({ clientId, form, telemetry })
               return
             }
 
@@ -276,11 +280,11 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             ctx.redirect(target)
             return
           }
-          ctx.body = logoutPage({ clientId, form })
+          ctx.body = logoutPage({ clientId, form, telemetry })
         },
         async postLogoutSuccessSource(ctx) {
           const clientId = ctx.oidc.client?.clientId
-          ctx.body = logoutSuccessPage({ clientId })
+          ctx.body = logoutSuccessPage({ clientId, telemetry })
         },
       },
       registration: options.enableRegistration

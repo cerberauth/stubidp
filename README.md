@@ -112,10 +112,15 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_SESSION_TTL`                       | `1209600`                         | Login session lifetime in seconds (14 days). Useful to test expiry/refresh handling                                  |
 | `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                         |
 | `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                              |
+| `STUBIDP_DISABLE_TELEMETRY`                 | `false`                           | Set to `true` to disable the telemetry script (equivalent to `--disable-telemetry`)                                  |
 | `STUBIDP_ENABLE_CIMD`                       | `false`                           | Enable OAuth Client ID Metadata Document support (draft-02)                                                          |
 | `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents       |
 | `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                         |
 | `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                                |
+
+### Telemetry
+
+The HTML pages (home, login, consent, sign-out) load a cookie-free [Plausible](https://plausible.io) script reporting page views and a few button clicks to `a.cerberauth.com`. It never sends usernames, client IDs, scopes or tokens, and does nothing on `localhost`. Disable it with `--disable-telemetry`, `STUBIDP_DISABLE_TELEMETRY=true` or `DO_NOT_TRACK=1`. See [Telemetry](docs/configuration.mdx#telemetry) for details.
 
 ## Dynamic Client Registration
 

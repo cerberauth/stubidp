@@ -163,6 +163,13 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Base path for the login/consent interaction UI (default: /interaction) [env: STUBIDP_INTERACTION_PATH]',
     },
+    'disable-telemetry': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_DISABLE_TELEMETRY',
+      description:
+        'Do not load the Plausible telemetry script on the HTML pages (also disabled by DO_NOT_TRACK=1) [env: STUBIDP_DISABLE_TELEMETRY]',
+    },
     'id-token-includes-userinfo-claims': {
       type: 'boolean',
       demandOption: false,
