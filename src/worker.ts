@@ -11,7 +11,9 @@ export interface Env {
   STUBIDP_CLIENT_ID: string
   STUBIDP_CLIENT_SECRET: string
   STUBIDP_REDIRECT_URI: string
+  STUBIDP_POST_LOGOUT_REDIRECT_URI?: string
   STUBIDP_ISSUER?: string
+  STUBIDP_JWKS?: string
   STUBIDP_HTTPS_REDIRECT?: string
   STUBIDP_ENABLE_REGISTRATION?: string
   STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN?: string
@@ -37,7 +39,7 @@ const toSeconds = (value?: string) => (value ? Number(value) : undefined)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -47,8 +49,10 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     clientId: currentEnv.STUBIDP_CLIENT_ID,
     clientSecret: currentEnv.STUBIDP_CLIENT_SECRET,
     redirectUri: currentEnv.STUBIDP_REDIRECT_URI,
+    postLogoutRedirectUri: currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI,
     db,
     issuer: currentEnv.STUBIDP_ISSUER,
+    jwks: currentEnv.STUBIDP_JWKS ? JSON.parse(currentEnv.STUBIDP_JWKS) : undefined, // Worker bindings are not process.env
     httpsRedirect: currentEnv.STUBIDP_HTTPS_REDIRECT === 'true',
     securityHeaders: true,
     enableRegistration: currentEnv.STUBIDP_ENABLE_REGISTRATION === 'true',

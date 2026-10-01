@@ -74,6 +74,15 @@ function resolveTtl(name: string, option: number | undefined, envValue: string |
   return value
 }
 
+function parseJwksEnv(value: string | undefined): Configuration['jwks'] | undefined {
+  if (!value) return undefined
+  try {
+    return JSON.parse(value) as Configuration['jwks']
+  } catch (err) {
+    throw new Error(`STUBIDP_JWKS must be a valid JWKS JSON document: ${(err as Error).message}`)
+  }
+}
+
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
   return {
     ...defaultUser,
@@ -86,7 +95,7 @@ function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
   const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:8484'
 
-  let jwks = options.jwks
+  let jwks = options.jwks ?? parseJwksEnv(process.env.STUBIDP_JWKS)
   if (!jwks) {
     const { privateKey } = await generateKeyPair('RS256', { extractable: true })
     const privateJwk = await exportJWK(privateKey)
