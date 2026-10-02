@@ -57,7 +57,9 @@ for the static client, or `introspection_signed_response_alg` at registration fo
 GET {base}/me
 ```
 
-Requires `Authorization: Bearer <access_token>`. Returns claims for the authenticated user.
+Requires `Authorization: Bearer <access_token>`. Returns claims for the authenticated user. Set `--enable-jwt-userinfo` (plus `--userinfo-signed-response-alg` for the
+static client, or `userinfo_signed_response_alg` at registration for DCR clients) to receive a signed JWT
+(`application/jwt`) instead of JSON.
 
 ## JWKS
 

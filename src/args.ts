@@ -205,6 +205,20 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Signing algorithm used for JWT introspection responses on the static client (e.g. RS256). Requires --enable-jwt-introspection [env: STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG]',
     },
+    'enable-jwt-userinfo': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_ENABLE_JWT_USERINFO',
+      description:
+        'Enable JWT UserInfo responses (OIDC Core 5.3.2) — /me returns a signed JWT instead of plain JSON for clients configured with userinfo_signed_response_alg [env: STUBIDP_ENABLE_JWT_USERINFO]',
+    },
+    'userinfo-signed-response-alg': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_USERINFO_SIGNED_RESPONSE_ALG',
+      description:
+        'Signing algorithm used for JWT UserInfo responses on the static client (e.g. RS256). Requires --enable-jwt-userinfo [env: STUBIDP_USERINFO_SIGNED_RESPONSE_ALG]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

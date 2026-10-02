@@ -132,6 +132,8 @@ const app = await createApp({
     : undefined,
   enableJwtIntrospection: argv['enable-jwt-introspection'],
   introspectionSignedResponseAlg: argv['introspection-signed-response-alg'],
+  enableJwtUserinfo: argv['enable-jwt-userinfo'],
+  userinfoSignedResponseAlg: argv['userinfo-signed-response-alg'],
   disableTelemetry: argv['disable-telemetry'],
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],
