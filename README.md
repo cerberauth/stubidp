@@ -117,6 +117,8 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents       |
 | `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                         |
 | `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                                |
+| `STUBIDP_ENABLE_JWT_USERINFO`               | `false`                           | Enable JWT UserInfo responses (OIDC Core 5.3.2)                                                                      |
+| `STUBIDP_USERINFO_SIGNED_RESPONSE_ALG`      | -                                 | Signing algorithm (e.g. `RS256`) for JWT UserInfo responses on the static client                                     |
 
 ### Telemetry
 
@@ -223,6 +225,26 @@ Dynamically registered clients (see [Dynamic Client Registration](#dynamic-clien
 
 Call the introspection endpoint with `Accept: application/token-introspection+jwt` to receive the signed response;
 requests with `Accept: application/json` keep getting the plain JSON body.
+
+## JWT UserInfo Responses
+
+StubIdP supports [OIDC Core 5.3.2](https://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse) signed
+UserInfo responses — instead of a plain JSON body, `/me` returns a signed JWT (`application/jwt`) for clients
+configured with `userinfo_signed_response_alg`.
+
+### Enable JWT UserInfo
+
+For the static client, pass `--userinfo-signed-response-alg` along with `--enable-jwt-userinfo`:
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jwt-userinfo \
+  --userinfo-signed-response-alg RS256 \
+  --redirect-uri http://localhost:3000/callback
+```
+
+Dynamically registered clients can instead set `userinfo_signed_response_alg` themselves as part of their registration
+metadata. Clients without it keep getting the plain JSON body.
 
 ## E2E Testing and Automation
 

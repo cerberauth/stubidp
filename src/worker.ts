@@ -31,6 +31,8 @@ export interface Env {
   STUBIDP_ENABLE_CIMD?: string
   STUBIDP_CIMD_TRUSTED_ORIGINS?: string
   STUBIDP_ENABLE_JWT_INTROSPECTION?: string
+  STUBIDP_ENABLE_JWT_USERINFO?: string
+  STUBIDP_USERINFO_SIGNED_RESPONSE_ALG?: string
   STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG?: string
 }
 
@@ -40,7 +42,7 @@ const toSeconds = (value?: string) => (value ? Number(value) : undefined)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JWT_USERINFO}:${currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -76,6 +78,8 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     enableJwtIntrospection: currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true',
     introspectionSignedResponseAlg: currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as
       SigningAlgorithmWithNone | undefined,
+    enableJwtUserinfo: currentEnv.STUBIDP_ENABLE_JWT_USERINFO === 'true',
+    userinfoSignedResponseAlg: currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined,
   })
 
   cachedEntry = { key, app }

@@ -53,6 +53,8 @@ export interface ProviderOptions {
   cimdTrustedOrigins?: string[]
   enableJwtIntrospection?: boolean
   introspectionSignedResponseAlg?: SigningAlgorithmWithNone
+  enableJwtUserinfo?: boolean
+  userinfoSignedResponseAlg?: SigningAlgorithmWithNone
   accessTokenTtl?: number
   idTokenTtl?: number
   refreshTokenTtl?: number
@@ -117,6 +119,10 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     options.introspectionSignedResponseAlg ??
     (process.env.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
 
+  const userinfoSignedResponseAlg =
+    options.userinfoSignedResponseAlg ??
+    (process.env.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
+
   const staticClient =
     options.clientId && options.redirectUri
       ? [
@@ -132,6 +138,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
             ...(introspectionSignedResponseAlg
               ? { introspection_signed_response_alg: introspectionSignedResponseAlg }
               : {}),
+            ...(userinfoSignedResponseAlg ? { userinfo_signed_response_alg: userinfoSignedResponseAlg } : {}),
           },
         ]
       : []
@@ -149,6 +156,8 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   const enableJwtIntrospection =
     options.enableJwtIntrospection ?? process.env.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true'
+
+  const enableJwtUserinfo = options.enableJwtUserinfo ?? process.env.STUBIDP_ENABLE_JWT_USERINFO === 'true'
 
   const enableCimd = options.enableCimd ?? process.env.STUBIDP_ENABLE_CIMD === 'true'
 
@@ -234,6 +243,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     conformIdTokenClaims: !idTokenIncludesUserInfoClaims,
     features: {
       devInteractions: { enabled: false },
+      claimsParameter: { enabled: true },
       rpInitiatedLogout: {
         enabled: true,
         async logoutSource(ctx, form) {
@@ -245,7 +255,6 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
               return
             }
 
-            // back-channel: notify any RP that registered a backchannelLogoutUri
             const { accountId } = session
             if (accountId) {
               await Promise.all(
@@ -263,7 +272,6 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
               )
             }
 
-            // front-channel: destroy session + redirect (no JS, no HTML)
             const postLogoutRedirectUri = session.state?.postLogoutRedirectUri as string | undefined
             const stateParam = session.state?.state as string | undefined
             await session.destroy()
@@ -327,6 +335,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       },
       jwtIntrospection: {
         enabled: enableJwtIntrospection,
+      },
+      jwtUserinfo: {
+        enabled: enableJwtUserinfo,
       },
       clientIdMetadataDocument: enableCimd
         ? {
