@@ -55,6 +55,11 @@ export interface ProviderOptions {
   introspectionSignedResponseAlg?: SigningAlgorithmWithNone
   enableJwtUserinfo?: boolean
   userinfoSignedResponseAlg?: SigningAlgorithmWithNone
+  enableJar?: boolean
+  requestObjectSigningAlg?: SigningAlgorithmWithNone
+  requireSignedRequestObject?: boolean
+  clientJwks?: Configuration['jwks']
+  clientJwksUri?: string
   accessTokenTtl?: number
   idTokenTtl?: number
   refreshTokenTtl?: number
@@ -79,12 +84,12 @@ function resolveTtl(name: string, option: number | undefined, envValue: string |
   return value
 }
 
-function parseJwksEnv(value: string | undefined): Configuration['jwks'] | undefined {
+function parseJwksEnv(value: string | undefined, envName = 'STUBIDP_JWKS'): Configuration['jwks'] | undefined {
   if (!value) return undefined
   try {
     return JSON.parse(value) as Configuration['jwks']
   } catch (err) {
-    throw new Error(`STUBIDP_JWKS must be a valid JWKS JSON document: ${(err as Error).message}`)
+    throw new Error(`${envName} must be a valid JWKS JSON document: ${(err as Error).message}`)
   }
 }
 
@@ -123,6 +128,24 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     options.userinfoSignedResponseAlg ??
     (process.env.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
 
+  const enableJar =
+    options.enableJar ??
+    (process.env.STUBIDP_ENABLE_JAR === 'true' ||
+      !!options.requestObjectSigningAlg ||
+      options.requireSignedRequestObject === true ||
+      !!process.env.STUBIDP_REQUEST_OBJECT_SIGNING_ALG ||
+      process.env.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true')
+
+  const requestObjectSigningAlg =
+    options.requestObjectSigningAlg ??
+    (process.env.STUBIDP_REQUEST_OBJECT_SIGNING_ALG as SigningAlgorithmWithNone | undefined)
+
+  const requireSignedRequestObject =
+    options.requireSignedRequestObject ?? process.env.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true'
+
+  const clientJwks = options.clientJwks ?? parseJwksEnv(process.env.STUBIDP_CLIENT_JWKS, 'STUBIDP_CLIENT_JWKS')
+  const clientJwksUri = options.clientJwksUri ?? process.env.STUBIDP_CLIENT_JWKS_URI
+
   const staticClient =
     options.clientId && options.redirectUri
       ? [
@@ -139,6 +162,10 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
               ? { introspection_signed_response_alg: introspectionSignedResponseAlg }
               : {}),
             ...(userinfoSignedResponseAlg ? { userinfo_signed_response_alg: userinfoSignedResponseAlg } : {}),
+            ...(requestObjectSigningAlg ? { request_object_signing_alg: requestObjectSigningAlg } : {}),
+            ...(requireSignedRequestObject ? { require_signed_request_object: true } : {}),
+            ...(clientJwks ? { jwks: clientJwks } : {}),
+            ...(clientJwksUri ? { jwks_uri: clientJwksUri } : {}),
           },
         ]
       : []
@@ -338,6 +365,10 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       },
       jwtUserinfo: {
         enabled: enableJwtUserinfo,
+      },
+      requestObjects: {
+        enabled: enableJar,
+        requireSignedRequestObject,
       },
       clientIdMetadataDocument: enableCimd
         ? {

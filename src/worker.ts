@@ -34,6 +34,11 @@ export interface Env {
   STUBIDP_ENABLE_JWT_USERINFO?: string
   STUBIDP_USERINFO_SIGNED_RESPONSE_ALG?: string
   STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG?: string
+  STUBIDP_ENABLE_JAR?: string
+  STUBIDP_REQUEST_OBJECT_SIGNING_ALG?: string
+  STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT?: string
+  STUBIDP_CLIENT_JWKS?: string
+  STUBIDP_CLIENT_JWKS_URI?: string
 }
 
 const toSeconds = (value?: string) => (value ? Number(value) : undefined)
@@ -42,7 +47,7 @@ const toSeconds = (value?: string) => (value ? Number(value) : undefined)
 let cachedEntry: { key: string; app: Express } | null = null
 
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JWT_USERINFO}:${currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
+  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JWT_USERINFO}:${currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JAR}:${currentEnv.STUBIDP_REQUEST_OBJECT_SIGNING_ALG}:${currentEnv.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT}:${currentEnv.STUBIDP_CLIENT_JWKS}:${currentEnv.STUBIDP_CLIENT_JWKS_URI}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
@@ -80,6 +85,11 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
       SigningAlgorithmWithNone | undefined,
     enableJwtUserinfo: currentEnv.STUBIDP_ENABLE_JWT_USERINFO === 'true',
     userinfoSignedResponseAlg: currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined,
+    enableJar: currentEnv.STUBIDP_ENABLE_JAR === 'true',
+    requestObjectSigningAlg: currentEnv.STUBIDP_REQUEST_OBJECT_SIGNING_ALG as SigningAlgorithmWithNone | undefined,
+    requireSignedRequestObject: currentEnv.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true',
+    clientJwks: currentEnv.STUBIDP_CLIENT_JWKS ? JSON.parse(currentEnv.STUBIDP_CLIENT_JWKS) : undefined,
+    clientJwksUri: currentEnv.STUBIDP_CLIENT_JWKS_URI,
   })
 
   cachedEntry = { key, app }
