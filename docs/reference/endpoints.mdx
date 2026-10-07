@@ -36,6 +36,7 @@ Initiates the authorization code flow. Standard OIDC query parameters:
 | `scope`         | Yes         | Space-separated scopes (e.g. `openid profile email`) |
 | `state`         | Recommended | Opaque value for CSRF protection                     |
 | `nonce`         | Recommended | Value for replay attack prevention                   |
+| `request`       | Optional    | JWT-Secured Authorization Request (JAR, RFC 9101)    |
 
 ## Token
 

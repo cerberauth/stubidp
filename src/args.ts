@@ -219,6 +219,46 @@ export const argv = yargs(hideBin(process.argv))
       description:
         'Signing algorithm used for JWT UserInfo responses on the static client (e.g. RS256). Requires --enable-jwt-userinfo [env: STUBIDP_USERINFO_SIGNED_RESPONSE_ALG]',
     },
+    'enable-jar': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_ENABLE_JAR',
+      description:
+        'Enable JWT-Secured Authorization Request (JAR, RFC 9101) — accepts the request parameter on /auth [env: STUBIDP_ENABLE_JAR]',
+    },
+    'request-object-signing-alg': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_REQUEST_OBJECT_SIGNING_ALG',
+      description:
+        'Signing algorithm used for Request Objects on the static client (e.g. RS256, HS256). Requires --enable-jar [env: STUBIDP_REQUEST_OBJECT_SIGNING_ALG]',
+    },
+    'require-signed-request-object': {
+      type: 'boolean',
+      demandOption: false,
+      env: 'STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT',
+      description:
+        'Require authorization requests to use signed Request Objects (RFC 9101). Requires --enable-jar [env: STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT]',
+    },
+    'client-jwks': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_CLIENT_JWKS',
+      description:
+        'Inline JWKS JSON document for the static client public keys (e.g. to verify asymmetric JAR request objects) [env: STUBIDP_CLIENT_JWKS]',
+    },
+    'client-jwks-file': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_CLIENT_JWKS_FILE',
+      description: 'Path to a JWKS JSON file for the static client public keys [env: STUBIDP_CLIENT_JWKS_FILE]',
+    },
+    'client-jwks-uri': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_CLIENT_JWKS_URI',
+      description: 'URL pointing to the JWKS document for the static client public keys [env: STUBIDP_CLIENT_JWKS_URI]',
+    },
   })
   .env('STUBIDP')
   .parseSync()

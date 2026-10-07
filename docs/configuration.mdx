@@ -34,6 +34,12 @@ import { Aside } from '@/components/docs'
 | `--refresh-token-ttl`                 | No       | Refresh token lifetime in seconds (14 days). Default: `1209600`.                                                                          |
 | `--session-ttl`                       | No       | Login session lifetime in seconds (14 days). Default: `1209600`.                                                                          |
 | `--id-token-includes-userinfo-claims` | No       | Include email/profile/etc. claims directly in the ID token instead of requiring a separate `/me` call. Default: `false` (spec-compliant). |
+| `--enable-jar`                        | No       | Enable JWT-Secured Authorization Request (JAR, RFC 9101) — accepts the `request` parameter on `/auth`.                                    |
+| `--request-object-signing-alg`        | No       | Signing algorithm used for Request Objects on the static client (e.g. `RS256`, `HS256`). Requires `--enable-jar`.                         |
+| `--require-signed-request-object`     | No       | Require authorization requests to use signed Request Objects (RFC 9101). Requires `--enable-jar`.                                         |
+| `--client-jwks`                       | No       | Inline JWKS JSON document for the static client public keys (e.g. to verify asymmetric JAR request objects).                              |
+| `--client-jwks-file`                  | No       | Path to a JWKS JSON file for the static client public keys.                                                                               |
+| `--client-jwks-uri`                   | No       | URL pointing to the JWKS document for the static client public keys.                                                                      |
 | `--interaction-path`                  | No       | Base path for the login/consent UI. Default: `/interaction`.                                                                              |
 | `--disable-telemetry`                 | No       | Don't load the Plausible telemetry script on the HTML pages. Also disabled by `DO_NOT_TRACK=1`. See [Telemetry](#telemetry).              |
 
@@ -64,6 +70,12 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_REFRESH_TOKEN_TTL`                 | `1209600`                                           | Refresh token lifetime in seconds (14 days) (equivalent to `--refresh-token-ttl`)                                                                                 |
 | `STUBIDP_SESSION_TTL`                       | `1209600`                                           | Login session lifetime in seconds (14 days) (equivalent to `--session-ttl`)                                                                                       |
 | `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                                             | Include email/profile/etc. claims directly in the ID token (equivalent to `--id-token-includes-userinfo-claims`)                                                  |
+| `STUBIDP_ENABLE_JAR`                        | `false`                                             | Enable JWT-Secured Authorization Request (JAR, RFC 9101) (equivalent to `--enable-jar`)                                                                           |
+| `STUBIDP_REQUEST_OBJECT_SIGNING_ALG`        | —                                                   | Signing algorithm for Request Objects on the static client (equivalent to `--request-object-signing-alg`)                                                         |
+| `STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT`     | `false`                                             | Require authorization requests to use signed Request Objects (equivalent to `--require-signed-request-object`)                                                    |
+| `STUBIDP_CLIENT_JWKS`                       | —                                                   | Inline JWKS JSON document for the static client public keys (equivalent to `--client-jwks`)                                                                       |
+| `STUBIDP_CLIENT_JWKS_FILE`                  | —                                                   | Path to a JWKS JSON file for the static client public keys (equivalent to `--client-jwks-file`)                                                                   |
+| `STUBIDP_CLIENT_JWKS_URI`                   | —                                                   | URL pointing to the JWKS document for the static client public keys (equivalent to `--client-jwks-uri`)                                                           |
 
 ### Server
 

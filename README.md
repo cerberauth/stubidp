@@ -119,6 +119,12 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG` | -                                 | Signing algorithm (e.g. `RS256`) for JWT introspection responses on the static client                                |
 | `STUBIDP_ENABLE_JWT_USERINFO`               | `false`                           | Enable JWT UserInfo responses (OIDC Core 5.3.2)                                                                      |
 | `STUBIDP_USERINFO_SIGNED_RESPONSE_ALG`      | -                                 | Signing algorithm (e.g. `RS256`) for JWT UserInfo responses on the static client                                     |
+| `STUBIDP_ENABLE_JAR`                        | `false`                           | Enable JWT-Secured Authorization Request (JAR, RFC 9101)                                                             |
+| `STUBIDP_REQUEST_OBJECT_SIGNING_ALG`        | -                                 | Signing algorithm (e.g. `RS256`, `HS256`) for Request Objects on the static client                                   |
+| `STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT`     | `false`                           | Require authorization requests to use signed Request Objects                                                         |
+| `STUBIDP_CLIENT_JWKS`                       | -                                 | Inline JWKS JSON document for the static client public keys                                                          |
+| `STUBIDP_CLIENT_JWKS_FILE`                  | -                                 | Path to a JWKS JSON file for the static client public keys                                                           |
+| `STUBIDP_CLIENT_JWKS_URI`                   | -                                 | URL pointing to the JWKS document for the static client public keys                                                  |
 
 ### Telemetry
 
@@ -245,6 +251,56 @@ npx @cerberauth/stubidp \
 
 Dynamically registered clients can instead set `userinfo_signed_response_alg` themselves as part of their registration
 metadata. Clients without it keep getting the plain JSON body.
+
+## JWT-Secured Authorization Requests (JAR)
+
+StubIdP supports [RFC 9101](https://www.rfc-editor.org/rfc/rfc9101) (JWT-Secured Authorization Request, JAR) — authorization request parameters can be passed as a signed JWT in the `request` parameter on `/auth`.
+
+### Enable JAR
+
+Pass `--enable-jar` to enable JAR support:
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jar \
+  --redirect-uri http://localhost:3000/callback
+```
+
+### Static client with symmetric signing (HS256)
+
+When using HMAC-SHA algorithms such as `HS256`, StubIdP verifies the Request Object using the client secret:
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jar \
+  --client-secret mysecret \
+  --redirect-uri http://localhost:3000/callback
+```
+
+### Static client with asymmetric signing (RS256)
+
+When using asymmetric signing (e.g. `RS256`), provide the client's public keys via `--client-jwks` or `--client-jwks-file`:
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jar \
+  --request-object-signing-alg RS256 \
+  --client-jwks-file ./client-jwks.json \
+  --redirect-uri http://localhost:3000/callback
+```
+
+### Require signed request objects
+
+To require that all authorization requests must be sent as signed Request Objects (rejecting plain query parameters):
+
+```bash
+npx @cerberauth/stubidp \
+  --enable-jar \
+  --require-signed-request-object \
+  --redirect-uri http://localhost:3000/callback
+```
+
+Dynamically registered clients (see [Dynamic Client Registration](#dynamic-client-registration)) can also configure `request_object_signing_alg`, `require_signed_request_object`, and `jwks` via `/reg`.
 
 ## E2E Testing and Automation
 

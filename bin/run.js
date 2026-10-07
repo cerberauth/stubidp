@@ -95,6 +95,14 @@ if (argv['jwks-file']) {
   jwks = JSON.parse(raw)
 }
 
+let clientJwks
+if (argv['client-jwks-file']) {
+  const raw = await readFile(argv['client-jwks-file'], 'utf-8')
+  clientJwks = JSON.parse(raw)
+} else if (argv['client-jwks']) {
+  clientJwks = JSON.parse(argv['client-jwks'])
+}
+
 let defaultUser
 if (argv['default-user']) {
   try {
@@ -134,6 +142,11 @@ const app = await createApp({
   introspectionSignedResponseAlg: argv['introspection-signed-response-alg'],
   enableJwtUserinfo: argv['enable-jwt-userinfo'],
   userinfoSignedResponseAlg: argv['userinfo-signed-response-alg'],
+  enableJar: argv['enable-jar'],
+  requestObjectSigningAlg: argv['request-object-signing-alg'],
+  requireSignedRequestObject: argv['require-signed-request-object'],
+  clientJwks,
+  clientJwksUri: argv['client-jwks-uri'],
   disableTelemetry: argv['disable-telemetry'],
   trustProxy: argv['trust-proxy'],
   httpsRedirect: argv['https-redirect'],

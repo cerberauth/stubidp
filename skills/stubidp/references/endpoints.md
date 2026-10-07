@@ -27,6 +27,7 @@ GET {base}/auth
 | `state`         | Recommended                                                   | CSRF protection                                     |
 | `nonce`         | Recommended                                                   | Replay protection                                   |
 | `login_hint`    | Required when `--skip-prompt` is set with no `--default-user` | Email or E.164 phone number; becomes `sub`          |
+| `request`       | Optional (Required if `--require-signed-request-object` set)  | JWT-Secured Authorization Request (JAR, RFC 9101)   |
 
 ## Token
 
