@@ -1,6 +1,7 @@
 // The single opt-out for everything usage-related that StubIdP sends to
-// CerberAuth: today the Plausible page tracker on the HTML pages, and any CLI
-// telemetry added later should check isTelemetryEnabled() too. Shared with the
+// CerberAuth: the Plausible page tracker on the HTML pages and the CLI usage
+// analytics (src/usage-analytics.ts). Anything added later should check
+// isTelemetryEnabled() too. Shared with the
 // browser bundle (src/client/telemetry.ts), so keep this free of Node APIs at
 // module level.
 //
