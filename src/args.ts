@@ -1,7 +1,7 @@
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-export const argv = yargs(hideBin(process.argv))
+const parser = yargs(hideBin(process.argv))
   .options({
     'client-id': {
       type: 'string',
@@ -168,7 +168,7 @@ export const argv = yargs(hideBin(process.argv))
       demandOption: false,
       env: 'STUBIDP_DISABLE_TELEMETRY',
       description:
-        'Do not load the Plausible telemetry script on the HTML pages (also disabled by DO_NOT_TRACK=1) [env: STUBIDP_DISABLE_TELEMETRY]',
+        'Disable CLI usage analytics and the Plausible telemetry script on the HTML pages (also disabled by DO_NOT_TRACK=1) [env: STUBIDP_DISABLE_TELEMETRY]',
     },
     'id-token-includes-userinfo-claims': {
       type: 'boolean',
@@ -261,4 +261,17 @@ export const argv = yargs(hideBin(process.argv))
     },
   })
   .env('STUBIDP')
-  .parseSync()
+
+export const argv = parser.parseSync()
+
+/**
+ * Every option stubidp defines (and yargs' built-in --help and --version). None
+ * has a built-in default, so an option is in `argv` only when the user set it,
+ * through a flag or a STUBIDP_* variable.
+ */
+export const optionNames: readonly string[] = Object.keys((parser as unknown as YargsWithOptions).getOptions().key)
+
+/** yargs exposes the options it knows through getOptions(), which its typings leave out. */
+interface YargsWithOptions {
+  getOptions(): { key: Record<string, unknown> }
+}

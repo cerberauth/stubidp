@@ -13,8 +13,9 @@ FROM node:lts-slim AS deps
 
 WORKDIR /usr/src/app
 
+# hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y python3=3.11.2-1+b1 make=4.3-4.1 g++=4:12.2.0-3 \
+    && apt-get install --no-install-recommends -y python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
