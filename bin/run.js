@@ -6,10 +6,13 @@ import { argv } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
 import { initNodeTelemetry, shutdownNodeTelemetry } from '../build/telemetry.js'
+import { ErrorCategory, startUsageAnalytics, stopUsageAnalytics } from '../build/usage-analytics.js'
+import pkg from '../package.json' with { type: 'json' }
 
 process.env.STUBIDP_SERVE_STATIC ??= '../public'
 
 initNodeTelemetry()
+startUsageAnalytics(pkg.version, argv['disable-telemetry'])
 
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
@@ -86,6 +89,7 @@ if (!redirectUri && !enableRegistration) {
   console.error(
     'Error: --redirect-uri is required when not using a preset or --enable-registration (or set STUBIDP_REDIRECT_URI)',
   )
+  await stopUsageAnalytics(ErrorCategory.User)
   process.exit(1)
 }
 
@@ -109,6 +113,7 @@ if (argv['default-user']) {
     defaultUser = JSON.parse(argv['default-user'])
   } catch {
     console.error('Error: --default-user must be a valid JSON object')
+    await stopUsageAnalytics(ErrorCategory.User)
     process.exit(1)
   }
 }
@@ -192,7 +197,7 @@ app.listen(port, () => {
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, async () => {
-    await shutdownNodeTelemetry()
+    await Promise.all([shutdownNodeTelemetry(), stopUsageAnalytics()])
     process.exit(0)
   })
 }
