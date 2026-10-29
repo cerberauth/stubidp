@@ -168,7 +168,7 @@ export const argv = yargs(hideBin(process.argv))
       demandOption: false,
       env: 'STUBIDP_DISABLE_TELEMETRY',
       description:
-        'Do not load the Plausible telemetry script on the HTML pages (also disabled by DO_NOT_TRACK=1) [env: STUBIDP_DISABLE_TELEMETRY]',
+        'Disable CLI usage analytics and the Plausible telemetry script on the HTML pages (also disabled by DO_NOT_TRACK=1) [env: STUBIDP_DISABLE_TELEMETRY]',
     },
     'id-token-includes-userinfo-claims': {
       type: 'boolean',

@@ -112,7 +112,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_SESSION_TTL`                       | `1209600`                         | Login session lifetime in seconds (14 days). Useful to test expiry/refresh handling                                  |
 | `STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS` | `false`                           | Include email/profile/etc. claims directly in the ID token instead of requiring a `/me` call                         |
 | `STUBIDP_INTERACTION_PATH`                  | `/interaction`                    | Base path for the login/consent UI (equivalent to `--interaction-path`)                                              |
-| `STUBIDP_DISABLE_TELEMETRY`                 | `false`                           | Set to `true` to disable the telemetry script (equivalent to `--disable-telemetry`)                                  |
+| `STUBIDP_DISABLE_TELEMETRY`                 | `false`                           | Set to `true` to disable telemetry (equivalent to `--disable-telemetry`)                                             |
 | `STUBIDP_ENABLE_CIMD`                       | `false`                           | Enable OAuth Client ID Metadata Document support (draft-02)                                                          |
 | `STUBIDP_CIMD_TRUSTED_ORIGINS`              | `https://cimd.cerberauth.com/t/`  | Comma-separated trusted origins (prefix if ending in `/`, else exact match) for `client_id` metadata documents       |
 | `STUBIDP_ENABLE_JWT_INTROSPECTION`          | `false`                           | Enable JWT Response for OAuth Token Introspection (RFC 9701)                                                         |
@@ -128,7 +128,7 @@ All CLI flags can be set via environment variables instead:
 
 ### Telemetry
 
-The HTML pages (home, login, consent, sign-out) load a cookie-free [Plausible](https://plausible.io) script reporting page views and a few button clicks to `a.cerberauth.com`. It never sends usernames, client IDs, scopes or tokens, and does nothing on `localhost`. Disable it with `--disable-telemetry`, `STUBIDP_DISABLE_TELEMETRY=true` or `DO_NOT_TRACK=1`. See [Telemetry](docs/configuration.mdx#telemetry) for details.
+The `stubidp` command reports anonymous usage analytics (version and names of the flags passed, never their values) to `telemetry.cerberauth.com`. The HTML pages (home, login, consent, sign-out) load a cookie-free [Plausible](https://plausible.io) script reporting page views and a few button clicks to `a.cerberauth.com`. Neither ever sends usernames, client IDs, scopes, secrets or tokens, and the page script does nothing on `localhost`. Disable it with `--disable-telemetry`, `STUBIDP_DISABLE_TELEMETRY=true` or `DO_NOT_TRACK=1`. See [Telemetry](docs/configuration.mdx#telemetry) for details.
 
 ## Dynamic Client Registration
 

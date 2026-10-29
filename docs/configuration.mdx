@@ -41,7 +41,7 @@ import { Aside } from '@/components/docs'
 | `--client-jwks-file`                  | No       | Path to a JWKS JSON file for the static client public keys.                                                                               |
 | `--client-jwks-uri`                   | No       | URL pointing to the JWKS document for the static client public keys.                                                                      |
 | `--interaction-path`                  | No       | Base path for the login/consent UI. Default: `/interaction`.                                                                              |
-| `--disable-telemetry`                 | No       | Don't load the Plausible telemetry script on the HTML pages. Also disabled by `DO_NOT_TRACK=1`. See [Telemetry](#telemetry).              |
+| `--disable-telemetry`                 | No       | Disable CLI usage analytics and the Plausible script on the HTML pages. Also disabled by `DO_NOT_TRACK=1`. See [Telemetry](#telemetry).   |
 
 When `--client-id` or `--client-secret` are omitted, the generated values are printed in the startup table so you can copy them into your application config.
 
@@ -94,9 +94,23 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_HTTPS_REDIRECT`       | `false`        | Set to `true` to redirect HTTP to HTTPS and enable CSP `upgrade-insecure-requests` (equivalent to `--https-redirect`) |
 | `STUBIDP_SECURITY_HEADERS`     | `false`        | Set to `true` to enable security headers (CSP, HSTS, etc.) via helmet (equivalent to `--security-headers`)            |
 | `STUBIDP_INTERACTION_PATH`     | `/interaction` | Base path for the login/consent UI (equivalent to `--interaction-path`)                                               |
-| `STUBIDP_DISABLE_TELEMETRY`    | `false`        | Set to `true` to disable the telemetry script (equivalent to `--disable-telemetry`). `DO_NOT_TRACK=1` works too       |
+| `STUBIDP_DISABLE_TELEMETRY`    | `false`        | Set to `true` to disable telemetry (equivalent to `--disable-telemetry`). `DO_NOT_TRACK=1` works too                  |
 
 ## Telemetry
+
+StubIdP sends two kinds of anonymous usage data to CerberAuth, both turned off by the same switches (see below).
+
+### CLI usage analytics
+
+When started from the command line (`stubidp`, `npx stubidp`, the Docker image or a standalone binary), StubIdP reports that it ran to `telemetry.cerberauth.com`, which forwards it to [Argvio](https://github.com/getargvio). What is recorded:
+
+- The StubIdP version.
+- The names of the command-line flags you passed (for example `preset`, `skip-prompt`), never their values.
+- Whether it exited normally or on an invalid-argument error.
+
+Flag names are left out in CI, where only the run itself is counted. Environment variables, client IDs, secrets, redirect URIs, users and tokens are never sent, and the OIDC endpoints are not instrumented. `ARGVIO_DISABLED=1` turns off this part alone.
+
+### Page analytics
 
 The HTML pages StubIdP serves (home, login, consent, sign-out) load a small [Plausible](https://plausible.io) script that reports to `a.cerberauth.com`, a CerberAuth-operated Plausible instance. It is cookie-free and collects no personal data. The OIDC endpoints themselves (`/auth`, `/token`, …) are never instrumented.
 
@@ -115,7 +129,7 @@ STUBIDP_DISABLE_TELEMETRY=true stubidp ...
 DO_NOT_TRACK=1 stubidp ...
 ```
 
-When disabled, the script tag is not rendered at all and the `Content-Security-Policy` no longer allows connections to the telemetry host. On Cloudflare Workers, set `STUBIDP_DISABLE_TELEMETRY` to `true` in `vars`.
+When disabled, no CLI usage data is sent, the script tag is not rendered at all and the `Content-Security-Policy` no longer allows connections to the telemetry host. On Cloudflare Workers, set `STUBIDP_DISABLE_TELEMETRY` to `true` in `vars`.
 
 This is separate from the server's own OpenTelemetry export (`OTEL_EXPORTER_OTLP_ENDPOINT` and friends), which is off unless you configure an endpoint and sends to your collector, not to CerberAuth.
 
