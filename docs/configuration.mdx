@@ -109,8 +109,11 @@ When started from the command line (`stubidp`, `npx stubidp`, the Docker image o
 - Whether it exited normally or on an invalid-argument error.
 - How many of the options above you set, as a number only (through a flag or a `STUBIDP_*` variable).
 - Your shell and terminal emulator (from a fixed list, for example `zsh` or `vscode`), whether the output is piped, and the Node.js version.
+- Whether it crashed, never the error message.
+- Which `--preset` it started with and whether it keeps its state in memory or a database.
+- Counts of the OIDC flows it served, by outcome: authorizations, logouts, revocations, token grants by grant type (for example `authorization_code` or `client_credentials`), and errors from introspection, userinfo and the server.
 
-Flag names, the option count, and the shell and terminal details are left out in CI, where only the run itself is counted. Environment variables, client IDs, secrets, redirect URIs, users and tokens are never sent, and the OIDC endpoints are not instrumented. `ARGVIO_DISABLED=1` turns off this part alone.
+Flag names, the option count, and the shell and terminal details are left out in CI; the run itself and the counts above are still sent there. Environment variables, client IDs, secrets, redirect URIs, scopes, users, tokens and error messages are never sent: the counts only carry values from fixed lists. `ARGVIO_DISABLED=1` turns off this part alone.
 
 ### Page analytics
 

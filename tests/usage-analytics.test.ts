@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest'
 
-import { countSetOptions, flagNames, startUsageAnalytics, stopUsageAnalytics } from '../src/usage-analytics.js'
+import {
+  countSetOptions,
+  flagNames,
+  grantTypeLabel,
+  recordServeStarted,
+  startUsageAnalytics,
+  stopUsageAnalytics,
+  vocab,
+  watchProvider,
+} from '../src/usage-analytics.js'
 
 describe('flagNames', () => {
   it('returns long flag names without their values', () => {
@@ -56,5 +65,43 @@ describe('usage analytics', () => {
     })
     await stopUsageAnalytics()
     expect(called).toBe(false)
+  })
+})
+
+describe('metric labels', () => {
+  it('keeps only listed values', () => {
+    expect(vocab('next-auth', ['better-auth', 'next-auth'])).toBe('next-auth')
+    expect(vocab('my-own-preset', ['better-auth', 'next-auth'])).toBe('other')
+    expect(vocab(undefined, ['x'])).toBe('other')
+  })
+
+  it('shortens grant types to identifiers and never passes an unknown one through', () => {
+    expect(grantTypeLabel('authorization_code')).toBe('authorization_code')
+    expect(grantTypeLabel('urn:ietf:params:oauth:grant-type:device_code')).toBe('device_code')
+    expect(grantTypeLabel('urn:example:custom')).toBe('other')
+    expect(grantTypeLabel(42)).toBe('other')
+  })
+})
+
+describe('product metrics', () => {
+  it('do nothing before usage analytics started, so the hosted Worker never reports', () => {
+    const listeners: string[] = []
+    watchProvider({ on: (event: string) => listeners.push(event) })
+    expect(listeners).toEqual([])
+    expect(() => recordServeStarted('next-auth', false)).not.toThrow()
+  })
+
+  it('subscribe to the provider events while usage analytics run, telemetry disabled or not', async () => {
+    startUsageAnalytics('0.0.0-test', true, [])
+    const listeners = new Map<string, (...args: unknown[]) => void>()
+    watchProvider({ on: (event: string, listener: (...args: unknown[]) => void) => listeners.set(event, listener) })
+    expect([...listeners.keys()]).toEqual(
+      expect.arrayContaining(['authorization.success', 'grant.success', 'grant.error', 'server_error']),
+    )
+    // Listeners must never throw into oidc-provider, whatever the context.
+    expect(() => listeners.get('grant.success')?.({ oidc: { params: { grant_type: 'refresh_token' } } })).not.toThrow()
+    expect(() => listeners.get('grant.error')?.(undefined)).not.toThrow()
+    expect(() => recordServeStarted(undefined, true)).not.toThrow()
+    await stopUsageAnalytics()
   })
 })

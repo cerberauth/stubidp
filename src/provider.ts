@@ -6,6 +6,7 @@ import { logoutPage, logoutSuccessPage } from './views/index.js'
 import { Provider, Configuration, SigningAlgorithmWithNone } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 import logger, { withRequestId } from './logger.js'
+import { watchProvider } from './usage-analytics.js'
 
 export interface DefaultUser {
   sub?: string
@@ -440,6 +441,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
   }
 
   const provider = new Provider(issuer, configuration)
+  watchProvider(provider)
 
   provider.on('server_error', (ctx, err) => {
     logger.error(withRequestId({ err, path: ctx.path, method: ctx.method }), 'oidc-provider server error')

@@ -128,7 +128,7 @@ All CLI flags can be set via environment variables instead:
 
 ### Telemetry
 
-The `stubidp` command reports anonymous usage analytics (version, names of the flags passed but never their values, how many options were set, and your shell, terminal and Node.js version) to `telemetry.cerberauth.com`. The HTML pages (home, login, consent, sign-out) load a cookie-free [Plausible](https://plausible.io) script reporting page views and a few button clicks to `a.cerberauth.com`. Neither ever sends usernames, client IDs, scopes, secrets or tokens, and the page script does nothing on `localhost`. Disable it with `--disable-telemetry`, `STUBIDP_DISABLE_TELEMETRY=true` or `DO_NOT_TRACK=1`. See [Telemetry](docs/configuration.mdx#telemetry) for details.
+The `stubidp` command reports anonymous usage analytics (version, names of the flags passed but never their values, how many options were set, your shell, terminal and Node.js version, the preset used, and counts of the OIDC flows it served by outcome and grant type) to `telemetry.cerberauth.com`. The HTML pages (home, login, consent, sign-out) load a cookie-free [Plausible](https://plausible.io) script reporting page views and a few button clicks to `a.cerberauth.com`. Neither ever sends usernames, client IDs, scopes, secrets or tokens, and the page script does nothing on `localhost`. Disable it with `--disable-telemetry`, `STUBIDP_DISABLE_TELEMETRY=true` or `DO_NOT_TRACK=1`. See [Telemetry](docs/configuration.mdx#telemetry) for details.
 
 ## Dynamic Client Registration
 

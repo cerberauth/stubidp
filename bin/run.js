@@ -6,7 +6,13 @@ import { argv, optionNames } from '../build/args.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
 import { initNodeTelemetry, shutdownNodeTelemetry } from '../build/telemetry.js'
-import { ErrorCategory, countSetOptions, startUsageAnalytics, stopUsageAnalytics } from '../build/usage-analytics.js'
+import {
+  ErrorCategory,
+  countSetOptions,
+  recordServeStarted,
+  startUsageAnalytics,
+  stopUsageAnalytics,
+} from '../build/usage-analytics.js'
 import pkg from '../package.json' with { type: 'json' }
 
 process.env.STUBIDP_SERVE_STATIC ??= '../public'
@@ -17,6 +23,7 @@ startUsageAnalytics(pkg.version, argv['disable-telemetry'], undefined, () => cou
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
 const preset = argv['preset'] ? getPreset(argv['preset']) : null
+recordServeStarted(argv['preset'], Boolean(process.env.STUBIDP_DATABASE_DIALECT))
 
 const ADJECTIVES = [
   'brave',

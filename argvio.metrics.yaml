@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/getargvio/argvio/main/schema/metrics/v1.schema.json
+#
+# StubIdP's product metrics, as shown on the Argvio Product dashboard. Sent by
+# the stubidp CLI only, never by the hosted Worker.
+# Synced to Argvio on release (.github/workflows/argvio-metrics.yml); see
+# https://github.com/getargvio/argvio/blob/main/docs/metric-catalog.md.
+# Every dimension value comes from a fixed list in src/usage-analytics.ts.
+version: 1
+service: stubidp
+metrics:
+  - name: serve.started
+    kind: counter
+    title: Servers started
+    description: stubidp starts, by --preset ("none" without one) and whether state is kept in memory or a database.
+    dims: [preset, storage]
+    dim_order:
+      preset: [none, better-auth, next-auth, other]
+      storage: [memory, database]
+  - name: oidc.events
+    kind: counter
+    title: OIDC flows
+    description: Authorization, logout, revocation, introspection, userinfo and server outcomes reported by oidc-provider.
+    dims: [event, outcome]
+    dim_order:
+      event: [authorization, end_session, revocation, introspection, userinfo, server]
+      outcome: [success, error]
+  - name: oidc.grants
+    kind: counter
+    title: Token grants
+    description: Token endpoint grants by grant type and outcome.
+    dims: [grant_type, outcome]
+    dim_order:
+      grant_type: [authorization_code, refresh_token, client_credentials, device_code, token_exchange, ciba, other]
+      outcome: [success, error]
+  - name: oidc.grant-error-rate
+    kind: ratio
+    title: Token grant error rate
+    description: Share of token grants that failed (bad client credentials, expired codes, ...).
+    unit: '%'
+    scale: 100
+    direction: down_is_good
+    numerator: { metric: oidc.grants, where: { outcome: error } }
+    denominator: { metric: oidc.grants }
