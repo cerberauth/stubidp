@@ -30,11 +30,27 @@ async function autoCompleteInteraction(
     } else {
       const loginHint = params.login_hint as string | undefined
       if (!loginHint) {
-        next(new Error('login_hint is required when no default user is configured'))
+        await provider.interactionFinished(
+          req,
+          res,
+          {
+            error: 'login_required',
+            error_description: 'login_hint is required when no default user is configured',
+          },
+          { mergeWithLastSubmission: false },
+        )
         return
       }
       if (!isEmail(loginHint) && !isPhone(loginHint)) {
-        next(new Error('login_hint must be a valid email address or E.164 phone number'))
+        await provider.interactionFinished(
+          req,
+          res,
+          {
+            error: 'invalid_request',
+            error_description: 'login_hint must be a valid email address or E.164 phone number',
+          },
+          { mergeWithLastSubmission: false },
+        )
         return
       }
       accountId = loginHint

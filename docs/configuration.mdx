@@ -219,8 +219,9 @@ STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
 ```
 
 <Aside type="caution">
-  If `login_hint` is missing or not a valid email or E.164 phone number, the flow errors. Set `--default-user` if you
-  need a fixed identity without per-request hints.
+  If `login_hint` is missing, StubIdP redirects back to the client with `error=login_required`. If it is not a valid
+  email or E.164 phone number, the error is `invalid_request`. Set `--default-user` if you need a fixed identity without
+  per-request hints.
 </Aside>
 
 ## Access token format
