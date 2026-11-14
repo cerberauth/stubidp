@@ -12,6 +12,7 @@ export interface Env {
   STUBIDP_CLIENT_SECRET: string
   STUBIDP_REDIRECT_URI: string
   STUBIDP_POST_LOGOUT_REDIRECT_URI?: string
+  STUBIDP_BACKCHANNEL_LOGOUT_URI?: string
   STUBIDP_ISSUER?: string
   STUBIDP_JWKS?: string
   STUBIDP_HTTPS_REDIRECT?: string
@@ -67,6 +68,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
     clientSecret: currentEnv.STUBIDP_CLIENT_SECRET,
     redirectUri: currentEnv.STUBIDP_REDIRECT_URI,
     postLogoutRedirectUri: currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI,
+    backchannelLogoutUri: currentEnv.STUBIDP_BACKCHANNEL_LOGOUT_URI,
     db,
     issuer: currentEnv.STUBIDP_ISSUER,
     jwks: currentEnv.STUBIDP_JWKS ? JSON.parse(currentEnv.STUBIDP_JWKS) : undefined, // Worker bindings are not process.env
