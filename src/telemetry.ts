@@ -1,11 +1,20 @@
-import { metrics, trace, SpanStatusCode, type Histogram, type Span, type Tracer } from '@opentelemetry/api'
 import {
+  context,
+  metrics,
+  propagation,
+  trace,
   logs,
   SeverityNumber,
-  type Logger as OtelLogger,
+  SpanStatusCode,
   type AnyValue,
-  type LogAttributes,
-} from '@opentelemetry/api-logs'
+  type Attributes,
+  type Histogram,
+  type Logger as OtelLogger,
+  type Span,
+  type Tracer,
+} from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { CompositePropagator, W3CBaggagePropagator, W3CTraceContextPropagator } from '@opentelemetry/core'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -13,7 +22,7 @@ import { resourceFromAttributes, type Resource } from '@opentelemetry/resources'
 import { errWithCause } from 'pino-std-serializers'
 import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs'
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-import { NodeTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
+import { BatchSpanProcessor, TracerProvider } from '@opentelemetry/sdk-trace'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 
 const SERVICE_NAME = process.env.OTEL_SERVICE_NAME || 'stubidp'
@@ -60,7 +69,7 @@ const getOperationDurationHistogram = lazyHistogram('app.operation.duration', {
   unit: 's',
 })
 
-let tracerProvider: NodeTracerProvider | undefined
+let tracerProvider: TracerProvider | undefined
 let loggerProvider: LoggerProvider | undefined
 let meterProvider: MeterProvider | undefined
 
@@ -89,11 +98,15 @@ export function initNodeTelemetry(): void {
     return
   }
 
-  tracerProvider = new NodeTracerProvider({
+  tracerProvider = new TracerProvider({
     resource: resource(),
-    spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter())],
+    spanProcessors: [new BatchSpanProcessor({ exporter: new OTLPTraceExporter() })],
   })
-  tracerProvider.register()
+  trace.setGlobalTracerProvider(tracerProvider)
+  context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable())
+  propagation.setGlobalPropagator(
+    new CompositePropagator({ propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()] }),
+  )
 
   loggerProvider = new LoggerProvider({
     resource: resource(),
@@ -106,8 +119,7 @@ export function initNodeTelemetry(): void {
     readers: [
       new PeriodicExportingMetricReader({
         exporter: new OTLPMetricExporter(),
-        // Unlike BatchSpanProcessor/BatchLogRecordProcessor, this reader
-        // doesn't read the OTel spec's env vars for these itself.
+        // The SDK doesn't read the OTel spec's env vars for these itself.
         exportIntervalMillis: Number(process.env.OTEL_METRIC_EXPORT_INTERVAL) || 60000,
         exportTimeoutMillis: Number(process.env.OTEL_METRIC_EXPORT_TIMEOUT) || 30000,
       }),
@@ -201,7 +213,7 @@ function toAnyValue(value: unknown, seen: Set<unknown> = new Set()): AnyValue {
     return value.map((item) => toAnyValue(item, seen))
   }
   if (typeof value === 'object') {
-    const out: LogAttributes = {}
+    const out: Attributes = {}
     for (const [key, val] of Object.entries(value)) {
       if (key === 'raw') continue // errWithCause's back-reference to the original (unserializable) Error
       out[key] = toAnyValue(val, seen)
@@ -222,6 +234,6 @@ export function emitOtelLogRecord(level: number, body: string | undefined, attri
   otelLogger.emit({
     ...severity,
     body,
-    attributes: toAnyValue(attributes) as LogAttributes,
+    attributes: toAnyValue(attributes) as Attributes,
   })
 }
