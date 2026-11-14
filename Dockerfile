@@ -24,7 +24,7 @@ RUN npm ci --production
 FROM node:lts-slim
 
 ENV NODE_ENV=production
-ENV STUBIDP_SERVE_STATIC='public'
+ENV STUBIDP_SERVE_STATIC='../public'
 
 WORKDIR /usr/src/app
 
