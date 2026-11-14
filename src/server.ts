@@ -83,6 +83,8 @@ export async function createApp(options: AppOptions): Promise<Express> {
 
   const telemetry = isTelemetryEnabled(options.disableTelemetry)
   const oidc: Provider = await createProvider(options)
+  const discoveryPath = '/.well-known/openid-configuration'
+  const jwksPath = oidc.pathFor('jwks', { mountPath: '' })
 
   let resolvedDb: DatabaseInstance | null = options.db ?? null
   if (!resolvedDb && process.env.STUBIDP_DATABASE_DIALECT) {
@@ -141,11 +143,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
         limit: rl.max ?? 100,
         standardHeaders: 'draft-8',
         legacyHeaders: false,
-        skip: (req) => {
-          return (
-            req.path === '/.well-known/openid-configuration' || req.path === '/.well-known/openid-configuration/jwks'
-          )
-        },
+        skip: (req) => req.path === discoveryPath || req.path === jwksPath,
       }),
     )
   }
@@ -198,8 +196,8 @@ export async function createApp(options: AppOptions): Promise<Express> {
     '/',
     cacheControl({
       pathRules: {
-        '/.well-known/openid-configuration': { maxAge: 86400, staleWhileRevalidate: 3600 },
-        '/.well-known/openid-configuration/jwks': { maxAge: 3600, staleWhileRevalidate: 900 },
+        [discoveryPath]: { maxAge: 86400, staleWhileRevalidate: 3600 },
+        [jwksPath]: { maxAge: 3600, staleWhileRevalidate: 900 },
       },
     }),
     oidc.callback(),
