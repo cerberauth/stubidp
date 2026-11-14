@@ -3,7 +3,6 @@ import express, { Express, Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
 import helmet from 'helmet'
-import * as url from 'node:url'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -160,13 +159,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
       if (req.secure) {
         next()
       } else if (req.method === 'GET' || req.method === 'HEAD') {
-        res.redirect(
-          url.format({
-            protocol: 'https',
-            host: req.get('host'),
-            pathname: req.originalUrl,
-          }),
-        )
+        res.redirect(`https://${req.get('host')}${req.originalUrl}`)
       } else {
         res.status(400).json({
           error: 'invalid_request',
