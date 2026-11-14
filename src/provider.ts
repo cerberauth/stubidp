@@ -3,7 +3,7 @@ import { generateKeyPair, exportJWK } from 'jose'
 import { isEmail, isPhone } from './hint.js'
 import { isTelemetryEnabled } from './telemetry-settings.js'
 import { logoutPage, logoutSuccessPage } from './views/index.js'
-import { Provider, Configuration, SigningAlgorithmWithNone } from 'oidc-provider'
+import { Provider, Configuration, SigningAlgorithmWithNone, AsymmetricSigningAlgorithm } from 'oidc-provider'
 import type { DatabaseInstance } from './db/db.js'
 import logger, { withRequestId } from './logger.js'
 
@@ -93,6 +93,23 @@ function parseJwksEnv(value: string | undefined, envName = 'STUBIDP_JWKS'): Conf
   }
 }
 
+const DEFAULT_ALG_BY_CURVE: Record<string, AsymmetricSigningAlgorithm> = {
+  'P-256': 'ES256',
+  'P-384': 'ES384',
+  'P-521': 'ES512',
+  Ed25519: 'Ed25519',
+}
+
+/** The algorithm of the first signing key in the JWKS, inferred from its type when it has no `alg`. */
+function signingAlgFor(jwks: NonNullable<Configuration['jwks']>): AsymmetricSigningAlgorithm {
+  const key = jwks.keys.find((k) => k.use === undefined || k.use === 'sig')
+  if (key?.alg) return key.alg as AsymmetricSigningAlgorithm
+  if (key && 'crv' in key && typeof key.crv === 'string' && DEFAULT_ALG_BY_CURVE[key.crv]) {
+    return DEFAULT_ALG_BY_CURVE[key.crv]
+  }
+  return 'RS256'
+}
+
 function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
   return {
     ...defaultUser,
@@ -172,6 +189,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   const accessTokenFormat =
     options.accessTokenFormat ?? (process.env.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined) ?? 'opaque'
+  const signingAlg = signingAlgFor(jwks)
 
   const idTokenIncludesUserInfoClaims =
     options.idTokenIncludesUserInfoClaims ?? process.env.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true'
@@ -265,6 +283,12 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     claims: resolvedClaims,
     clients: staticClient,
     jwks,
+    clientDefaults: {
+      grant_types: ['authorization_code'],
+      id_token_signed_response_alg: signingAlg,
+      response_types: ['code'],
+      token_endpoint_auth_method: 'client_secret_basic',
+    },
     // opt-in: keep requested claims in the ID token instead of splitting them
     // off to the UserInfo endpoint, so clients get email/profile without a /me call
     conformIdTokenClaims: !idTokenIncludesUserInfoClaims,
@@ -344,7 +368,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
                 scope: resolvedScopes.join(' '),
                 audience: resourceIndicator,
                 accessTokenFormat: 'jwt' as const,
-                jwt: { sign: { alg: 'RS256' as const } },
+                jwt: { sign: { alg: signingAlg } },
               }),
             }
           : { enabled: false },
