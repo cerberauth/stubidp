@@ -111,9 +111,9 @@ export function homePage(issuer: string, { telemetry }: PageOptions = {}): strin
           <span class="ml-3 text-muted-fg text-xs font-mono">terminal</span>
         </div>
         <pre class="px-6 py-5 text-sm text-success overflow-x-auto leading-7"><code>npx @cerberauth/stubidp \\
-  --clientId my-app \\
-  --clientSecret my-secret \\
-  --redirectUri http://localhost:8080/callback</code></pre>
+  --client-id my-app \\
+  --client-secret my-secret \\
+  --redirect-uri http://localhost:8080/callback</code></pre>
       </div>
       <p class="text-muted-fg text-sm mt-3">
         Your OIDC provider will be live at
