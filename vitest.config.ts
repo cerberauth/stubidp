@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config'
-import path from 'path'
+import path from 'node:path'
 
 export default defineConfig({
   resolve: {
     alias: {
-      'bun:sqlite': path.resolve(__dirname, 'src/db/bun-sqlite-stub.ts'),
+      'bun:sqlite': path.resolve(import.meta.dirname, 'src/db/bun-sqlite-stub.ts'),
     },
   },
   test: {
