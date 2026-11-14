@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNotNull, lt } from 'drizzle-orm'
 
 import * as schema from './db/schema.js'
 import type { DatabaseInstance } from './db/db.js'
@@ -457,4 +457,19 @@ export class DrizzleAdapter {
       }
     })
   }
+}
+
+/**
+ * Deletes every row whose `expiresAt` is in the past, across all models that
+ * expire (clients never do). `find` already ignores those rows; this keeps
+ * the tables from growing forever on long-running deployments.
+ */
+export async function purgeExpired(db: DatabaseInstance, now = Math.floor(Date.now() / 1000)): Promise<void> {
+  return withSpan('adapter.purgeExpired', {}, async () => {
+    for (const name of MODEL_NAMES) {
+      if (name === 'Client') continue
+      const table = models[name] as typeof schema.sessions
+      await db.delete(table).where(and(isNotNull(table.expiresAt), lt(table.expiresAt, now)))
+    }
+  })
 }

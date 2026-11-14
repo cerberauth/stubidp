@@ -4,6 +4,7 @@ import express, { type Express } from 'express'
 import { drizzle } from 'drizzle-orm/d1'
 import type { SigningAlgorithmWithNone } from 'oidc-provider'
 
+import { purgeExpired } from './adapter.js'
 import { createApp } from './server.js'
 
 export interface Env {
@@ -120,4 +121,10 @@ app.use(async (req, res, next) => {
 const port = 8484
 app.listen(port)
 
-export default httpServerHandler({ port })
+export default {
+  ...httpServerHandler({ port }),
+  // Cron trigger (see wrangler.json): drop expired sessions, codes and tokens from D1
+  async scheduled(_controller, currentEnv, ctx) {
+    ctx.waitUntil(purgeExpired(drizzle(currentEnv.DB)))
+  },
+} satisfies ExportedHandler<Env>

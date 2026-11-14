@@ -14,13 +14,14 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 describe('DrizzleAdapter (real SQLite driver)', () => {
   let db: ReturnType<typeof drizzle>
   let DrizzleAdapter: typeof import('../src/adapter.js').DrizzleAdapter
+  let purgeExpired: typeof import('../src/adapter.js').purgeExpired
 
   beforeEach(async () => {
     process.env.STUBIDP_DATABASE_DIALECT = 'sqlite'
     const sqlite = new Database(':memory:')
     db = drizzle(sqlite)
     migrate(db, { migrationsFolder: './migrations/sqlite' })
-    ;({ DrizzleAdapter } = await import('../src/adapter.js'))
+    ;({ DrizzleAdapter, purgeExpired } = await import('../src/adapter.js'))
   })
 
   it('round-trips a Session and finds it by its dedicated uid column', async () => {
@@ -85,5 +86,26 @@ describe('DrizzleAdapter (real SQLite driver)', () => {
     await adapter.upsert('at-expired', { grantId: 'grant-2' }, -1)
 
     expect(await adapter.find('at-expired')).toBeUndefined()
+  })
+
+  it('purges expired rows and keeps live and non-expiring ones', async () => {
+    const accessTokens = new DrizzleAdapter(db, 'AccessToken')
+    const sessions = new DrizzleAdapter(db, 'Session')
+    const interactions = new DrizzleAdapter(db, 'Interaction')
+    const clients = new DrizzleAdapter(db, 'Client')
+    await accessTokens.upsert('at-old', { grantId: 'grant-1' }, -10)
+    await accessTokens.upsert('at-live', { grantId: 'grant-1' }, 3600)
+    await sessions.upsert('sess-old', { uid: 'uid-old' }, -10)
+    await interactions.upsert('int-old', {}, -10)
+    await clients.upsert('client-1', { client_id: 'client-1', redirect_uris: ['https://example.com/cb'] }, 0)
+
+    await purgeExpired(db)
+
+    const ids = (table: string) =>
+      (db.$client.prepare(`SELECT id FROM ${table}`).all() as { id: string }[]).map((r) => r.id)
+    expect(ids('access_tokens')).toEqual(['at-live'])
+    expect(ids('sessions')).toEqual([])
+    expect(ids('interactions')).toEqual([])
+    expect(await clients.find('client-1')).toMatchObject({ client_id: 'client-1' })
   })
 })
