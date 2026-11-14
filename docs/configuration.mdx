@@ -133,7 +133,7 @@ DO_NOT_TRACK=1 stubidp ...
 
 When disabled, no CLI usage data is sent, the script tag is not rendered at all and the `Content-Security-Policy` no longer allows connections to the telemetry host. On Cloudflare Workers, set `STUBIDP_DISABLE_TELEMETRY` to `true` in `vars`.
 
-This is separate from the server's own OpenTelemetry export (`OTEL_EXPORTER_OTLP_ENDPOINT` and friends), which is off unless you configure an endpoint and sends to your collector, not to CerberAuth.
+This is separate from the server's own OpenTelemetry export (configured with `OTEL_EXPORTER_OTLP_ENDPOINT`, the other `OTEL_EXPORTER_OTLP_*` variables, `OTEL_SERVICE_NAME`, `OTEL_METRIC_EXPORT_INTERVAL` and `OTEL_METRIC_EXPORT_TIMEOUT`), which is off unless you configure an endpoint and sends to your collector, not to CerberAuth.
 
 Individual visitors can also opt out by running `localStorage.plausible_ignore = 'true'` in their browser console.
 
