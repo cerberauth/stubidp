@@ -42,6 +42,7 @@ export interface Env {
 }
 
 const toSeconds = (value?: string) => (value ? Number(value) : undefined)
+const toOptionalBoolean = (value?: string) => (value === undefined ? undefined : value === 'true')
 
 // Cached Express app per isolate (keyed by config hash to survive secret rotation)
 let cachedEntry: { key: string; app: Express } | null = null
@@ -85,7 +86,7 @@ async function ensureApp(currentEnv: Env): Promise<Express> {
       SigningAlgorithmWithNone | undefined,
     enableJwtUserinfo: currentEnv.STUBIDP_ENABLE_JWT_USERINFO === 'true',
     userinfoSignedResponseAlg: currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined,
-    enableJar: currentEnv.STUBIDP_ENABLE_JAR === 'true',
+    enableJar: toOptionalBoolean(currentEnv.STUBIDP_ENABLE_JAR),
     requestObjectSigningAlg: currentEnv.STUBIDP_REQUEST_OBJECT_SIGNING_ALG as SigningAlgorithmWithNone | undefined,
     requireSignedRequestObject: currentEnv.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true',
     clientJwks: currentEnv.STUBIDP_CLIENT_JWKS ? JSON.parse(currentEnv.STUBIDP_CLIENT_JWKS) : undefined,
