@@ -27,12 +27,12 @@ export function trackEvent(name: string, props: Record<string, string> = {}): st
   ].join(' ')
 }
 
-export function layout(title: string, body: string, head = '', { telemetry = false }: PageOptions = {}): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <script>
+/**
+ * Inline script that applies the dark/light theme before first paint. Its
+ * exact text is hashed into the CSP `script-src` when security headers are on,
+ * so any change here is picked up automatically.
+ */
+export const THEME_SCRIPT = `
     (function () {
       var mql = window.matchMedia('(prefers-color-scheme: dark)')
       var apply = function (matches) {
@@ -43,7 +43,14 @@ export function layout(title: string, body: string, head = '', { telemetry = fal
         apply(e.matches)
       })
     })()
-  </script>
+  `
+
+export function layout(title: string, body: string, head = '', { telemetry = false }: PageOptions = {}): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>${THEME_SCRIPT}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)} — StubIdP</title>
   ${head || '<meta name="robots" content="noindex, nofollow" />'}

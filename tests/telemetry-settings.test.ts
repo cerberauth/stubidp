@@ -147,4 +147,13 @@ describe('telemetry in a running app', () => {
     )
     expect(off).not.toContain(PLAUSIBLE_ORIGIN)
   })
+
+  it('lets the CSP run the inline theme script', async () => {
+    const { createHash } = await import('node:crypto')
+    const { THEME_SCRIPT } = await import('../src/views/layout.js')
+    const res = await get('/', { securityHeaders: true, disableTelemetry: true })
+    const hash = createHash('sha256').update(THEME_SCRIPT).digest('base64')
+    expect(res.headers.get('content-security-policy')).toContain(`'sha256-${hash}'`)
+    expect(await res.text()).toContain(`<script>${THEME_SCRIPT}</script>`)
+  })
 })

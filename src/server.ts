@@ -3,6 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import type { Provider } from 'oidc-provider'
 import helmet from 'helmet'
+import { createHash } from 'node:crypto'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -15,6 +16,9 @@ import { createChildLogger, withRequestId } from './logger.js'
 import { createProvider, ProviderOptions } from './provider.js'
 import { requestContext } from './request-context.js'
 import { homePage } from './views/index.js'
+import { THEME_SCRIPT } from './views/layout.js'
+
+const THEME_SCRIPT_CSP_HASH = `'sha256-${createHash('sha256').update(THEME_SCRIPT).digest('base64')}'`
 
 const log = createChildLogger({ component: 'http' })
 
@@ -108,6 +112,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
     const directives = helmet.contentSecurityPolicy.getDefaultDirectives()
     delete directives['form-action']
     delete directives['upgrade-insecure-requests']
+    directives['script-src'] = ["'self'", THEME_SCRIPT_CSP_HASH]
     if (telemetry) {
       directives['connect-src'] = ["'self'", PLAUSIBLE_ORIGIN]
     }
