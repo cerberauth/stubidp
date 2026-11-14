@@ -3,6 +3,7 @@
 import { randomBytes } from 'crypto'
 import { readFile } from 'fs/promises'
 import { argv, optionNames } from '../build/args.js'
+import { argvToEnv, resolveConfig } from '../build/config.js'
 import { createApp } from '../build/server.js'
 import { getPreset } from '../build/presets.js'
 import { initNodeTelemetry, shutdownNodeTelemetry } from '../build/telemetry.js'
@@ -74,93 +75,50 @@ function randomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-const issuer = process.env.STUBIDP_ISSUER ?? `http://localhost:${port}`
-const clientId =
-  argv['client-id'] ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
-const clientSecret = argv['public-client']
-  ? undefined
-  : (argv['client-secret'] ?? randomBytes(32).toString('base64url'))
-const enableRegistration = argv['enable-registration'] ?? false
-const initialAccessToken = argv['registration-initial-access-token']
-const redirectUri = argv['redirect-uri'] ?? process.env.STUBIDP_REDIRECT_URI ?? preset?.defaultRedirectUri
-const postLogoutRedirectUri = argv['post-logout-redirect-uri'] ?? process.env.STUBIDP_POST_LOGOUT_REDIRECT_URI
-
-if (!redirectUri && !enableRegistration) {
-  console.error(
-    'Error: --redirect-uri is required when not using a preset or --enable-registration (or set STUBIDP_REDIRECT_URI)',
-  )
+async function fail(message) {
+  console.error(`Error: ${message}`)
   await stopUsageAnalytics(ErrorCategory.User)
   process.exit(1)
 }
 
-let jwks
-if (argv['jwks-file']) {
-  const raw = await readFile(argv['jwks-file'], 'utf-8')
-  jwks = JSON.parse(raw)
+// STUBIDP_* variables, overridden by flags, go through the same resolver as the Worker bindings
+const env = { ...process.env, ...argvToEnv(argv, optionNames) }
+try {
+  if (argv['jwks-file']) env.STUBIDP_JWKS = await readFile(argv['jwks-file'], 'utf-8')
+  if (argv['client-jwks-file']) env.STUBIDP_CLIENT_JWKS = await readFile(argv['client-jwks-file'], 'utf-8')
+} catch (err) {
+  await fail(err.message)
 }
 
-let clientJwks
-if (argv['client-jwks-file']) {
-  const raw = await readFile(argv['client-jwks-file'], 'utf-8')
-  clientJwks = JSON.parse(raw)
-} else if (argv['client-jwks']) {
-  clientJwks = JSON.parse(argv['client-jwks'])
+let config
+try {
+  config = resolveConfig(env)
+} catch (err) {
+  await fail(err.message)
 }
 
-let defaultUser
-if (argv['default-user']) {
-  try {
-    defaultUser = JSON.parse(argv['default-user'])
-  } catch {
-    console.error('Error: --default-user must be a valid JSON object')
-    await stopUsageAnalytics(ErrorCategory.User)
-    process.exit(1)
-  }
+const issuer = config.issuer ?? `http://localhost:${port}`
+const clientId =
+  config.clientId ?? `${randomElement(ADJECTIVES)}-${randomElement(NOUNS)}-${randomBytes(3).toString('hex')}`
+const clientSecret = argv['public-client'] ? undefined : (config.clientSecret ?? randomBytes(32).toString('base64url'))
+const enableRegistration = config.enableRegistration ?? false
+const initialAccessToken = config.initialAccessToken
+const redirectUri = config.redirectUri ?? preset?.defaultRedirectUri
+
+if (!redirectUri && !enableRegistration) {
+  await fail(
+    '--redirect-uri is required when not using a preset or --enable-registration (or set STUBIDP_REDIRECT_URI)',
+  )
 }
 
 const app = await createApp({
+  ...config,
   issuer,
   clientId: redirectUri ? clientId : undefined,
   clientSecret: redirectUri ? clientSecret : undefined,
   redirectUri,
-  postLogoutRedirectUri,
   grantTypes: preset?.grantTypes,
-  jwks,
   enableRegistration,
-  initialAccessToken,
-  scopes: argv['scopes'] ? argv['scopes'].split(',').map((s) => s.trim()) : undefined,
-  claims: argv['claims'] ? JSON.parse(argv['claims']) : undefined,
-  skipPrompt: argv['skip-prompt'],
-  defaultUser,
-  accessTokenFormat: argv['access-token-format'],
-  accessTokenTtl: argv['access-token-ttl'],
-  idTokenTtl: argv['id-token-ttl'],
-  refreshTokenTtl: argv['refresh-token-ttl'],
-  sessionTtl: argv['session-ttl'],
-  interactionPath: argv['interaction-path'],
-  idTokenIncludesUserInfoClaims: argv['id-token-includes-userinfo-claims'],
-  enableCimd: argv['enable-cimd'],
-  cimdTrustedOrigins: argv['cimd-trusted-origins']
-    ? argv['cimd-trusted-origins'].split(',').map((s) => s.trim())
-    : undefined,
-  enableJwtIntrospection: argv['enable-jwt-introspection'],
-  introspectionSignedResponseAlg: argv['introspection-signed-response-alg'],
-  enableJwtUserinfo: argv['enable-jwt-userinfo'],
-  userinfoSignedResponseAlg: argv['userinfo-signed-response-alg'],
-  enableJar: argv['enable-jar'],
-  requestObjectSigningAlg: argv['request-object-signing-alg'],
-  requireSignedRequestObject: argv['require-signed-request-object'],
-  clientJwks,
-  clientJwksUri: argv['client-jwks-uri'],
-  disableTelemetry: argv['disable-telemetry'],
-  trustProxy: argv['trust-proxy'],
-  httpsRedirect: argv['https-redirect'],
-  securityHeaders: argv['security-headers'],
-  rateLimit: {
-    windowMs: argv['rate-limit-window-ms'],
-    max: argv['rate-limit-max'],
-    disabled: argv['rate-limit-disabled'],
-  },
 })
 
 app.listen(port, () => {

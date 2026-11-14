@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import type { Server } from 'node:http'
 import { generateKeyPair, exportJWK } from 'jose'
 
@@ -7,12 +7,16 @@ describe('signing key from STUBIDP_JWKS', () => {
 
   afterEach(() => {
     server?.close()
-    vi.unstubAllEnvs()
   })
 
-  async function publishedKids(): Promise<string[]> {
+  async function publishedKids(STUBIDP_JWKS: string): Promise<string[]> {
     const { createApp } = await import('../src/server.js')
-    const app = await createApp({ clientId: 'jwks-client', redirectUri: 'http://localhost:3000/cb' })
+    const { resolveConfig } = await import('../src/config.js')
+    const app = await createApp({
+      ...resolveConfig({ STUBIDP_JWKS }),
+      clientId: 'jwks-client',
+      redirectUri: 'http://localhost:3000/cb',
+    })
     await new Promise<void>((resolve) => {
       server = app.listen(0, resolve)
     })
@@ -27,14 +31,12 @@ describe('signing key from STUBIDP_JWKS', () => {
   it('uses the key provided through the environment', async () => {
     const { privateKey } = await generateKeyPair('RS256', { extractable: true })
     const jwk = await exportJWK(privateKey)
-    vi.stubEnv('STUBIDP_JWKS', JSON.stringify({ keys: [{ ...jwk, use: 'sig', alg: 'RS256', kid: 'env-key' }] }))
+    const jwks = JSON.stringify({ keys: [{ ...jwk, use: 'sig', alg: 'RS256', kid: 'env-key' }] })
 
-    expect(await publishedKids()).toEqual(['env-key'])
+    expect(await publishedKids(jwks)).toEqual(['env-key'])
   })
 
   it('rejects an invalid document', async () => {
-    vi.stubEnv('STUBIDP_JWKS', 'not json')
-
-    await expect(publishedKids()).rejects.toThrow(/STUBIDP_JWKS must be a valid JWKS JSON/)
+    await expect(publishedKids('not json')).rejects.toThrow(/STUBIDP_JWKS must be a valid JWKS JSON/)
   })
 })
