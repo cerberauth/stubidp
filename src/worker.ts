@@ -44,11 +44,19 @@ export interface Env {
 const toSeconds = (value?: string) => (value ? Number(value) : undefined)
 const toOptionalBoolean = (value?: string) => (value === undefined ? undefined : value === 'true')
 
-// Cached Express app per isolate (keyed by config hash to survive secret rotation)
+// Cached Express app per isolate, rebuilt whenever any STUBIDP_* binding changes
 let cachedEntry: { key: string; app: Express } | null = null
 
+function configKey(currentEnv: Env): string {
+  return JSON.stringify(
+    Object.entries(currentEnv)
+      .filter(([name]) => name.startsWith('STUBIDP_'))
+      .sort(([a], [b]) => a.localeCompare(b)),
+  )
+}
+
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = `${currentEnv.STUBIDP_CLIENT_ID}:${currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI}:${currentEnv.STUBIDP_ISSUER}:${currentEnv.STUBIDP_JWKS}:${currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT}:${currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS}:${currentEnv.STUBIDP_INTERACTION_PATH}:${currentEnv.STUBIDP_ENABLE_CIMD}:${currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS}:${currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION}:${currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JWT_USERINFO}:${currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG}:${currentEnv.STUBIDP_ENABLE_JAR}:${currentEnv.STUBIDP_REQUEST_OBJECT_SIGNING_ALG}:${currentEnv.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT}:${currentEnv.STUBIDP_CLIENT_JWKS}:${currentEnv.STUBIDP_CLIENT_JWKS_URI}:${currentEnv.STUBIDP_ACCESS_TOKEN_TTL}:${currentEnv.STUBIDP_ID_TOKEN_TTL}:${currentEnv.STUBIDP_REFRESH_TOKEN_TTL}:${currentEnv.STUBIDP_SESSION_TTL}:${currentEnv.STUBIDP_DISABLE_TELEMETRY}`
+  const key = configKey(currentEnv)
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
