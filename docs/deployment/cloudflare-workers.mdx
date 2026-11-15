@@ -91,6 +91,10 @@ npx wrangler secret put STUBIDP_JWKS < jwks.json
 
 The file contains a private key, so do not commit it. Users need to sign in again after the key changes.
 
+## Expired records
+
+A cron trigger in `wrangler.json` runs every hour and deletes expired sessions, interactions, codes and tokens from D1.
+
 ## Local development
 
 ```bash
