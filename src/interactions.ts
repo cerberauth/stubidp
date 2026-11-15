@@ -138,12 +138,13 @@ export function createInteractionRouter(provider: Provider, options: Interaction
             res.type('html').send(loginPage({ uid: req.params.uid, clientId, basePath, telemetry: options.telemetry }))
             break
           case 'consent': {
-            const missingScopes = (prompt.details.missingOIDCScope as string[] | undefined) ?? []
             res.type('html').send(
               consentPage({
                 uid: req.params.uid,
                 clientId,
-                scopes: missingScopes,
+                scopes: (prompt.details.missingOIDCScope as string[] | undefined) ?? [],
+                claims: (prompt.details.missingOIDCClaims as string[] | undefined) ?? [],
+                resourceScopes: (prompt.details.missingResourceScopes as Record<string, string[]> | undefined) ?? {},
                 basePath,
                 telemetry: options.telemetry,
               }),

@@ -1,21 +1,51 @@
 import { layout, escapeHtml, trackEvent, type PageOptions } from './layout.js'
 
-export function consentPage(
-  opts: { uid: string; clientId: string; scopes: string[]; basePath?: string } & PageOptions,
-): string {
-  const { uid, clientId, scopes, basePath = '/interaction', telemetry } = opts
+export interface ConsentPageOptions extends PageOptions {
+  uid: string
+  clientId: string
+  /** OIDC scopes the client is asking for that have not been granted yet. */
+  scopes: string[]
+  /** Individual claims requested through the `claims` parameter. */
+  claims?: string[]
+  /** Scopes requested per resource server, keyed by resource indicator. */
+  resourceScopes?: Record<string, string[]>
+  basePath?: string
+}
 
-  const scopeItems = scopes
+function itemList(values: string[]): string {
+  return values
     .map(
-      (scope) => `
+      (value) => `
     <li class="flex items-center gap-2.5 text-sm text-on-surface-variant py-1">
       <svg class="text-success shrink-0 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
       </svg>
-      <code class="text-primary text-xs bg-muted px-1.5 py-0.5 rounded">${escapeHtml(scope)}</code>
+      <code class="text-primary text-xs bg-muted px-1.5 py-0.5 rounded">${escapeHtml(value)}</code>
     </li>`,
     )
     .join('')
+}
+
+function section(title: string, values: string[], subtitle?: string): string {
+  if (values.length === 0) return ''
+  return `
+          <div class="bg-surface-container-low border border-border rounded-xl px-5 py-4 mb-6">
+            <p class="text-xs text-muted-fg font-semibold uppercase tracking-wider mb-3">${escapeHtml(title)}</p>
+            ${subtitle ? `<p class="text-xs text-muted-fg mb-2 break-all"><code>${escapeHtml(subtitle)}</code></p>` : ''}
+            <ul class="space-y-0.5">
+              ${itemList(values)}
+            </ul>
+          </div>`
+}
+
+export function consentPage(opts: ConsentPageOptions): string {
+  const { uid, clientId, scopes, claims = [], resourceScopes = {}, basePath = '/interaction', telemetry } = opts
+
+  const sections = [
+    section('Requested permissions', scopes),
+    section('Requested claims', claims),
+    ...Object.entries(resourceScopes).map(([resource, values]) => section('Resource access', values, resource)),
+  ].join('')
 
   return layout(
     'Authorize',
@@ -34,18 +64,7 @@ export function consentPage(
             </p>
           </div>
 
-          ${
-            scopes.length > 0
-              ? `
-          <div class="bg-surface-container-low border border-border rounded-xl px-5 py-4 mb-6">
-            <p class="text-xs text-muted-fg font-semibold uppercase tracking-wider mb-3">Requested permissions</p>
-            <ul class="space-y-0.5">
-              ${scopeItems}
-            </ul>
-          </div>
-          `
-              : ''
-          }
+          ${sections}
 
           <div class="space-y-3">
             <form action="${escapeHtml(basePath)}/${escapeHtml(uid)}/confirm" method="POST" class="${trackEvent('Consent Allow')}">
