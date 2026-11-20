@@ -105,6 +105,7 @@ All CLI flags can be set via environment variables instead:
 | `STUBIDP_HTTPS_REDIRECT`                    | `false`                           | Redirect HTTP requests to HTTPS and set CSP `upgrade-insecure-requests`                                              |
 | `STUBIDP_SECURITY_HEADERS`                  | `false`                           | Enable security headers (CSP, HSTS, etc.) via helmet. Enable when deployed, not for local dev                        |
 | `STUBIDP_POST_LOGOUT_REDIRECT_URI`          | —                                 | Allowed post-logout redirect URI returned to the RP after logout (equivalent to `--post-logout-redirect-uri`)        |
+| `STUBIDP_BACKCHANNEL_LOGOUT_URI`            | —                                 | Back-Channel Logout URI of the static client (equivalent to `--backchannel-logout-uri`)                              |
 | `STUBIDP_ACCESS_TOKEN_FORMAT`               | `opaque`                          | Access token format: `opaque` or `jwt`. JWT access tokens carry identity claims (`sub`, `email`, etc.)               |
 | `STUBIDP_ACCESS_TOKEN_TTL`                  | `3600`                            | Access token lifetime in seconds (also applies to client credentials tokens). Useful to test expiry/refresh handling |
 | `STUBIDP_ID_TOKEN_TTL`                      | `3600`                            | ID token lifetime in seconds. Useful to test expiry/refresh handling                                                 |
@@ -320,6 +321,13 @@ To also redirect back to your app after logout, pass `--post-logout-redirect-uri
 STUBIDP_SKIP_PROMPT=true \
 STUBIDP_POST_LOGOUT_REDIRECT_URI=http://localhost:3000 \
 stubidp --redirect-uri http://localhost:3000/callback
+```
+
+To test [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html), pass `--backchannel-logout-uri` (or set `STUBIDP_BACKCHANNEL_LOGOUT_URI`). StubIdP POSTs a signed `logout_token` to it when the session ends:
+
+```bash
+stubidp --redirect-uri http://localhost:3000/callback \
+  --backchannel-logout-uri http://localhost:3000/backchannel-logout
 ```
 
 ### Configure stub user claims

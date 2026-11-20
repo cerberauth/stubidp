@@ -38,6 +38,8 @@ export interface ProviderOptions {
   clientSecret?: string
   redirectUri?: string
   postLogoutRedirectUri?: string
+  /** Back-Channel Logout endpoint of the static client, notified with a logout token when the session ends. */
+  backchannelLogoutUri?: string
   grantTypes?: string[]
   db?: DatabaseInstance
   issuer?: string
@@ -173,6 +175,9 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
               : { token_endpoint_auth_method: 'none' as const }),
             redirect_uris: [options.redirectUri],
             ...(options.postLogoutRedirectUri ? { post_logout_redirect_uris: [options.postLogoutRedirectUri] } : {}),
+            ...(options.backchannelLogoutUri
+              ? { backchannel_logout_uri: options.backchannelLogoutUri, backchannel_logout_session_required: true }
+              : {}),
             response_types: ['code'] as ['code'],
             grant_types: grantTypes,
             ...(introspectionSignedResponseAlg
@@ -278,7 +283,19 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
       Object.entries(allDefaultClaims).filter(([scope]) => resolvedScopes.includes(scope)),
     ) as Configuration['claims'])
 
+  // oidc-provider refuses outgoing requests to special-use addresses (localhost, private networks) to prevent
+  // SSRF. The static client's back-channel logout URI comes from the operator, so it is trusted to point at a
+  // local app; URIs of dynamically registered clients keep the protection.
+  const trustedBackchannelLogoutUri = options.backchannelLogoutUri && new URL(options.backchannelLogoutUri).href
+  const trustedFetch: Configuration['fetch'] = (url, init) =>
+    globalThis.fetch(
+      url,
+      // `dispatcher` is the undici option oidc-provider sets; dropping it falls back to the default agent
+      String(url) === trustedBackchannelLogoutUri ? ({ ...init, dispatcher: undefined } as RequestInit) : init,
+    )
+
   const configuration: Configuration = {
+    fetch: trustedFetch,
     scopes: resolvedScopes,
     claims: resolvedClaims,
     clients: staticClient,
@@ -295,6 +312,7 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     features: {
       devInteractions: { enabled: false },
       claimsParameter: { enabled: true },
+      backchannelLogout: { enabled: true },
       rpInitiatedLogout: {
         enabled: true,
         async logoutSource(ctx, form) {

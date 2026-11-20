@@ -109,6 +109,13 @@ const parser = yargs(hideBin(process.argv))
       env: 'STUBIDP_POST_LOGOUT_REDIRECT_URI',
       description: 'Allowed post-logout redirect URI [env: STUBIDP_POST_LOGOUT_REDIRECT_URI]',
     },
+    'backchannel-logout-uri': {
+      type: 'string',
+      demandOption: false,
+      env: 'STUBIDP_BACKCHANNEL_LOGOUT_URI',
+      description:
+        'OIDC Back-Channel Logout URI of the static client, notified with a logout token when the session ends [env: STUBIDP_BACKCHANNEL_LOGOUT_URI]',
+    },
     scopes: {
       type: 'string',
       demandOption: false,

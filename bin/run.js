@@ -86,6 +86,7 @@ const enableRegistration = argv['enable-registration'] ?? false
 const initialAccessToken = argv['registration-initial-access-token']
 const redirectUri = argv['redirect-uri'] ?? process.env.STUBIDP_REDIRECT_URI ?? preset?.defaultRedirectUri
 const postLogoutRedirectUri = argv['post-logout-redirect-uri'] ?? process.env.STUBIDP_POST_LOGOUT_REDIRECT_URI
+const backchannelLogoutUri = argv['backchannel-logout-uri']
 
 if (!redirectUri && !enableRegistration) {
   console.error(
@@ -126,6 +127,7 @@ const app = await createApp({
   clientSecret: redirectUri ? clientSecret : undefined,
   redirectUri,
   postLogoutRedirectUri,
+  backchannelLogoutUri,
   grantTypes: preset?.grantTypes,
   jwks,
   enableRegistration,
