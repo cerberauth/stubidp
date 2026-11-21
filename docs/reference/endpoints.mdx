@@ -158,6 +158,12 @@ Initiates RP-Initiated Logout ([OpenID Connect RP-Initiated Logout 1.0](https://
 
 When `--skip-prompt` is enabled, StubIdP auto-approves logout without showing a confirmation page and immediately performs back-channel logout notifications before destroying the session.
 
+### Back-channel logout
+
+StubIdP supports [OpenID Connect Back-Channel Logout 1.0](https://openid.net/specs/openid-connect-backchannel-1_0.html). When a session ends, each client with a `backchannel_logout_uri` receives a `POST` with a signed `logout_token` carrying `sub`, `sid` and the back-channel logout event.
+
+Set the static client's URI with `--backchannel-logout-uri` / `STUBIDP_BACKCHANNEL_LOGOUT_URI`; it may point at `localhost`. Dynamically registered clients send `backchannel_logout_uri` in their registration request. Their URI must resolve to a public address, because outgoing requests to localhost and private networks are blocked to prevent SSRF.
+
 ## Dynamic Client Registration
 
 These endpoints are only available when StubIdP is started with `--enable-registration`.
