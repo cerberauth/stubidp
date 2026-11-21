@@ -88,6 +88,19 @@ describe('resolveConfig', () => {
   ])('names %s when its value is invalid', (name, value, message) => {
     expect(() => resolveConfig({ [name]: value })).toThrow(message)
   })
+
+  it.each([
+    ['STUBIDP_JWKS', '{"keys":[{"d":"private-key-material"'],
+    ['STUBIDP_CLIENT_JWKS', 'private-key-material'],
+    ['STUBIDP_SKIP_PROMPT', 'private-key-material'],
+    ['STUBIDP_ACCESS_TOKEN_TTL', 'private-key-material'],
+    ['STUBIDP_ACCESS_TOKEN_FORMAT', 'private-key-material'],
+  ])('never echoes the value of %s in its error', (name, value) => {
+    expect(() => resolveConfig({ [name]: value })).toThrow(
+      expect.not.objectContaining({ message: expect.stringContaining('private-key-material') }),
+    )
+    expect(() => resolveConfig({ [name]: value })).toThrow(name)
+  })
 })
 
 describe('CLI and Worker resolve the same settings the same way', () => {

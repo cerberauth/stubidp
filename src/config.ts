@@ -23,7 +23,7 @@ function bool(env: ConfigEnv, name: string): boolean | undefined {
   if (value === undefined) return undefined
   if (['true', '1', 'yes'].includes(value.toLowerCase())) return true
   if (['false', '0', 'no'].includes(value.toLowerCase())) return false
-  throw invalid(name, `must be true or false, got: ${value}`)
+  throw invalid(name, `must be true or false`)
 }
 
 function num(env: ConfigEnv, name: string): number | undefined {
@@ -31,7 +31,7 @@ function num(env: ConfigEnv, name: string): number | undefined {
   if (value === undefined) return undefined
   const parsed = Number(value)
   if (Number.isNaN(parsed)) {
-    throw invalid(name, `must be a number, got: ${value}`)
+    throw invalid(name, `must be a number`)
   }
   return parsed
 }
@@ -51,8 +51,9 @@ function json<T>(env: ConfigEnv, name: string, what: string): T | undefined {
   let parsed: unknown
   try {
     parsed = JSON.parse(value)
-  } catch (err) {
-    throw invalid(name, `must be ${what}: ${(err as Error).message}`)
+  } catch {
+    // JSON.parse errors quote the input, which can be a private key: never include them
+    throw invalid(name, `must be ${what}`)
   }
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     throw invalid(name, `must be ${what}`)
@@ -64,7 +65,7 @@ function oneOf<T extends string>(env: ConfigEnv, name: string, choices: readonly
   const value = str(env, name)
   if (value === undefined) return undefined
   if (!choices.includes(value as T)) {
-    throw invalid(name, `must be one of ${choices.join(', ')}, got: ${value}`)
+    throw invalid(name, `must be one of ${choices.join(', ')}`)
   }
   return value as T
 }
