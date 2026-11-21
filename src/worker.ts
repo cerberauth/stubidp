@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers'
 import { httpServerHandler } from 'cloudflare:node'
 import express, { type Express } from 'express'
 import { drizzle } from 'drizzle-orm/d1'
-import type { SigningAlgorithmWithNone } from 'oidc-provider'
 
+import { configCacheKey, resolveConfig, type ConfigEnv } from './config.js'
 import { purgeExpired } from './adapter.js'
 import { createApp } from './server.js'
 
@@ -43,65 +43,21 @@ export interface Env {
   STUBIDP_CLIENT_JWKS_URI?: string
 }
 
-const toSeconds = (value?: string) => (value ? Number(value) : undefined)
-const toOptionalBoolean = (value?: string) => (value === undefined ? undefined : value === 'true')
-
 // Cached Express app per isolate, rebuilt whenever any STUBIDP_* binding changes
 let cachedEntry: { key: string; app: Express } | null = null
 
-function configKey(currentEnv: Env): string {
-  return JSON.stringify(
-    Object.entries(currentEnv)
-      .filter(([name]) => name.startsWith('STUBIDP_'))
-      .sort(([a], [b]) => a.localeCompare(b)),
-  )
-}
-
 async function ensureApp(currentEnv: Env): Promise<Express> {
-  const key = configKey(currentEnv)
+  const key = configCacheKey(currentEnv as unknown as ConfigEnv)
   if (cachedEntry?.key === key) {
     return cachedEntry.app
   }
 
-  const db = drizzle(currentEnv.DB)
+  // Worker bindings are not process.env, so they are resolved explicitly
   const app = await createApp({
-    clientId: currentEnv.STUBIDP_CLIENT_ID,
-    clientSecret: currentEnv.STUBIDP_CLIENT_SECRET,
-    redirectUri: currentEnv.STUBIDP_REDIRECT_URI,
-    postLogoutRedirectUri: currentEnv.STUBIDP_POST_LOGOUT_REDIRECT_URI,
-    backchannelLogoutUri: currentEnv.STUBIDP_BACKCHANNEL_LOGOUT_URI,
-    db,
-    issuer: currentEnv.STUBIDP_ISSUER,
-    jwks: currentEnv.STUBIDP_JWKS ? JSON.parse(currentEnv.STUBIDP_JWKS) : undefined, // Worker bindings are not process.env
-    httpsRedirect: currentEnv.STUBIDP_HTTPS_REDIRECT === 'true',
+    ...resolveConfig(currentEnv as unknown as ConfigEnv),
+    db: drizzle(currentEnv.DB),
     securityHeaders: true,
-    enableRegistration: currentEnv.STUBIDP_ENABLE_REGISTRATION === 'true',
-    initialAccessToken: currentEnv.STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN,
-    skipPrompt: currentEnv.STUBIDP_SKIP_PROMPT === 'true',
-    scopes: currentEnv.STUBIDP_SCOPES ? currentEnv.STUBIDP_SCOPES.split(',').map((s) => s.trim()) : undefined,
-    claims: currentEnv.STUBIDP_CLAIMS ? JSON.parse(currentEnv.STUBIDP_CLAIMS) : undefined,
-    accessTokenFormat: currentEnv.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined,
-    idTokenIncludesUserInfoClaims: currentEnv.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true',
-    accessTokenTtl: toSeconds(currentEnv.STUBIDP_ACCESS_TOKEN_TTL),
-    idTokenTtl: toSeconds(currentEnv.STUBIDP_ID_TOKEN_TTL),
-    refreshTokenTtl: toSeconds(currentEnv.STUBIDP_REFRESH_TOKEN_TTL),
-    sessionTtl: toSeconds(currentEnv.STUBIDP_SESSION_TTL),
-    disableTelemetry: currentEnv.STUBIDP_DISABLE_TELEMETRY === 'true',
-    interactionPath: currentEnv.STUBIDP_INTERACTION_PATH,
-    enableCimd: currentEnv.STUBIDP_ENABLE_CIMD === 'true',
-    cimdTrustedOrigins: currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS
-      ? currentEnv.STUBIDP_CIMD_TRUSTED_ORIGINS.split(',').map((s) => s.trim())
-      : undefined,
-    enableJwtIntrospection: currentEnv.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true',
-    introspectionSignedResponseAlg: currentEnv.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as
-      SigningAlgorithmWithNone | undefined,
-    enableJwtUserinfo: currentEnv.STUBIDP_ENABLE_JWT_USERINFO === 'true',
-    userinfoSignedResponseAlg: currentEnv.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined,
-    enableJar: toOptionalBoolean(currentEnv.STUBIDP_ENABLE_JAR),
-    requestObjectSigningAlg: currentEnv.STUBIDP_REQUEST_OBJECT_SIGNING_ALG as SigningAlgorithmWithNone | undefined,
-    requireSignedRequestObject: currentEnv.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true',
-    clientJwks: currentEnv.STUBIDP_CLIENT_JWKS ? JSON.parse(currentEnv.STUBIDP_CLIENT_JWKS) : undefined,
-    clientJwksUri: currentEnv.STUBIDP_CLIENT_JWKS_URI,
+    rateLimit: { disabled: true },
   })
 
   cachedEntry = { key, app }

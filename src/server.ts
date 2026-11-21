@@ -172,10 +172,7 @@ export async function createApp(options: AppOptions): Promise<Express> {
     })
   }
 
-  const interactionPath = (options.interactionPath ?? process.env.STUBIDP_INTERACTION_PATH ?? '/interaction').replace(
-    /\/$/,
-    '',
-  )
+  const interactionPath = (options.interactionPath ?? '/interaction').replace(/\/$/, '')
 
   app.get('/', cacheControl({ maxAge: 86400 }), (_req, res) => {
     res.type('html').send(homePage(oidc.issuer, { telemetry }))

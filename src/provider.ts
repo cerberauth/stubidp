@@ -78,21 +78,12 @@ const DEFAULT_ID_TOKEN_TTL = 60 * 60
 const DEFAULT_REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60
 const DEFAULT_SESSION_TTL = 14 * 24 * 60 * 60
 
-function resolveTtl(name: string, option: number | undefined, envValue: string | undefined, fallback: number) {
-  const value = option ?? (envValue ? Number(envValue) : fallback)
+function resolveTtl(name: string, option: number | undefined, fallback: number) {
+  const value = option ?? fallback
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${name} must be a positive integer number of seconds, got: ${option ?? envValue}`)
+    throw new Error(`${name} must be a positive integer number of seconds, got: ${option}`)
   }
   return value
-}
-
-function parseJwksEnv(value: string | undefined, envName = 'STUBIDP_JWKS'): Configuration['jwks'] | undefined {
-  if (!value) return undefined
-  try {
-    return JSON.parse(value) as Configuration['jwks']
-  } catch (err) {
-    throw new Error(`${envName} must be a valid JWKS JSON document: ${(err as Error).message}`)
-  }
 }
 
 const DEFAULT_ALG_BY_CURVE: Record<string, AsymmetricSigningAlgorithm> = {
@@ -122,10 +113,10 @@ function identityClaimsFor(sub: string, defaultUser?: DefaultUser) {
 }
 
 export async function createProvider(options: ProviderOptions): Promise<Provider> {
-  const issuer = options.issuer ?? process.env.STUBIDP_ISSUER ?? 'http://localhost:8484'
+  const issuer = options.issuer ?? 'http://localhost:8484'
   const telemetry = isTelemetryEnabled(options.disableTelemetry)
 
-  let jwks = options.jwks ?? parseJwksEnv(process.env.STUBIDP_JWKS)
+  let jwks = options.jwks
   if (!jwks) {
     const { privateKey } = await generateKeyPair('RS256', { extractable: true })
     const privateJwk = await exportJWK(privateKey)
@@ -139,31 +130,17 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
     'urn:ietf:params:oauth:grant-type:device_code',
   ]
 
-  const introspectionSignedResponseAlg =
-    options.introspectionSignedResponseAlg ??
-    (process.env.STUBIDP_INTROSPECTION_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
+  const {
+    introspectionSignedResponseAlg,
+    userinfoSignedResponseAlg,
+    requestObjectSigningAlg,
+    clientJwks,
+    clientJwksUri,
+  } = options
+  const requireSignedRequestObject = options.requireSignedRequestObject ?? false
 
-  const userinfoSignedResponseAlg =
-    options.userinfoSignedResponseAlg ??
-    (process.env.STUBIDP_USERINFO_SIGNED_RESPONSE_ALG as SigningAlgorithmWithNone | undefined)
-
-  const enableJar =
-    options.enableJar ??
-    (process.env.STUBIDP_ENABLE_JAR === 'true' ||
-      !!options.requestObjectSigningAlg ||
-      options.requireSignedRequestObject === true ||
-      !!process.env.STUBIDP_REQUEST_OBJECT_SIGNING_ALG ||
-      process.env.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true')
-
-  const requestObjectSigningAlg =
-    options.requestObjectSigningAlg ??
-    (process.env.STUBIDP_REQUEST_OBJECT_SIGNING_ALG as SigningAlgorithmWithNone | undefined)
-
-  const requireSignedRequestObject =
-    options.requireSignedRequestObject ?? process.env.STUBIDP_REQUIRE_SIGNED_REQUEST_OBJECT === 'true'
-
-  const clientJwks = options.clientJwks ?? parseJwksEnv(process.env.STUBIDP_CLIENT_JWKS, 'STUBIDP_CLIENT_JWKS')
-  const clientJwksUri = options.clientJwksUri ?? process.env.STUBIDP_CLIENT_JWKS_URI
+  // setting a request object algorithm or requiring signed request objects implies JAR
+  const enableJar = options.enableJar ?? (!!requestObjectSigningAlg || requireSignedRequestObject)
 
   const staticClient =
     options.clientId && options.redirectUri
@@ -192,66 +169,24 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
         ]
       : []
 
-  const accessTokenFormat =
-    options.accessTokenFormat ?? (process.env.STUBIDP_ACCESS_TOKEN_FORMAT as 'opaque' | 'jwt' | undefined) ?? 'opaque'
+  const accessTokenFormat = options.accessTokenFormat ?? 'opaque'
   const signingAlg = signingAlgFor(jwks)
 
-  const idTokenIncludesUserInfoClaims =
-    options.idTokenIncludesUserInfoClaims ?? process.env.STUBIDP_ID_TOKEN_INCLUDES_USERINFO_CLAIMS === 'true'
+  const idTokenIncludesUserInfoClaims = options.idTokenIncludesUserInfoClaims ?? false
 
-  const interactionPath = (options.interactionPath ?? process.env.STUBIDP_INTERACTION_PATH ?? '/interaction').replace(
-    /\/$/,
-    '',
-  )
+  const interactionPath = (options.interactionPath ?? '/interaction').replace(/\/$/, '')
 
-  const enableJwtIntrospection =
-    options.enableJwtIntrospection ?? process.env.STUBIDP_ENABLE_JWT_INTROSPECTION === 'true'
+  const enableJwtIntrospection = options.enableJwtIntrospection ?? false
+  const enableJwtUserinfo = options.enableJwtUserinfo ?? false
+  const enableCimd = options.enableCimd ?? false
+  const cimdTrustedOrigins = options.cimdTrustedOrigins ?? DEFAULT_CIMD_TRUSTED_ORIGINS
 
-  const enableJwtUserinfo = options.enableJwtUserinfo ?? process.env.STUBIDP_ENABLE_JWT_USERINFO === 'true'
+  const accessTokenTtl = resolveTtl('STUBIDP_ACCESS_TOKEN_TTL', options.accessTokenTtl, DEFAULT_ACCESS_TOKEN_TTL)
+  const idTokenTtl = resolveTtl('STUBIDP_ID_TOKEN_TTL', options.idTokenTtl, DEFAULT_ID_TOKEN_TTL)
+  const refreshTokenTtl = resolveTtl('STUBIDP_REFRESH_TOKEN_TTL', options.refreshTokenTtl, DEFAULT_REFRESH_TOKEN_TTL)
+  const sessionTtl = resolveTtl('STUBIDP_SESSION_TTL', options.sessionTtl, DEFAULT_SESSION_TTL)
 
-  const enableCimd = options.enableCimd ?? process.env.STUBIDP_ENABLE_CIMD === 'true'
-
-  const cimdTrustedOrigins =
-    options.cimdTrustedOrigins ??
-    process.env.STUBIDP_CIMD_TRUSTED_ORIGINS?.split(',')
-      .map((s) => s.trim())
-      .filter(Boolean) ??
-    DEFAULT_CIMD_TRUSTED_ORIGINS
-
-  const accessTokenTtl = resolveTtl(
-    'STUBIDP_ACCESS_TOKEN_TTL',
-    options.accessTokenTtl,
-    process.env.STUBIDP_ACCESS_TOKEN_TTL,
-    DEFAULT_ACCESS_TOKEN_TTL,
-  )
-  const idTokenTtl = resolveTtl(
-    'STUBIDP_ID_TOKEN_TTL',
-    options.idTokenTtl,
-    process.env.STUBIDP_ID_TOKEN_TTL,
-    DEFAULT_ID_TOKEN_TTL,
-  )
-  const refreshTokenTtl = resolveTtl(
-    'STUBIDP_REFRESH_TOKEN_TTL',
-    options.refreshTokenTtl,
-    process.env.STUBIDP_REFRESH_TOKEN_TTL,
-    DEFAULT_REFRESH_TOKEN_TTL,
-  )
-  const sessionTtl = resolveTtl(
-    'STUBIDP_SESSION_TTL',
-    options.sessionTtl,
-    process.env.STUBIDP_SESSION_TTL,
-    DEFAULT_SESSION_TTL,
-  )
-
-  const resolvedScopes = options.scopes ??
-    process.env.STUBIDP_SCOPES?.split(',').map((s) => s.trim()) ?? [
-      'openid',
-      'offline_access',
-      'email',
-      'profile',
-      'phone',
-      'address',
-    ]
+  const resolvedScopes = options.scopes ?? ['openid', 'offline_access', 'email', 'profile', 'phone', 'address']
 
   const allDefaultClaims: Configuration['claims'] = {
     openid: ['sub'],
@@ -278,7 +213,6 @@ export async function createProvider(options: ProviderOptions): Promise<Provider
 
   const resolvedClaims: Configuration['claims'] =
     options.claims ??
-    (process.env.STUBIDP_CLAIMS ? (JSON.parse(process.env.STUBIDP_CLAIMS) as Configuration['claims']) : undefined) ??
     (Object.fromEntries(
       Object.entries(allDefaultClaims).filter(([scope]) => resolvedScopes.includes(scope)),
     ) as Configuration['claims'])
