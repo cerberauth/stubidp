@@ -15,6 +15,8 @@ process.env.STUBIDP_SERVE_STATIC ??= '../public'
 initNodeTelemetry()
 startUsageAnalytics(pkg.version, argv['disable-telemetry'], undefined, () => countSetOptions(argv, optionNames))
 
+const PURGE_INTERVAL_MS = 60 * 60 * 1000
+
 const port = parseInt(process.env.STUBIDP_PORT || '8484', 10)
 
 const preset = argv['preset'] ? getPreset(argv['preset']) : null
@@ -152,6 +154,15 @@ app.listen(port, () => {
     preset.printInstructions({ issuer, clientId, clientSecret })
   }
 })
+
+if (process.env.STUBIDP_DATABASE_DIALECT) {
+  const { db } = await import('../build/db/db.js')
+  const { purgeExpired } = await import('../build/adapter.js')
+  const { default: logger } = await import('../build/logger.js')
+  const purge = () => purgeExpired(db).catch((err) => logger.error({ err }, 'failed to purge expired records'))
+  purge()
+  setInterval(purge, PURGE_INTERVAL_MS).unref()
+}
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, async () => {

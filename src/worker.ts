@@ -4,6 +4,7 @@ import express, { type Express } from 'express'
 import { drizzle } from 'drizzle-orm/d1'
 
 import { configCacheKey, resolveConfig, type ConfigEnv } from './config.js'
+import { purgeExpired } from './adapter.js'
 import { createApp } from './server.js'
 
 export interface Env {
@@ -12,6 +13,7 @@ export interface Env {
   STUBIDP_CLIENT_SECRET: string
   STUBIDP_REDIRECT_URI: string
   STUBIDP_POST_LOGOUT_REDIRECT_URI?: string
+  STUBIDP_BACKCHANNEL_LOGOUT_URI?: string
   STUBIDP_ISSUER?: string
   STUBIDP_JWKS?: string
   STUBIDP_HTTPS_REDIRECT?: string
@@ -77,4 +79,10 @@ app.use(async (req, res, next) => {
 const port = 8484
 app.listen(port)
 
-export default httpServerHandler({ port })
+export default {
+  ...httpServerHandler({ port }),
+  // Cron trigger (see wrangler.json): drop expired sessions, codes and tokens from D1
+  async scheduled(_controller, currentEnv, ctx) {
+    ctx.waitUntil(purgeExpired(drizzle(currentEnv.DB)))
+  },
+} satisfies ExportedHandler<Env>

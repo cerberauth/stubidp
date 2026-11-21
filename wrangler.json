@@ -19,6 +19,7 @@
   "alias": {
     "bun:sqlite": "./src/db/bun-sqlite-stub"
   },
+  "triggers": { "crons": ["0 * * * *"] },
   "assets": {
     "directory": "./public"
   },

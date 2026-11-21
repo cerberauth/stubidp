@@ -40,6 +40,7 @@ import { Aside } from '@/components/docs'
 | `--client-jwks`                       | No       | Inline JWKS JSON document for the static client public keys (e.g. to verify asymmetric JAR request objects).                              |
 | `--client-jwks-file`                  | No       | Path to a JWKS JSON file for the static client public keys.                                                                               |
 | `--client-jwks-uri`                   | No       | URL pointing to the JWKS document for the static client public keys.                                                                      |
+| `--backchannel-logout-uri`            | No       | OIDC Back-Channel Logout URI of the static client. See [Back-channel logout](/reference/endpoints/#back-channel-logout).                  |
 | `--interaction-path`                  | No       | Base path for the login/consent UI. Default: `/interaction`.                                                                              |
 | `--disable-telemetry`                 | No       | Disable CLI usage analytics and the Plausible script on the HTML pages. Also disabled by `DO_NOT_TRACK=1`. See [Telemetry](#telemetry).   |
 
@@ -76,6 +77,7 @@ Every CLI flag can also be set via an environment variable (see below). Environm
 | `STUBIDP_CLIENT_JWKS`                       | —                                                   | Inline JWKS JSON document for the static client public keys (equivalent to `--client-jwks`)                                                                       |
 | `STUBIDP_CLIENT_JWKS_FILE`                  | —                                                   | Path to a JWKS JSON file for the static client public keys (equivalent to `--client-jwks-file`)                                                                   |
 | `STUBIDP_CLIENT_JWKS_URI`                   | —                                                   | URL pointing to the JWKS document for the static client public keys (equivalent to `--client-jwks-uri`)                                                           |
+| `STUBIDP_BACKCHANNEL_LOGOUT_URI`            | —                                                   | OIDC Back-Channel Logout URI of the static client (equivalent to `--backchannel-logout-uri`)                                                                      |
 
 ### Server
 
@@ -219,8 +221,9 @@ STUBIDP_SKIP_PROMPT=true stubidp --redirect-uri http://localhost:3000/callback
 ```
 
 <Aside type="caution">
-  If `login_hint` is missing or not a valid email or E.164 phone number, the flow errors. Set `--default-user` if you
-  need a fixed identity without per-request hints.
+  If `login_hint` is missing, StubIdP redirects back to the client with `error=login_required`. If it is not a valid
+  email or E.164 phone number, the error is `invalid_request`. Set `--default-user` if you need a fixed identity without
+  per-request hints.
 </Aside>
 
 ## Access token format

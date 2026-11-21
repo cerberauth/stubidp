@@ -11,6 +11,7 @@ const env: Record<string, string> = {
   STUBIDP_CLIENT_SECRET: 'secret',
   STUBIDP_REDIRECT_URI: 'https://app.example.com/cb',
   STUBIDP_POST_LOGOUT_REDIRECT_URI: 'https://app.example.com/bye',
+  STUBIDP_BACKCHANNEL_LOGOUT_URI: 'https://app.example.com/backchannel',
   STUBIDP_ENABLE_REGISTRATION: 'true',
   STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN: 'iat',
   STUBIDP_SKIP_PROMPT: 'true',

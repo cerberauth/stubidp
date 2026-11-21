@@ -85,6 +85,7 @@ export function resolveConfig(env: ConfigEnv): AppOptions {
     clientSecret: publicClient ? undefined : str(env, 'STUBIDP_CLIENT_SECRET'),
     redirectUri: str(env, 'STUBIDP_REDIRECT_URI'),
     postLogoutRedirectUri: str(env, 'STUBIDP_POST_LOGOUT_REDIRECT_URI'),
+    backchannelLogoutUri: str(env, 'STUBIDP_BACKCHANNEL_LOGOUT_URI'),
     jwks: json<NonNullable<Configuration['jwks']>>(env, 'STUBIDP_JWKS', 'a valid JWKS JSON document'),
     enableRegistration: bool(env, 'STUBIDP_ENABLE_REGISTRATION'),
     initialAccessToken: str(env, 'STUBIDP_REGISTRATION_INITIAL_ACCESS_TOKEN'),
