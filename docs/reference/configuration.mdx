@@ -2,7 +2,7 @@
 title: Configuration
 description: Configure StubIdP with CLI flags and environment variables.
 sidebar:
-  order: 3
+  order: 1
 ---
 
 import { Aside } from '@/components/docs'
@@ -263,7 +263,7 @@ stubidp --jwks-file jwks.json --redirect-uri http://localhost:3000/callback
 STUBIDP_JWKS="$(cat jwks.json)" stubidp --redirect-uri http://localhost:3000/callback
 ```
 
-`--jwks-file` takes precedence over `STUBIDP_JWKS`. On Cloudflare Workers, store the JSON as the `STUBIDP_JWKS` secret; see [Cloudflare Workers](./deployment/cloudflare-workers/#persistent-signing-key).
+`--jwks-file` takes precedence over `STUBIDP_JWKS`. On Cloudflare Workers, store the JSON as the `STUBIDP_JWKS` secret; see [Cloudflare Workers](../deployment/cloudflare-workers/#persistent-signing-key).
 
 ## Token and session lifetimes
 
