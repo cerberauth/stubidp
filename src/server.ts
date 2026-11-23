@@ -15,7 +15,7 @@ import { createInteractionRouter } from './interactions.js'
 import { createChildLogger, withRequestId } from './logger.js'
 import { createProvider, ProviderOptions } from './provider.js'
 import { requestContext } from './request-context.js'
-import { homePage } from './views/index.js'
+import { errorPage, homePage } from './views/index.js'
 import { THEME_SCRIPT } from './views/layout.js'
 
 const THEME_SCRIPT_CSP_HASH = `'sha256-${createHash('sha256').update(THEME_SCRIPT).digest('base64')}'`
@@ -198,15 +198,22 @@ export async function createApp(options: AppOptions): Promise<Express> {
     oidc.callback(),
   )
 
-  // Express only recognizes an error-handling middleware if the callback
-  // declares exactly 4 parameters (err, req, res, next) - fewer than that and
-  // it's treated as regular middleware and never invoked for errors at all.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: ExposedError, req: Request, res: Response, _next: NextFunction) => {
     const status = err.statusCode ?? err.status ?? 500
-    const fields = withRequestId({ err, path: req.path, method: req.method })
+    const exposed = Boolean(err.expose) && status >= 400 && status < 500
+    const error = exposed ? (err.error ?? 'invalid_request') : 'server_error'
+    const description = exposed ? (err.error_description ?? err.message) : 'oops! something went wrong'
+    const fields = withRequestId({
+      err,
+      path: req.path,
+      method: req.method,
+      status: exposed ? status : 500,
+      error,
+      errorDescription: description,
+    })
 
-    if (status >= 500) {
+    if (status >= 500 || !exposed) {
       log.error(fields, 'unhandled request error')
     } else {
       log.warn(fields, 'request error')
@@ -215,20 +222,27 @@ export async function createApp(options: AppOptions): Promise<Express> {
     const span = trace.getActiveSpan()
     span?.recordException(err)
     span?.setStatus({ code: SpanStatusCode.ERROR, message: err.message })
+    span?.setAttribute('error.type', error)
 
     if (res.headersSent) {
       res.end()
       return
     }
 
-    if (err.expose && status >= 400 && status < 500) {
-      res
-        .status(status)
-        .json({ error: err.error ?? 'invalid_request', error_description: err.error_description ?? err.message })
+    res.status(exposed ? status : 500)
+    if (req.accepts(['json', 'html']) === 'html') {
+      res.type('html').send(
+        errorPage({
+          status: exposed ? status : 500,
+          error,
+          description: exposed ? description : undefined,
+          requestId: res.getHeader('x-request-id')?.toString(),
+          telemetry,
+        }),
+      )
       return
     }
-
-    res.status(500).json({ error: 'server_error', error_description: 'oops! something went wrong' })
+    res.json({ error, error_description: description })
   })
 
   return app
